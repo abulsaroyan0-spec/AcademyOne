@@ -144,53 +144,64 @@ document.addEventListener('visibilitychange',()=>{keys.clear();if(!document.hidd
 let storeState=null,storeBusy=false;
 const originalColors=new WeakMap(),originalCrownVisibility=new WeakMap(),storePreviews=new Map();
 
+
 const cosmeticFits=new WeakMap();
 function cosmeticRig(model){
  if(cosmeticFits.has(model))return cosmeticFits.get(model);
  model.updateWorldMatrix(true,true);
- const bones=new Map();model.traverse(o=>{if(o.isBone)bones.set(o.name.toLowerCase().replace(/[^a-z0-9]/g,''),o)});
- const bone=n=>bones.get(n.toLowerCase())||null,point=b=>model.worldToLocal(b.getWorldPosition(new THREE.Vector3()));
- const fit={bone,parts:[],head:null,torso:null,arms:[],feet:[]};
- const samples=[];model.traverse(o=>{if(!o.isMesh||!o.visible||!o.geometry?.attributes.position||/cape|weapon|crown|tiara|coronet/i.test(o.name))return;const pos=o.geometry.attributes.position,v=new THREE.Vector3();for(let i=0;i<pos.count;i+=Math.max(1,Math.floor(pos.count/3000))){v.fromBufferAttribute(pos,i);if(o.isSkinnedMesh)o.applyBoneTransform(i,v);o.localToWorld(v);model.worldToLocal(v);samples.push(v.clone())}});
- const head=bone('Head'),chest=bone('Chest')||bone('Spine'),hips=bone('Hips'),l=bone('UpperArmL'),r=bone('UpperArmR');
- if(head){const p=point(head),box=new THREE.Box3();for(const v of samples)if(v.y>p.y+.025&&Math.abs(v.x-p.x)<.29&&Math.abs(v.z-p.z)<.28&&v.y<p.y+.43)box.expandByPoint(v);const size=box.isEmpty()?new THREE.Vector3(.23,.25,.23):box.getSize(new THREE.Vector3()),c=box.isEmpty()?p.clone().add(new THREE.Vector3(0,.13,0)):box.getCenter(new THREE.Vector3());let top=box.isEmpty()?p.y+.25:box.max.y;for(const v of samples)if(v.y>top&&Math.abs(v.x-p.x)<.20&&Math.abs(v.z-p.z)<.20&&v.y<1.84)top=v.y;fit.head={bone:head,c,top,w:clamp(size.x,.18,.34),d:clamp(size.z,.17,.32)}}
- if(chest&&hips&&l&&r){const hp=point(hips),lp=point(l),rp=point(r),cp=point(chest),w=Math.abs(lp.x-rp.x),bottom=hp.y-.055,top=(lp.y+rp.y)*.5+.035;let front=cp.z+.13,back=cp.z-.13;for(const v of samples)if(v.y>bottom&&v.y<top&&Math.abs(v.x-cp.x)<w*.48){front=Math.max(front,Math.min(cp.z+.30,v.z));back=Math.min(back,Math.max(cp.z-.30,v.z))}fit.torso={bone:chest,c:new THREE.Vector3((lp.x+rp.x)/2,(top+bottom)/2,(front+back)/2),w:clamp(w+.09,.32,.59),h:clamp(top-bottom,.32,.68),d:clamp(front-back+.035,.23,.46)}}
- for(const side of ['L','R']){const upper=bone('UpperArm'+side),lower=bone('LowerArm'+side),hand=bone('Hand'+side),foot=bone('Foot'+side);for(const [a,b,rad] of [[upper,lower,.09],[lower,hand,.072]])if(a&&b){const p=point(a),q=point(b);let radius=rad;const dir=q.clone().sub(p),len=dir.length();if(len>.03){dir.normalize();for(const v of samples){const rel=v.clone().sub(p),along=rel.dot(dir);if(along>len*.20&&along<len*.80){const dist=rel.addScaledVector(dir,-along).length();if(dist<.16)radius=Math.max(radius,dist+.022)}}fit.arms.push({bone:a,p,q,r:clamp(radius,.07,.16)})}}
- if(foot){const p=point(foot),box=new THREE.Box3();for(const v of samples)if(v.y<p.y+.10&&v.y>p.y-.22&&Math.abs(v.x-p.x)<.115&&Math.abs(v.z-p.z)<.26)box.expandByPoint(v);const size=box.isEmpty()?new THREE.Vector3(.13,.12,.25):box.getSize(new THREE.Vector3()),c=box.isEmpty()?p.clone().add(new THREE.Vector3(0,-.025,.07)):box.getCenter(new THREE.Vector3());fit.feet.push({bone:foot,c,w:clamp(size.x+.04,.13,.24),h:clamp(size.y+.035,.12,.25),d:clamp(size.z+.04,.22,.40)})}}
- // Record local attachments in the same initial pose; transforms remain stable as bones animate.
- fit.reference=new Map();for(const b of bones.values())fit.reference.set(b,b.matrixWorld.clone().invert().multiply(model.matrixWorld));
- fit.attach=(group,b)=>{model.add(group);model.updateWorldMatrix(true,true);b.attach(group);group.userData.storeCosmetic=true;fit.parts.push(group)};
+ let head=null;model.traverse(o=>{if(o.isBone&&/(^|[:_])head$/i.test(o.name))head=o});
+ const fit={parts:[],head:null,materials:[],nativeCrowns:[]};
+ const points=[],headPoints=[],namedCrowns=[],v=new THREE.Vector3();
+ const hp=head?model.worldToLocal(head.getWorldPosition(new THREE.Vector3())):new THREE.Vector3(0,1.37,0);
+ model.traverse(o=>{
+  if(!o.isMesh||!o.geometry?.attributes.position)return;
+  const mats=Array.isArray(o.material)?o.material:[o.material];
+  const name=(o.name||'')+' '+mats.map(m=>m?.name||'').join(' ');
+  if(/crown|tiara|coronet/i.test(name)){namedCrowns.push(o);fit.nativeCrowns.push({mesh:o,visible:o.visible});return}
+  // Keep eyes, face, skin, hair and metallic hardware unchanged.
+  if(!/weapon|pistol|rifle|gun/i.test(name)){
+   for(const m of mats){if(!m?.color||/skin|hair|eye|face|teeth|mouth|metal|gold|silver|crown/i.test(m.name||''))continue; if(!fit.materials.some(x=>x.m===m))fit.materials.push({m,color:m.color.clone()})}
+  }
+  if(!o.visible||/cape|weapon|pistol|rifle|gun/i.test(name))return;
+  const pos=o.geometry.attributes.position,si=o.geometry.attributes.skinIndex,sw=o.geometry.attributes.skinWeight;
+  const headIndices=o.isSkinnedMesh&&head?new Set(o.skeleton.bones.map((bone,i)=>bone===head||bone.parent===head?i:-1).filter(i=>i>=0)):null;
+  for(let i=0;i<pos.count;i++){
+   v.fromBufferAttribute(pos,i);if(o.isSkinnedMesh)o.applyBoneTransform(i,v);o.localToWorld(v);model.worldToLocal(v);
+   if(!Number.isFinite(v.y))continue;
+   if(Math.abs(v.x-hp.x)<.40&&Math.abs(v.z-hp.z)<.40&&v.y>hp.y-.025)points.push(v.clone());
+   if(headIndices&&si&&sw){let w=0;for(let k=0;k<4;k++)if(headIndices.has(si.getComponent(i,k)))w+=sw.getComponent(i,k);if(w>.55)headPoints.push(v.clone())}
+  }
+ });
+ const source=(headPoints.length>8?headPoints:points).filter(p=>p.y>hp.y-.025&&Math.abs(p.x-hp.x)<.40&&Math.abs(p.z-hp.z)<.40);
+ if(head&&source.length){const top=Math.max(...source.map(p=>p.y)),bottom=Math.min(...source.map(p=>p.y)),height=top-bottom;
+  const bandY=top-Math.min(.037,Math.max(.012,height*.12));
+  let ring=source.filter(p=>p.y>=bandY-.055&&p.y<=top+.001);if(ring.length<6)ring=source.filter(p=>p.y>=top-height*.36);
+  const box=new THREE.Box3().setFromPoints(ring.length?ring:source),center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
+  fit.head={bone:head,center,top,bandY,rx:Math.max(.065,size.x*.5+.013),rz:Math.max(.065,size.z*.5+.013),reference:head.matrixWorld.clone().invert().multiply(model.matrixWorld)};
+ }
  cosmeticFits.set(model,fit);return fit;
 }
-function equipModel(model,outfit,crown,headphones=null,shoes=null){
- if(!model)return;const fit=cosmeticRig(model);for(const part of fit.parts){part.removeFromParent();dispose(part)}fit.parts=[];
- const old=model.getObjectByName('AcademyStoreCrown');if(old){old.removeFromParent();dispose(old)}
- model.traverse(o=>{if(!o.isMesh)return;if(/crown|tiara|coronet/i.test(o.name)){if(!originalCrownVisibility.has(o))originalCrownVisibility.set(o,o.visible);o.visible=crown?false:originalCrownVisibility.get(o)}});
- // Build in the recorded pose and use saved bone-local transforms for repeat equips.
- const mat=(color,rough=.8,metal=0)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
- const mesh=(g,geo,m,x=0,y=0,z=0)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);g.add(o);return o};
- const oval=(g,m,w,h,d,x=0,y=0,z=0)=>{const o=mesh(g,new THREE.SphereGeometry(1,20,14),m,x,y,z);o.scale.set(w/2,h/2,d/2);return o};
- // Tailored garment shell: horizontal superellipse sections, flat front/back and tapered waist.
- const shell=(g,m,w,h,d,coat=false)=>{const rings=[[-.5,.91,.88],[-.43,.98,.94],[-.18,.89,.94],[.13,.94,1],[.34,1,.98],[.46,.94,.90],[.5,.66,.70]],n=32,positions=[],indices=[];for(const [y,wx,dz] of rings)for(let i=0;i<n;i++){const a=i*2*Math.PI/n,c=Math.cos(a),sn=Math.sin(a),shape=v=>Math.sign(v)*Math.pow(Math.abs(v),.58);positions.push(shape(c)*w*.5*wx,y*h,shape(sn)*d*.5*dz)}for(let j=0;j<rings.length-1;j++)for(let i=0;i<n;i++){const a=j*n+i,b=j*n+(i+1)%n,c=a+n,e=b+n;indices.push(a,c,b,b,c,e)}const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geo.setIndex(indices);geo.computeVertexNormals();m.side=THREE.DoubleSide;return mesh(g,geo,m)};
- const attach=(g,b)=>{const ref=fit.reference?.get(b);if(ref){g.applyMatrix4(ref);b.add(g);g.userData.storeCosmetic=true;fit.parts.push(g)}else fit.attach(g,b)};
- if(outfit&&fit.torso){const t=fit.torso,g=new THREE.Group(),cloth=mat(outfit.color),trim=mat(outfit.style==='hoodie'?0xddd6ef:0x20252c),zip=mat(0xaeb5c0,.38,.45);g.position.copy(t.c);const vest=outfit.style==='vest',coat=outfit.style==='coat',h=t.h+(coat?.14:0);
- shell(g,cloth,t.w,h,t.d,coat).position.y=coat?-.06:0;
- // Raised hems, pockets, placket and collar are actual geometry, not texture edits.
- shell(g,trim,t.w*.95,.048,t.d*.95).position.y=-h*.46;
- if(outfit.style==='hoodie'){const hood=oval(g,cloth,t.w*.61,.22,t.d*.65,0,h*.43,-t.d*.32);hood.rotation.x=-.23;for(const x of [-.05,.05])mesh(g,new THREE.CylinderGeometry(.006,.006,.16,8),trim,x,h*.26,t.d*.48);oval(g,cloth,t.w*.53,.14,.045,0,-h*.23,t.d*.47)}
- else{for(const x of [-1,1]){const lapel=mesh(g,new THREE.BoxGeometry(t.w*.19,h*.39,.035),trim,x*t.w*.14,h*.24,t.d*.43);lapel.rotation.z=x*.23;mesh(g,new THREE.BoxGeometry(t.w*.23,.10,.034),cloth,x*t.w*.25,-h*.20,t.d*.46)}mesh(g,new THREE.BoxGeometry(.014,h*.78,.025),zip,0,-h*.04,t.d*.49)}
- attach(g,t.bone);
- if(!vest)for(const a of fit.arms){const sleeve=new THREE.Group(),delta=a.q.clone().sub(a.p),len=delta.length();sleeve.position.copy(a.p).addScaledVector(delta,.5);sleeve.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());mesh(sleeve,new THREE.CapsuleGeometry(a.r,Math.max(.01,len-2*a.r),6,16),mat(outfit.color));attach(sleeve,a.bone)}}
- if(crown&&fit.head){const h=fit.head,g=new THREE.Group(),m=mat(crown.color,.3,.72),radius=Math.max(h.w,h.d)*.49;g.position.set(h.c.x,h.top+.008,h.c.z);mesh(g,new THREE.CylinderGeometry(radius*1.03,radius,.035,40,1,true),m);m.side=THREE.DoubleSide;for(let i=0;i<8;i++){const a=i*Math.PI/4;mesh(g,new THREE.ConeGeometry(radius*.23,radius*.58,4),m,Math.cos(a)*radius,.042,Math.sin(a)*radius)}g.name='AcademyStoreCrown';attach(g,h.bone)}
- if(headphones&&!crown&&fit.head){const h=fit.head,g=new THREE.Group(),m=mat(headphones.color,.48),pad=mat(0x16191f,.95),radius=h.w*.58;g.position.copy(h.c);const arc=mesh(g,new THREE.TorusGeometry(radius,.016,10,36,Math.PI),m,0,.04,0);arc.scale.y=1.15;for(const side of [-1,1]){oval(g,m,.075,.12,.10,side*radius,-.015,0);oval(g,pad,.04,.105,.085,side*(radius-.027),-.015,0)}attach(g,h.bone)}
- if(shoes)for(const f of fit.feet){const g=new THREE.Group(),m=mat(shoes.color,.65),sole=mat(shoes.id==='white-sneakers'?0xc4c7cf:0x111217);g.position.copy(f.c);oval(g,m,f.w,f.h,f.d);oval(g,sole,f.w*1.04,.038,f.d*1.02,0,-f.h*.38,0);if(shoes.id==='black-boots')oval(g,m,f.w*.89,f.h*1.15,f.d*.57,0,f.h*.48,-f.d*.13);else for(let i=0;i<3;i++)mesh(g,new THREE.BoxGeometry(f.w*.52,.009,.013),sole,0,f.h*.43,-f.d*.06+i*.025);attach(g,f.bone)}
+function equipModel(model,outfit,crown){
+ if(!model)return;const fit=cosmeticRig(model);for(const p of fit.parts){p.removeFromParent();dispose(p)}fit.parts=[];
+ for(const {m,color} of fit.materials){m.color.copy(color);if(outfit)m.color.lerp(new THREE.Color(outfit.color),.82)}
+ for(const native of fit.nativeCrowns)native.mesh.visible=crown?false:native.visible;
+ if(!crown||!fit.head)return;
+ const h=fit.head,g=new THREE.Group();g.name='AcademyStoreCrown';g.userData.storeCosmetic=true;
+ const gold=crown.id==='gold-crown',silver=crown.id==='silver-crown',metal=new THREE.MeshStandardMaterial({color:crown.color,metalness:.75,roughness:.32,side:THREE.DoubleSide});
+ // Elliptic open band follows the top cross section, with a bottom rim above the hairline.
+ g.position.set(h.center.x,h.bandY+.012,h.center.z);
+ const band=new THREE.Mesh(new THREE.CylinderGeometry(1.025,1,.032,48,1,true),metal);band.scale.set(h.rx,1,h.rz);g.add(band);
+ for(const y of [-.016,.016]){const rim=new THREE.Mesh(new THREE.TorusGeometry(1,.045,8,48),metal);rim.rotation.x=Math.PI/2;rim.scale.set(h.rx,h.rz,.10);rim.position.y=y;g.add(rim)}
+ const count=gold?8:silver?6:5,tipHeight=gold?.082:silver?.061:.045;
+ for(let i=0;i<count;i++){const a=i*2*Math.PI/count;const tip=new THREE.Mesh(new THREE.ConeGeometry(.024,tipHeight,4),metal);tip.position.set(Math.cos(a)*h.rx,.016+tipHeight*.5,Math.sin(a)*h.rz);tip.rotation.y=-a;g.add(tip)}
+ g.applyMatrix4(h.reference);h.bone.add(g);fit.parts.push(g);
 }
-function applyEquipment(){if(!hero||!storeState)return;const item=slot=>storeState.items.find(i=>i.id===storeState[slot]);equipModel(hero,item('outfit'),item('crown'),item('headphones'),item('shoes'))}
+function applyEquipment(){if(!hero||!storeState)return;const item=slot=>storeState.items.find(i=>i.id===storeState[slot]);equipModel(hero,item('outfit'),item('crown'))}
 let previewJob=null;
 async function generateStorePreviews(){
  const character=selected?.id||avatar.characterId,entry=catalog.find(i=>i.id===character);if(!entry?.model||!storeState||previewJob)return;
  const missing=storeState.items.filter(i=>!storePreviews.has(character+':'+i.id));if(!missing.length)return;
- previewJob=(async()=>{let model;try{const response=await fetch(entry.model);if(!response.ok)throw Error('Preview unavailable');const g=await loader.parseAsync(await response.arrayBuffer(),'/');model=fit(g.scene);if(character==='male-king')royalFinish(model);cosmeticRig(model);createHumanoidMotion(model);for(const item of missing){if(!$('#storeDialog').open)break;equipModel(model,item.slot==='outfit'?item:null,item.slot==='crown'?item:null,item.slot==='headphones'?item:null,item.slot==='shoes'?item:null);storePreviews.set(character+':'+item.id,thumbnail(model));if($('#storeDialog').open)renderStore();await new Promise(resolve=>requestAnimationFrame(resolve));}}catch(e){$('#storeFeedback').textContent='Some 3D previews unavailable.'}finally{if(model)dispose(model)}})();try{await previewJob}finally{previewJob=null}
+ previewJob=(async()=>{let model;try{const response=await fetch(entry.model);if(!response.ok)throw Error('Preview unavailable');const g=await loader.parseAsync(await response.arrayBuffer(),'/');model=fit(g.scene);if(character==='male-king')royalFinish(model);cosmeticRig(model);createHumanoidMotion(model);for(const item of missing){if(!$('#storeDialog').open)break;equipModel(model,item.slot==='outfit'?item:null,item.slot==='crown'?item:null);storePreviews.set(character+':'+item.id,thumbnail(model));if($('#storeDialog').open)renderStore();await new Promise(resolve=>requestAnimationFrame(resolve));}}catch(e){$('#storeFeedback').textContent='Some 3D previews unavailable.'}finally{if(model)dispose(model)}})();try{await previewJob}finally{previewJob=null}
 }
 function renderStore(){const root=$('#storeItems');root.replaceChildren();$('#storeBalance').textContent=(storeState.admin?'Admin · all items unlocked · ':'')+'🪙 '+storeState.coins;for(const item of storeState.items){const card=document.createElement('div');card.className='store-item';const sw=document.createElement('div');sw.className='store-swatch';const preview=storePreviews.get((selected?.id||avatar.characterId)+':'+item.id);if(preview){const img=document.createElement('img');img.src=preview;img.alt=item.name+' on your character';sw.append(img)}else{sw.style.background=item.color;sw.textContent='Loading preview…'}const name=document.createElement('strong');name.textContent=item.name;const owned=storeState.owned.includes(item.id),equipped=storeState[item.slot]===item.id;const meta=document.createElement('small');meta.textContent=equipped?'Equipped':owned?'In inventory':item.price+' Coins';const button=document.createElement('button');button.className='btn';button.textContent=equipped?'Unequip':owned?'Equip':'Buy · '+item.price;button.disabled=storeBusy||(!owned&&storeState.coins<item.price);button.onclick=()=>storeAction(owned?'equip':'buy',equipped?null:item.id,item.slot);card.append(sw,name,meta,button);root.append(card)}}
 async function storeAction(action,id,slot){if(storeBusy)return;storeBusy=true;renderStore();try{storeState=await api('store/'+action,{id,slot});applyEquipment();await loadProgress();$('#storeFeedback').textContent=action==='buy'?'Purchased. Equip your new item from inventory.':'Equipment updated.'}catch(e){$('#storeFeedback').textContent=e.message}finally{storeBusy=false;renderStore()}}
