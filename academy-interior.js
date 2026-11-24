@@ -19,7 +19,7 @@ export function makeAcademy(scene){
  // Entrance reconstructed from the supplied front-facing photograph. Dimensions are estimates.
  surface(g,'floor',5.6,10,0,0,5);
  wall(g,concrete,.25,4.9,10,-2.93,2.45,5);wall(g,concrete,.25,4.9,10,2.93,2.45,5);wall(g,concrete,5.8,.22,10,0,5,5);
- wall(g,concrete,2.5,4.9,.28,-1.65,2.45,0);wall(g,concrete,2.0,4.9,.28,1.96,2.45,0);wall(g,concrete,1.2,2.45,.28,.5,3.675,0);
+ wall(g,concrete,2.72,4.9,.28,-1.46,2.45,0);wall(g,concrete,1.72,4.9,.28,1.96,2.45,0);wall(g,concrete,1.2,2.45,.28,.5,3.675,0);
  wall(g,concrete,.46,4.9,.32,1.43,2.45,.21);box(g,warm,.018,4.78,.019,1.68,2.39,.382);
  box(g,black,5.7,.075,.07,0,.04,.19);
  for(let x of [-2.25,-.48,2.55]){box(g,frame,.29,.045,.18,x,.028,.48);box(g,warm,.23,.022,.10,x,.06,.48);let a=mesh(g,new T.PlaneGeometry(1.55,2.55),new T.MeshBasicMaterial({map:washTexture(),transparent:true,depthWrite:false,blending:T.AdditiveBlending}),x,1.27,.155);light(g,x,.1,.6,x,1.1,0,8)}
@@ -55,5 +55,5 @@ export function makeAcademy(scene){
  return {door,colliders,open:false,angle:0};
 }
 export function doorNearby(state,x,z){return Math.abs(x-.5)<1.6&&Math.abs(z)<1.7}
-export function advanceDoor(state,dt){state.angle=T.MathUtils.damp(state.angle,state.open?Math.PI*.53:0,7,dt);state.door.rotation.y=state.angle}
+export function advanceDoor(state,dt){state.angle=T.MathUtils.damp(state.angle,state.open?Math.PI*.53:0,7,dt);state.door.rotation.y=-state.angle}
 export function academyWalkable(state,x,z,r=.27){if(z>9.7-r||z< -13.55+r)return false;if(z>.22){if(Math.abs(x)>2.8-r)return false}else if(Math.abs(x)>5.17-r)return false;if(Math.abs(z)<.29+r){if(x<-.1+r||x>1.1-r||state.angle<1.2)return false}return !state.colliders.some(c=>Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r)}
