@@ -13,27 +13,63 @@ export const chapters=[
 ['02 / BINARY WORLD','Beyond<br><em>0 and 1.</em>','Bits become information. Information becomes possibility.'],
 ['03 / COMPILE','Build the<br><em>impossible.</em>','Source code becomes instructions the machine can execute.'],
 ['04 / MEMORY CORE','Inside the<br><em>machine.</em>','Memory, registers and the processor work together.'],
-['05 / NETWORK','Follow the<br><em>signal.</em>','Travel through data streams and the server infrastructure.'],
-['06 / ACCESS GRANTED','Your world<br><em>is ready.</em>','One last gateway. Welcome to AcademyOne.']];
-export function makeJourney(scene){
-scene.background=new T.Color(0x02090f);scene.fog=new T.FogExp2(0x02090f,.018);scene.add(new T.AmbientLight(0x7bc7cf,1.8));
-const green=basic(0x42eacb),blue=basic(0x388cf5),purple=basic(0x9a6cf8),dark=solid(0x10282d),metal=solid(0x1d3d46),cyan=solid(0x2b8b83,0x0b3b37),rng=rand(317),rings=[],lights=[],labels=[],data=[];
-box(scene,solid(0x071922),18,.18,158,0,-3.3,-65);
-const grid=new T.GridHelper(160,80,0x1b7068,0x10333c);grid.position.set(0,-3.2,-65);scene.add(grid);
-for(let i=0;i<19;i++){const z=10-i*2.65;const ring=mesh(scene,new T.TorusGeometry(4.6,.045,6,60),i%3===0?blue:green,0,.05,z);rings.push(ring);for(let side of [-1,1]){const txt=Array.from({length:12},()=>rng()>.5?'1':'0').join('');let s=sign(scene,txt,side*(2.5+rng()*1.3),1.3+rng()*1.9,z-.6,2.5,.48);s.rotation.y=side*.22;labels.push(s)}}
-const code=['#include <iostream>','int main() {','std::cout <<','"Hello, world!";','return 0;','}', 'g++ main.cpp','BUILD SUCCESS'];for(let i=0;i<code.length;i++){let s=sign(scene,code[i],i%2?2.55:-2.55,1.4,-43-i*2.6,4.5,1.05);s.rotation.y=i%2?.28:-.28}
-for(let i=0;i<8;i++){let z=-43-i*3.1;box(scene,dark,10,.07,1.2,0,-2.9,z);box(scene,cyan,9,.025,.045,0,-2.85,z)}
-const chip=new T.Group();chip.position.set(0,-2.4,-69);scene.add(chip);box(chip,metal,6,.45,6,0,0,0);box(chip,cyan,3.8,.2,3.8,0,.32,0);sign(chip,'CPU / 64 BIT',0,1.25,0,3.3,.8);
-const pins=[];for(let i=0;i<14;i++)for(const s of [-1,1]){pins.push([s*3.3,.12,-2.7+i*.41,.7,.12,.17]);pins.push([-2.7+i*.41,.12,s*3.3,.17,.12,.7])}instances(chip,new T.BoxGeometry(1,1,1),green,pins);
-const mem=[], traces=[];for(let s of [-1,1])for(let i=0;i<7;i++){const z=-71-i*2.5;mem.push([s*4.2,-.5,z,.85,4.5,1.7]);for(let j=0;j<5;j++)traces.push([s*3.74,-1.8+j*.55,z,.04,.24,1.1])}instances(scene,new T.BoxGeometry(1,1,1),metal,mem);instances(scene,new T.BoxGeometry(1,1,1),purple,traces);sign(scene,'MEMORY / CACHE',0,3,-78,4.2,.8);
-const racks=[],slots=[],leds=[];for(let s of [-1,1])for(let i=0;i<10;i++){let z=-91-i*2.8;racks.push([s*4,-1,z,1.9,4.5,1.8]);for(let j=0;j<10;j++){slots.push([s*4,-2.8+j*.38,z+.93,1.65,.29,.06]);for(let k=0;k<3;k++)leds.push([s*4-.57+k*.19,-2.8+j*.38,z+.98,.065,.065,.04])}}instances(scene,new T.BoxGeometry(1,1,1),dark,racks);instances(scene,new T.BoxGeometry(1,1,1),metal,slots);const led=instances(scene,new T.BoxGeometry(1,1,1),green,leds);sign(scene,'SERVER / NETWORK',0,3,-100,4.8,.9);
-const star=[];for(let i=0;i<900;i++)star.push((rng()-.5)*18,(rng()-.5)*10,12-rng()*150);let sg=new T.BufferGeometry();sg.setAttribute('position',new T.Float32BufferAttribute(star,3));scene.add(new T.Points(sg,new T.PointsMaterial({color:0x6ce7e3,size:.045,transparent:true,opacity:.7})));
-for(let i=0;i<42;i++){const z=10-rng()*142;let m=box(scene,i%3?green:blue,.024,.024,.65+rng()*2,(rng()-.5)*8,(rng()-.5)*5,z);data.push({m,z,speed:2+rng()*6})}
-const gate=new T.Group();gate.position.set(0,0,-128);scene.add(gate);for(let i=0;i<5;i++){let r=mesh(gate,new T.TorusGeometry(3.4+i*.43,.07,8,96),i%2?blue:green,0,0,i*.35);r.rotation.z=i*.4}
-mesh(gate,new T.CircleGeometry(3.35,96),new T.MeshBasicMaterial({color:0xd7fff5,transparent:true,opacity:.93}),0,0,-.2);sign(scene,'ACCESS GRANTED',0,5,-128,6,1.25);
-return {rings,data,gate,led,labels};
+['05 / NETWORK','Follow the<br><em>signal.</em>','Travel through data streams and server infrastructure.'],
+['06 / VERSION CONTROL','Every change<br><em>has a story.</em>','Follow branching commits into the next dimension.'],
+['07 / ALGORITHMS','Find a<br><em>better path.</em>','Explore the structure of graphs and connected decisions.'],
+['08 / OPERATING SYSTEM','Beyond the<br><em>kernel.</em>','Threads, processes and scheduling in motion.'],
+['09 / DATABASE','Unlock<br><em>knowledge.</em>','Records and indexes connect the information around us.'],
+['10 / CLOUD','Scale beyond<br><em>one machine.</em>','Distributed nodes exchange signals in a connected system.'],
+['11 / SECURITY','Into the<br><em>deep core.</em>','Descend through layers of encryption and access control.'],
+['12 / ACCESS GRANTED','Your world<br><em>is ready.</em>','One last gateway. Welcome to AcademyOne.']];
+export function journeyCurve(){
+ const knots=[[0,0,16],[0,0,-14],[0,0,-44],[0,0,-74],[0,0,-104],[0,0,-134],[5,0,-162],[29,1,-176],[62,1,-176],[95,1,-176],[126,0,-177],[151,-8,-182],[172,-23,-191],[190,-37,-200],[205,-40,-203]];
+ const curve=new T.CatmullRomCurve3(knots.map(p=>new T.Vector3(...p)),false,'centripetal');curve.arcLengthDivisions=1600;curve.updateArcLengths();return curve;
 }
-export function animateJourney(state,camera,p,time){const z=T.MathUtils.lerp(12,-130,p);const drift=Math.sin(p*Math.PI*5)*.75*Math.sin(Math.PI*p);camera.position.set(drift,.22+Math.sin(p*Math.PI*4)*.24,z);camera.lookAt(drift*.35,.1,z-8);camera.rotation.z=Math.sin(p*Math.PI*6)*.035*Math.sin(Math.PI*p);camera.fov=38+10*ease(.08,.25,p)-5*ease(.78,1,p);camera.updateProjectionMatrix();for(let i=0;i<state.rings.length;i++){state.rings[i].rotation.z=time*.11+i*.24;state.rings[i].scale.setScalar(1+.025*Math.sin(time*1.6+i))}for(let item of state.data)item.m.position.z=12-(((12-item.z)+time*item.speed)%144);state.gate.rotation.z=time*.075;state.led.material.color.setHSL(.45,.85,.48+.12*Math.sin(time*3));}
+export function makeJourney(scene){
+ scene.background=new T.Color(0x020910);scene.fog=new T.FogExp2(0x020910,.026);scene.add(new T.AmbientLight(0x86c4c9,2.1));
+ const curve=journeyCurve(),length=curve.getLength(),half=length/24,forward=new T.Vector3(0,0,-1),rng=rand(317);
+ const green=basic(0x42f7c9),blue=basic(0x489eff),purple=basic(0xae85ff),gold=basic(0xffc77a),dark=solid(0x0b2029),metal=solid(0x24434b),cyan=solid(0x247c76,0x0b4743);
+ const rings=[],spinners=[],packets=[],pulseMaterials=[],sections=[];
+ function station(p){const g=new T.Group();g.position.copy(curve.getPointAt(p));g.quaternion.setFromUnitVectors(forward,curve.getTangentAt(p).normalize());scene.add(g);return g}
+ function link(g,a,b,m,r=.027){let x=new T.Vector3(...a),y=new T.Vector3(...b),d=y.clone().sub(x);const o=mesh(g,new T.CylinderGeometry(r,r,d.length(),5),m);o.position.copy(x.add(y).multiplyScalar(.5));o.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),d.normalize());return o}
+ function loop(g,z,r=4.3,m=green){const o=mesh(g,new T.TorusGeometry(r,.055,6,64),m,0,0,z);rings.push(o);return o}
+ function panel(g,t,x,y,z,w=4){let a=sign(g,t,x,y,z,w,.7);a.rotation.y=x>0?-.22:x<0?.22:0;return a}
+ function stripe(g,z,m=cyan){box(g,m,9,.04,.07,0,-2.9,z)}
+ function stream(g,from,to,count,m){for(let i=0;i<count;i++){const obj=mesh(g,new T.BoxGeometry(.07,.07,.65),m);packets.push({obj,from:new T.Vector3(...from),to:new T.Vector3(...to),offset:i/count,speed:.17+rng()*.12})}}
+ // Curved circuit rails and suspended frames join every room continuously.
+ const railPts=[[],[]],dust=[];
+ for(let i=0;i<=240;i++){let p=i/240,c=curve.getPointAt(p),t=curve.getTangentAt(p),right=new T.Vector3().crossVectors(t,new T.Vector3(0,1,0)).normalize(),up=new T.Vector3().crossVectors(right,t).normalize();for(let side=0;side<2;side++)railPts[side].push(c.clone().addScaledVector(right,side?4.7:-4.7).addScaledVector(up,-2.8));if(i%6===0){const g=station(p);box(g,dark,10,.12,1.6,0,-3.05,0);box(g,cyan,9,.035,.055,0,-2.96,0)}for(let k=0;k<4;k++){let v=c.clone().addScaledVector(right,(rng()-.5)*17).addScaledVector(up,(rng()-.5)*11);dust.push(v.x,v.y,v.z)}}
+ for(let pts of railPts){let geo=new T.BufferGeometry().setFromPoints(pts);scene.add(new T.Line(geo,new T.LineBasicMaterial({color:0x2bcfae,transparent:true,opacity:.8})))}
+ const pg=new T.BufferGeometry();pg.setAttribute('position',new T.Float32BufferAttribute(dust,3));scene.add(new T.Points(pg,new T.PointsMaterial({color:0x79ddd9,size:.055,transparent:true,opacity:.62})));
+ for(let k=0;k<12;k++){let g=station((k+.5)/12);sections.push(g);let l=half*.78;panel(g,chapters[k][0],0,3.4,-l,5.1);
+  switch(k){
+   case 0:{for(let i=0;i<5;i++){let z=l-i*l*.42;loop(g,z,4.5,i%2?blue:green);stripe(g,z)}panel(g,'SYSTEM ONLINE',0,1.8,-l,4.7);panel(g,'BOOT SEQUENCE',-3,1.6,3);panel(g,'HELLO, WORLD',3,1.6,-3);break}
+   case 1:{for(let i=0;i<8;i++){let z=l-i*2*l/8;loop(g,z,4.6,i%3?green:blue);for(let s of [-1,1])panel(g,Array.from({length:12},()=>rng()>.5?'1':'0').join(''),s*(2.6+rng()),1+rng()*1.6,z-.35,2.7)}break}
+   case 2:{let code=['#include <iostream>','int main() {','std::cout <<','"Hello, world!";','return 0;','}','g++ main.cpp','BUILD SUCCESS'];for(let i=0;i<code.length;i++){let z=l-i*2*l/8;panel(g,code[i],i%2?3:-3,1.2,z,4.5);stripe(g,z)}break}
+   case 3:{const chip=new T.Group();g.add(chip);chip.position.set(0,-2.55,0);box(chip,metal,6,.4,6,0,0,0);box(chip,cyan,3.8,.18,3.8,0,.3,0);panel(chip,'CPU / 64 BIT',0,1.2,0,3.6);let pins=[],banks=[],bits=[];for(let i=0;i<14;i++)for(let s of [-1,1]){pins.push([s*3.3,.12,-2.7+i*.41,.7,.12,.17]);pins.push([-2.7+i*.41,.12,s*3.3,.17,.12,.7])}instances(chip,new T.BoxGeometry(1,1,1),green,pins);for(let s of [-1,1])for(let i=0;i<6;i++){let z=l-i*2*l/6;banks.push([s*4.2,-.3,z,.65,4.1,1.5]);for(let j=0;j<6;j++)bits.push([s*3.84,-1.7+j*.55,z,.04,.18,1.05])}instances(g,new T.BoxGeometry(1,1,1),metal,banks);instances(g,new T.BoxGeometry(1,1,1),purple,bits);break}
+   case 4:{let racks=[],slots=[],leds=[];for(let s of [-1,1])for(let i=0;i<7;i++){let z=l-i*2*l/7;racks.push([s*4,-.65,z,1.65,4.5,1.8]);for(let j=0;j<10;j++){slots.push([s*4,-2.4+j*.37,z+.93,1.45,.28,.06]);for(let k=0;k<3;k++)leds.push([s*4-.45+k*.18,-2.4+j*.37,z+.98,.065,.065,.04])}}instances(g,new T.BoxGeometry(1,1,1),dark,racks);instances(g,new T.BoxGeometry(1,1,1),metal,slots);const led=basic(0x53ffba);pulseMaterials.push(led);instances(g,new T.BoxGeometry(1,1,1),led,leds);for(let s of [-1,1])stream(g,[s*2.6,2.4,l],[s*2.6,2.4,-l],7,blue);panel(g,'TCP / IP',0,2.5,0);break}
+   case 5:{let lanes=[[-3,1.1],[-1.6,1.8],[1.6,1.8],[3,1.1]],nodes=[];for(let [x,y] of lanes){link(g,[0,0,l],[x,y,l-4],purple,.045);link(g,[x,y,l-4],[x,y,-l+4],green,.045);link(g,[x,y,-l+4],[0,0,-l],purple,.045);for(let i=0;i<5;i++)nodes.push([x,y,l-4-i*(2*l-8)/4,.32,.32,.32]);stream(g,[x,y,l-4],[x,y,-l+4],3,gold)}instances(g,new T.IcosahedronGeometry(1,1),green,nodes);panel(g,'git commit',-3,2.7,4);panel(g,'git merge',3,2.7,-4);panel(g,'BRANCH / MAIN',0,3,-l+2);break}
+   case 6:{let nodes=[];for(let i=0;i<18;i++){let a=i*Math.PI*2/6,z=l-3-Math.floor(i/6)*5;nodes.push([Math.cos(a)*3.4,Math.sin(a)*3,z])}for(let i=0;i<nodes.length;i++){let a=nodes[i];link(g,a,nodes[Math.floor(i/6)*6+(i+1)%6],blue);if(i+6<nodes.length)link(g,a,nodes[i+6],green)}instances(g,new T.IcosahedronGeometry(.2,1),purple,nodes);for(let z of [l-3,0,-l+3]){let o=mesh(g,new T.TorusKnotGeometry(.95,.09,90,8,2,3),green,0,-.3,z);spinners.push({o,axis:'y',speed:.32})}panel(g,'O(log n)',-3,2.2,0);panel(g,'GRAPH SEARCH',3,2.2,-5);break}
+   case 7:{let tiles=[],indicators=[];for(let s of [-1,1])for(let i=0;i<7;i++){let z=l-i*2*l/7;tiles.push([s*3.4,-.45,z,1.15,3.9,1.7]);for(let j=0;j<5;j++)indicators.push([s*2.8,-1.65+j*.6,z,.045,.26,1.15])}instances(g,new T.BoxGeometry(1,1,1),metal,tiles);instances(g,new T.BoxGeometry(1,1,1),blue,indicators);for(let i=0;i<5;i++)stream(g,[-2.3,-1+i*.65,l],[2.3,-1+i*.65,-l],4,i%2?gold:green);panel(g,'SCHEDULER',0,3,3);panel(g,'THREAD / 01',-3,2,-3);panel(g,'CONTEXT SWITCH',3,2,-7);break}
+   case 8:{let rows=[];for(let s of [-1,1])for(let i=0;i<4;i++){let z=l-2-i*(2*l-4)/3;let tower=new T.Group();tower.position.set(s*3.4,-2.5,z);g.add(tower);for(let j=0;j<4;j++){mesh(tower,new T.CylinderGeometry(.8,.8,.32,32),metal,0,.4+j*.52,0);let ring=mesh(tower,new T.TorusGeometry(.81,.027,5,40),purple,0,.58+j*.52,0);ring.rotation.x=Math.PI/2}for(let j=0;j<4;j++)rows.push([s*2.55,-1.9+j*.5,z,.06,.13,.3])}instances(g,new T.BoxGeometry(1,1,1),green,rows);panel(g,'SELECT * FROM',0,2.7,2,4.7);panel(g,'INDEX / B-TREE',0,2.7,-5,4.7);break}
+   case 9:{let nodes=[];for(let i=0;i<12;i++){let a=i*2.399,z=l-2-i*(2*l-4)/11;nodes.push([Math.cos(a)*3.7,Math.sin(a)*2.7,z])}for(let i=0;i<nodes.length-1;i++){link(g,nodes[i],nodes[i+1],blue,.035);stream(g,nodes[i],nodes[i+1],2,green)}instances(g,new T.IcosahedronGeometry(.43,1),cyan,nodes);for(let a of nodes){let o=mesh(g,new T.TorusGeometry(.64,.035,6,32),blue,...a);spinners.push({o,axis:'y',speed:.4})}panel(g,'CLOUD / CLUSTER',0,3,0,5);break}
+   case 10:{for(let i=0;i<9;i++){let z=l-i*2*l/9;let o=loop(g,z,4.4-i*.12,i%2?gold:green);o.rotation.z=i*.2;panel(g,i%2?'AES / ENCRYPTED':'0101 / VERIFIED',i%2?2.9:-2.9,1.6,z-.5,2.8)}panel(g,'AUTHENTICATING',0,3,0,5);break}
+   case 11:{for(let i=0;i<5;i++){let z=l-i*2*l/5;let o=loop(g,z,4.4-i*.15,i%2?blue:green);o.rotation.z=i*.2}const gate=station(.975);for(let i=0;i<5;i++){let o=mesh(gate,new T.TorusGeometry(3.4+i*.4,.07,8,96),i%2?blue:green,0,0,i*.19);spinners.push({o,axis:'z',speed:i%2?.22:-.18})}const center=mesh(gate,new T.CircleGeometry(3.35,80),new T.MeshBasicMaterial({color:0xcffff2,transparent:true,opacity:.9,side:T.DoubleSide}),0,0,-.3);panel(gate,'ACCESS GRANTED',0,4.3,-.4,5.5);break}
+  }
+ }
+ return {curve,length,rings,spinners,packets,pulseMaterials,sections};
+}
+export function animateJourney(state,camera,p,time){
+ const q=T.MathUtils.clamp(p,0,1),c=state.curve.getPointAt(q),tan=state.curve.getTangentAt(q).normalize(),right=new T.Vector3().crossVectors(tan,new T.Vector3(0,1,0)).normalize();
+ const up=new T.Vector3().crossVectors(right,tan).normalize();const sway=Math.sin(q*Math.PI*8)*.16*Math.sin(Math.PI*q);
+ camera.position.copy(c).addScaledVector(right,sway).addScaledVector(up,.12);const ahead=state.curve.getPointAt(Math.min(1,q+.019));if(q>.98)ahead.copy(c).addScaledVector(tan,6);camera.up.set(0,1,0);camera.lookAt(ahead);camera.rotateZ(-.10*ease(.45,.52,q)*(1-ease(.61,.69,q))+.045*Math.sin(q*Math.PI*8)*Math.sin(Math.PI*q));
+ const fov=42+8*ease(.40,.52,q)-5*ease(.65,.76,q)+8*ease(.81,.91,q);if(Math.abs(camera.fov-fov)>.02){camera.fov=fov;camera.updateProjectionMatrix()}
+ for(let [i,o] of state.rings.entries())o.scale.setScalar(1+.025*Math.sin(time*1.8+i));for(let {o,axis,speed} of state.spinners)o.rotation[axis]=time*speed;
+ for(let a of state.packets){let f=(time*a.speed+a.offset)%1;a.obj.position.lerpVectors(a.from,a.to,f);const direction=a.to.clone().sub(a.from).normalize();a.obj.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),direction)}
+ for(let m of state.pulseMaterials)m.color.setHSL(.43,.85,.48+.12*Math.sin(time*3));
+ // Only adjacent chapters need to draw; all are already constructed.
+ let n=Math.min(11,Math.floor(q*12));state.sections.forEach((g,i)=>g.visible=Math.abs(i-n)<=2);
+}
 export function makePlaza(scene){scene.background=new T.Color(0xb6dcd9);scene.fog=new T.Fog(0xb6dcd9,27,75);const floor=solid(0xc4dcd6),path=solid(0xe3ede5),structure=solid(0x203f48),trim=solid(0x57cdb5,0x103a36),glass=solid(0x70a3ac,0x0b252c);box(scene,floor,52,.25,52,0,-.15,0);box(scene,path,7,.04,40,0,-.01,0);box(scene,path,31,.04,6,0,-.009,-2);const grid=new T.GridHelper(50,50,0x97bdb1,0xaec8c3);grid.position.y=.015;scene.add(grid);
 for(const [x,z,w,h,d,label] of [[0,-12,13,7,6,'ACADEMY.ONE'],[-12,-3,7,5,8,'CODE LAB'],[12,-3,7,5,8,'SERVER LAB']]){box(scene,structure,w,h,d,x,h/2,z);box(scene,trim,w+.3,.24,d+.3,x,h+.08,z);for(let i=0;i<Math.floor(w/1.4);i++)box(scene,glass,.95,h*.51,.075,x-w/2+.85+i*1.4,h*.57,z+d/2+.04);sign(scene,label,x,h-.52,z+d/2+.09,Math.min(w-1,6),.8);box(scene,trim,2.4,2.5,.09,x,1.25,z+d/2+.1)}
 for(let s of [-1,1])for(let z of [7,0,-7]){box(scene,structure,1.4,.45,1.4,s*5,.2,z);mesh(scene,new T.CylinderGeometry(.07,.13,1.4,8),solid(0x4e6b60),s*5,.9,z);mesh(scene,new T.IcosahedronGeometry(.78,1),solid(0x429a83),s*5,1.85,z)}
