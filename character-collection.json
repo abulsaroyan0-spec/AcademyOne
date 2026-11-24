@@ -1,5 +1,13 @@
 [
   {
+    "id": "space-panda",
+    "gender": "mascot",
+    "name": "Space Panda",
+    "theme": "Adventure",
+    "symbol": "🐼",
+    "color": "#a79bd5"
+  },
+  {
     "id": "web-hero",
     "gender": "male",
     "name": "Web Hero",
