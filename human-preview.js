@@ -34,6 +34,7 @@ nose:[['Natural',{}],['Subtle scrunch',pair('noseSneer',.15)],['Soft scrunch',pa
 lips:[['Natural',{}],['Soft press',pair('mouthPress',.25)],['Pressed',pair('mouthPress',.7)],['Pucker',{mouthPucker:.6}],['Rounded',{mouthFunnel:.65}],['Slight opening',{jawOpen:.14}],['Open',{jawOpen:.35}],['Upper lift',pair('mouthUpperUp',.55)],['Lower lip',pair('mouthLowerDown',.6)],['Tight',{mouthClose:.6,...pair('mouthPress',.3)}]],
 smile:[['Neutral',{}],['Subtle',pair('mouthSmile',.2)],['Soft',pair('mouthSmile',.4)],['Warm',{...pair('mouthSmile',.6),...pair('cheekSquint',.15)}],['Bright',{...pair('mouthSmile',.85),...pair('cheekSquint',.3)}],['Big smile',{...pair('mouthSmile',1),jawOpen:.15}],['Laugh',{...pair('mouthSmile',.9),jawOpen:.45,...pair('eyeSquint',.2)}],['Smirk',{mouthSmileLeft:.65}],['Right smirk',{mouthSmileRight:.65}],['Serious',pair('mouthFrown',.35)]]
 };
+const managedMorphs=new Set(Object.values(poses).flatMap(v=>v.flatMap(([,w])=>Object.keys(w).map(cap))));
 const colors={
 hairColor:[['Original',null],['Soft black','#46434a'],['Dark brown','#79604b'],['Chestnut','#a17b59'],['Warm brown','#c1996d'],['Copper','#d09a72'],['Honey','#e0c293'],['Ash','#b6ada2'],['Silver','#c6c6cd'],['Violet','#b8a2df']],
 eyeColor:[['Original',null],['Brown','#9a775b'],['Amber','#d3a268'],['Hazel','#b6af79'],['Olive','#a8b48a'],['Green','#85b2a0'],['Blue','#91b9e1'],['Gray','#b8c2cc'],['Ice','#c1d9e9'],['Deep brown','#705950']],
@@ -67,7 +68,7 @@ function applyFace(overrideKey=null,override=null){
  const weights={};
  for(const key of Object.keys(poses)){let opt=key===overrideKey?override:choice(key);for(const [k,v] of Object.entries(opt?.weights||{}))weights[k]=Math.max(weights[k]||0,v)}
  // All managed face units are restored to neutral before applying the selected combination.
- const managed=new Set(Object.values(poses).flatMap(v=>v.flatMap(([,w])=>Object.keys(w).map(cap))));
+ const managed=managedMorphs;
  for(let {o,index,k} of morphs)if(managed.has(k))o.morphTargetInfluences[index]=weights[k]||0;
  for(const [key,materials] of Object.entries(materialGroups)){let opt=key===overrideKey?override:choice(key);for(let m of materials){m.color.copy(m.userData.faceOriginal);if(opt?.tint)m.color.multiply(new THREE.Color(opt.tint))}}
 }
@@ -85,7 +86,7 @@ function renderGallery(){
  const seq=++thumbToken,grid=$('#optionGrid');selectButtons('[data-category]',category,'category');$('#categoryTitle').textContent=sections.find(([k])=>k===category)[1];
  grid.replaceChildren();const key=category,opts=catalog[key]||[];$('#optionCount').textContent=current&&!busy?(opts.length?opts.length+' option'+(opts.length===1?'':'s'):'Not available'):'';
  $('#sectionNote').textContent=current&&!busy?notes[key]:'';
- if(busy||!current){let el=document.createElement('div');el.className='empty';el.textContent='Loading character…';grid.append(el);return}
+ if(busy||!current){let el=document.createElement('div');el.className='empty';el.textContent=busy?'Loading character…':'Select a model or retry the preview.';grid.append(el);return}
  if(!opts.length){let el=document.createElement('div');el.className='empty';el.textContent=unsupported[key];grid.append(el);return}
  const jobs=[];
  for(let opt of opts){let btn=document.createElement('button');btn.className='option';btn.dataset.option=opt.id;let img=document.createElement('img');img.alt=opt.name+' — preview of selected 3D character';img.hidden=true;let placeholder=document.createElement('span');placeholder.className='placeholder';placeholder.textContent='…';let name=document.createElement('span');name.className='name';name.textContent=opt.name;btn.append(img,placeholder,name);btn.onclick=()=>{selected[key]=opt.id;applyFace();selectButtons('[data-option]',opt.id,'option');thumbCache.clear();$('#detail').textContent=opt.name+' selected';};grid.append(btn);jobs.push({img,placeholder,opt})}
@@ -102,7 +103,7 @@ async function load(){
  if(current.getObjectByName('Outfit_original'))current.traverse(o=>{if(alternate.has(o.name))o.visible=false;if(o.name==='Outfit_original'||o.name==='Skin_original')o.visible=true});
  group.add(current);mixer=new THREE.AnimationMixer(current);const idle=gltf.animations.find(x=>x.name.toLowerCase()==='idle')||gltf.animations.find(x=>x.name.toLowerCase().includes('idle'));if(idle){mixer.clipAction(idle).play();mixer.update(.05)}
  locateHead();discover();applyFace();thumbCache.clear();resetCamera();busy=false;$('#status').hidden=true;$('#detail').textContent='3D face ready';renderGallery();
- }catch(e){if(seq!==request||e.name==='AbortError')return;busy=false;if(current){group.remove(current);dispose(current);current=null}show(e.message||'Unable to load character',true);$('#detail').textContent='Model unavailable';renderGallery()}
+ }catch(e){if(seq!==request||e.name==='AbortError')return;busy=false;if(current){group.remove(current);dispose(current);current=null}mixer=null;show(e.message||'Unable to load character',true);$('#detail').textContent='Model unavailable';renderGallery()}
 }
 function resize(){const canvas=$('#view'),w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h||!renderer)return;renderer.setPixelRatio(eco?1:Math.min(devicePixelRatio,1.5));renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
 function start(){try{renderer=new THREE.WebGLRenderer({canvas:$('#view'),alpha:true,antialias:true,powerPreference:'low-power'});renderer.setClearColor(0,0);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.NeutralToneMapping;renderer.toneMappingExposure=1;scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(32,1,.05,50);controls=new OrbitControls(camera,$('#view'));controls.enableDamping=true;controls.enablePan=false;controls.minDistance=.32;controls.maxDistance=2;controls.maxPolarAngle=Math.PI*.72;controls.autoRotateSpeed=1.1;const pmrem=new THREE.PMREMGenerator(renderer),room=new RoomEnvironment();env=pmrem.fromScene(room,.04);room.dispose();pmrem.dispose();scene.environment=env.texture;scene.environmentIntensity=.95;scene.add(new THREE.HemisphereLight(0xffffff,0xc6b3da,1.6));for(let [x,y,z,i,c] of [[-3,4,5,2.2,0xfff4e9],[3,2,3,1.2,0xf5f2ff],[1,3,-4,2,0xc9b6ff]]){let l=new THREE.DirectionalLight(c,i);l.position.set(x,y,z);scene.add(l)}group=new THREE.Group();scene.add(group);loader=new GLTFLoader();new ResizeObserver(resize).observe($('#stage'));new IntersectionObserver(entries=>visible=entries[0].isIntersecting).observe($('#stage'));resize();resetCamera();
