@@ -27,29 +27,29 @@ export function createHumanoidMotion(root){
  function aim(b,childDir,target){b.parent.getWorldQuaternion(parentQ).invert();v.copy(target).applyQuaternion(rootQ).applyQuaternion(parentQ).normalize();q.setFromUnitVectors(childDir.clone().applyQuaternion(rest.get(b).q),v);b.quaternion.copy(q).multiply(rest.get(b).q);b.updateWorldMatrix(false,true)}
  function orient(b,angle){if(!b)return;b.parent.getWorldQuaternion(parentQ).invert();q.setFromAxisAngle(axis,angle);b.quaternion.copy(parentQ).multiply(rootQ).multiply(q).multiply(rest.get(b).world);b.updateWorldMatrix(false,true)}
  function update(dt,speed=0){
-  clock+=dt;if(waveTime>=0){waveTime+=dt;if(waveTime>1.9)waveTime=-1}if(clock>blinkAt+.19)blinkAt=clock+2.4+Math.random()*2.4;blink(clock<blinkAt?0:Math.sin(Math.PI*clamp((clock-blinkAt)/.19,0,1))*.96);gaitSpeed=T.MathUtils.damp(gaitSpeed,Math.max(0,speed),14,dt);let running=clamp((gaitSpeed-1.4)/1.15,0,1);blend=T.MathUtils.damp(blend,clamp(gaitSpeed/.65,0,1),12,dt);
+  clock+=dt;if(waveTime>=0){waveTime+=dt;if(waveTime>1.9)waveTime=-1}if(clock>blinkAt+.19)blinkAt=clock+2.4+Math.random()*2.4;blink(clock<blinkAt?0:Math.sin(Math.PI*clamp((clock-blinkAt)/.19,0,1))*.96);gaitSpeed=T.MathUtils.damp(gaitSpeed,Math.max(0,speed),14,dt);let running=clamp((gaitSpeed-1.4)/2.0,0,1);blend=T.MathUtils.damp(blend,clamp(gaitSpeed/.65,0,1),12,dt);
   let stride=1.34+running*.54;phase=(phase+gaitSpeed*dt/stride)%1;
   root.updateWorldMatrix(true,true);root.getWorldQuaternion(rootQ);
   for(let b of bones){let r=rest.get(b);b.quaternion.copy(r.q);b.position.copy(r.p)}
   root.updateWorldMatrix(true,true);
   const bob=(.012*Math.cos(phase*Math.PI*4)-.028)*blend+.003*Math.sin(clock*2.2)*(1-blend);
   const h=hp.clone().add(V(.018*Math.sin(phase*2*Math.PI)*blend,bob,0));h.y=T.MathUtils.lerp(h.y,seatHeight+.10,seatWeight);h.z-=.018*seatWeight;hips.position.copy(hips.parent.worldToLocal(root.localToWorld(h)));hips.updateWorldMatrix(false,true);
-  if(chest){orient(chest,T.MathUtils.lerp(.025+running*.09+Math.sin(phase*2*Math.PI)*.026*blend,.035,seatWeight));const twist=new T.Quaternion().setFromAxisAngle(V(0,1,0),Math.sin(phase*2*Math.PI)*.045*blend);chest.quaternion.premultiply(chest.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(rootQ).multiply(twist).multiply(rootQ.clone().invert()).multiply(chest.parent.getWorldQuaternion(new T.Quaternion())));chest.updateWorldMatrix(false,true)}
+  if(chest){orient(chest,T.MathUtils.lerp(.025+running*.09+Math.sin(phase*2*Math.PI)*.026*blend,.035,seatWeight));const twist=new T.Quaternion().setFromAxisAngle(V(0,1,0),Math.sin(phase*2*Math.PI)*.065*blend*(1-seatWeight));chest.quaternion.premultiply(chest.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(rootQ).multiply(twist).multiply(rootQ.clone().invert()).multiply(chest.parent.getWorldQuaternion(new T.Quaternion())));chest.updateWorldMatrix(false,true)}
   if(head){orient(head,(-.012+Math.sin(clock*1.4)*.012)*(1-seatWeight))}
   for(let i=0;i<legs.length;i++){
    let l=legs[i],t=(phase+i*.5)%1,stance=.62-running*.12,travel=stride*stance*.5;
    let z,y;if(t<stance){z=travel*(1-2*t/stance);y=0}else{let f=(t-stance)/(1-stance),smooth=f*f*(3-2*f);z=travel*(2*smooth-1);y=Math.sin(Math.PI*f)*(.085+running*.10)}
-   let ankle=l.ankle.clone().add(V(0,y*blend,z*blend));const seated=l.ankle.clone();seated.z+=l.a*.91;seated.y=Math.max(l.ankle.y,seatHeight+.10-l.b);ankle.lerp(seated,seatWeight);ankle.y+=airWeight*.10;ankle.z+=airWeight*.045*(i===0?1:-1);let hip=local(l.upper),delta=ankle.clone().sub(hip),dist=clamp(delta.length(),Math.abs(l.a-l.b)+.001,l.a+l.b-.001),dir=delta.normalize();
+   let ankle=l.ankle.clone().add(V(0,y*blend,z*blend));const seated=l.ankle.clone();seated.z+=l.a*.86;seated.y=l.ankle.y+.012;ankle.lerp(seated,seatWeight);ankle.y+=airWeight*.10;ankle.z+=airWeight*.045*(i===0?1:-1);let hip=local(l.upper),delta=ankle.clone().sub(hip),dist=clamp(delta.length(),Math.abs(l.a-l.b)+.001,l.a+l.b-.001),dir=delta.normalize();
    let bend=V(0,0,1).addScaledVector(dir,-dir.z).normalize();if(bend.lengthSq()<.01)bend.set(0,1,0);
    let along=(l.a*l.a-l.b*l.b+dist*dist)/(2*dist),height=Math.sqrt(Math.max(0,l.a*l.a-along*along)),knee=hip.clone().addScaledVector(dir,along).addScaledVector(bend,height);
    ankle=hip.clone().addScaledVector(dir,dist);
    aim(l.upper,l.upperDir,knee.clone().sub(hip));aim(l.lower,l.lowerDir,ankle.clone().sub(knee));orient(l.foot,(t<stance?-.06*Math.sin(t/stance*Math.PI):.19*Math.sin((t-stance)/(1-stance)*Math.PI))*blend);
    // Arms hang at the sides, with a restrained opposing swing and relaxed elbows.
-   const swing=-Math.cos(t*2*Math.PI)*(.24+running*.19)*blend;
-   const elbowFlex=.085+running*.33;
-   const outward=.20+running*.035;
+   const swing=-Math.cos(t*2*Math.PI)*(.28+running*.32)*blend*(1-seatWeight);
+   const elbowFlex=.09+running*.68;
+   const outward=.19+running*.055;
    aim(l.arm,l.armDir,V(l.side*outward,-1,swing).lerp(V(l.side*.18,-1,.20),seatWeight).lerp(V(l.side*.27,-.85,.25),airWeight));
-   aim(l.elbow,l.elbowDir,V(l.side*.13,-1,swing+elbowFlex).lerp(V(-l.side*.08,-.28,1),seatWeight).lerp(V(l.side*.13,-.45,.9),airWeight));
+   aim(l.elbow,l.elbowDir,V(l.side*.13,-1,swing+elbowFlex).lerp(V(-l.side*.035,-.42,.83),seatWeight).lerp(V(l.side*.13,-.45,.9),airWeight));
    // Keep the relaxed wrist aligned with its parent instead of forcing the bind-pose world rotation.
    l.hand.quaternion.copy(rest.get(l.hand).q);l.hand.updateWorldMatrix(false,true);
    // Keep the elbow and wrist outside the torso with a minimum lateral clearance.
@@ -79,14 +79,28 @@ export function royalFinish(root){
   else if(/beige/i.test(m.name)){m.color.setHex(0xf0d5a2);m.roughness=.75}
   m.needsUpdate=true;
  }});
- let chest=null;root.traverse(b=>{if(b.isBone&&norm(b.name)==='chest'&&!chest)chest=b});if(!chest)return;
+ let chest=null;const rig=new Map();root.traverse(b=>{if(b.isBone&&!rig.has(norm(b.name)))rig.set(norm(b.name),b)});chest=rig.get('chest');if(!chest)return;
+ const shoulders=['upperarml','upperarmr'].map(n=>rig.get(n));const localPoint=b=>root.worldToLocal(b.getWorldPosition(new T.Vector3()));const shoulderPoints=shoulders.filter(Boolean).map(localPoint).sort((a,b)=>a.x-b.x);
+ const center=localPoint(chest),shoulderY=shoulderPoints.length===2?(shoulderPoints[0].y+shoulderPoints[1].y)/2:center.y+.11,halfWidth=shoulderPoints.length===2?clamp((shoulderPoints[1].x-shoulderPoints[0].x)*.5,.12,.29):.18;
+ // Sample visible shoulder/torso vertices in normalized character space, including armor.
+ const samples=[];root.traverse(o=>{if(!o.isMesh||!o.visible||!/body|torso|chest/i.test(o.name)||!o.geometry?.attributes.position)return;const pos=o.geometry.attributes.position,v=new T.Vector3();for(let i=0;i<pos.count;i++){v.fromBufferAttribute(pos,i);if(o.isSkinnedMesh)o.applyBoneTransform(i,v);o.localToWorld(v);root.worldToLocal(v);if(Math.abs(v.y-shoulderY)<.10&&Math.abs(v.x-center.x)<halfWidth+.12)samples.push(v.clone())}});
+ const shoulderBack=(x)=>{const near=samples.filter(v=>Math.abs(v.x-x)<.065);return near.length?Math.min(...near.map(v=>v.z))-.006:center.z-.075};
+ const leftX=center.x-halfWidth*.87,rightX=center.x+halfWidth*.87;
+ const shoulderZ=[shoulderBack(leftX),shoulderBack(rightX)],midBack=shoulderBack(center.x);
  const cape=new T.Group();cape.name='RoyalCape';root.add(cape);
  const gold=new T.MeshStandardMaterial({color:0xe5bb61,metalness:.7,roughness:.38,side:T.DoubleSide}),velvet=new T.MeshStandardMaterial({color:0x820e2e,roughness:.88,side:T.DoubleSide});
  const rows=24,cols=22,verts=[],indices=[],edgeIndices=[];
- const chestAt=root.worldToLocal(chest.getWorldPosition(new T.Vector3())),top=chestAt.y+.11,back=chestAt.z-.20;
- for(let y=0;y<=rows;y++){let t=y/rows,width=.19+.11*t;for(let x=0;x<=cols;x++){let u=x/cols*2-1;verts.push(u*width,top-.90*t,back-.025*u*u-.035*t+.016*Math.cos(u*3*Math.PI)*t);if(y&&x){let i=y*(cols+1)+x;const list=x===1||x===cols||y===rows?edgeIndices:indices;list.push(i-cols-2,i-1,i-cols-1,i-cols-1,i-1,i)}}}
+ const top=shoulderY+.016,back=midBack;
+ for(let y=0;y<=rows;y++){let t=y/rows,width=halfWidth*.87+.12*t;for(let x=0;x<=cols;x++){let u=x/cols*2-1,edgeBack=u<0?T.MathUtils.lerp(back,shoulderZ[0],-u):T.MathUtils.lerp(back,shoulderZ[1],u),pin=1-Math.min(1,t/.22);verts.push(center.x+u*width,top-.90*t-.025*u*u*pin,edgeBack*pin+(back-.045-.06*t)*(1-pin)+.015*Math.cos(u*3*Math.PI)*t);if(y&&x){let i=y*(cols+1)+x;const list=x===1||x===cols||y===rows?edgeIndices:indices;list.push(i-cols-2,i-1,i-cols-1,i-cols-1,i-1,i)}}}
  const geo=new T.BufferGeometry(),pos=new T.Float32BufferAttribute(verts,3);pos.setUsage(T.DynamicDrawUsage);geo.setAttribute('position',pos);geo.setIndex(indices.concat(edgeIndices));geo.addGroup(0,indices.length,0);geo.addGroup(indices.length,edgeIndices.length,1);geo.computeVertexNormals();
- const cloth=new T.Mesh(geo,[velvet,gold]);cloth.frustumCulled=false;cape.add(cloth);root.updateWorldMatrix(true,true);chest.attach(cape);
+ const cloth=new T.Mesh(geo,[velvet,gold]);cloth.frustumCulled=false;cape.add(cloth);
+ // Clasp and short strap connect cloth at the back to the shoulder armor.
+ for(let i=0;i<2;i++){const x=i===0?leftX:rightX,z=shoulderZ[i],y=top-.025;
+  const clasp=new T.Mesh(new T.SphereGeometry(.027,12,8),gold);clasp.position.set(x,y,z+.004);clasp.scale.set(1,.8,.65);cape.add(clasp);
+  const curve=new T.CatmullRomCurve3([new T.Vector3(x,y-.045,z-.006),new T.Vector3(x,y+.008,z+.009),new T.Vector3(x,y+.018,z+.066),new T.Vector3(x,y-.012,z+.106)]);
+  cape.add(new T.Mesh(new T.TubeGeometry(curve,12,.013,6,false),gold));
+ }
+ root.updateWorldMatrix(true,true);chest.attach(cape);
  let angle=root.rotation.y,turn=0,trail=0,clock=0,fold=0;
  cape.userData.updateCloth=(dt,speed,seat,air)=>{
   dt=clamp(dt,0,.065);clock+=dt;const delta=Math.atan2(Math.sin(root.rotation.y-angle),Math.cos(root.rotation.y-angle));angle=root.rotation.y;
@@ -94,7 +108,7 @@ export function royalFinish(root){
   for(let y=0;y<=rows;y++){const t=y/rows,w=t*t;for(let x=0;x<=cols;x++){let i=y*(cols+1)+x,k=i*3,u=x/cols*2-1;
     const flutter=w*(.012+trail*.13)*Math.sin(clock*(4+speed*2)-t*6+u*3);
     // Pinned shoulder edge, increasing freedom toward the hem; gather above seat when seated.
-    pos.setXYZ(i,verts[k]+(turn*w+flutter*.45)*(1-fold),verts[k+1]+.72*t*fold+trail*.12*w*(1-fold),verts[k+2]-trail*w*(1-fold)+flutter*(1-fold)+.015*t*fold);
+    pos.setXYZ(i,verts[k]+(turn*w+flutter*.45)*(1-fold),verts[k+1]+ .58*t*fold+trail*.12*w*(1-fold),verts[k+2]-trail*w*(1-fold)+flutter*(1-fold)+.015*t*fold);
   }}pos.needsUpdate=true;geo.computeVertexNormals();
  };
 
