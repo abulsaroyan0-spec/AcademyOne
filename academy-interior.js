@@ -6,7 +6,7 @@ function mesh(g,geo,m,x=0,y=0,z=0){let a=new T.Mesh(geo,m);a.position.set(x,y,z)
 function box(g,m,w,h,d,x,y,z){return mesh(g,new T.BoxGeometry(w,h,d),m,x,y,z)}
 function cylinder(g,m,r,h,x,y,z,r2=r){return mesh(g,new T.CylinderGeometry(r2,r,h,16),m,x,y,z)}
 function texture(type){let c=document.createElement('canvas');c.width=c.height=512;let ctx=c.getContext('2d');let base=type==='wall'?[111,106,99]:type==='floor'?[34,32,30]:type==='glass'?[177,175,166]:[190,185,174];let im=ctx.createImageData(512,512);for(let y=0;y<512;y++)for(let x=0;x<512;x++){let i=(y*512+x)*4;let n=(rng()-.5)*(type==='glass'?85:13)+Math.sin(x*.062+Math.sin(y*.013)*2)*4+Math.sin(x*.017+y*.009)*5;for(let k=0;k<3;k++)im.data[i+k]=base[k]+n;im.data[i+3]=255}ctx.putImageData(im,0,0);if(type==='wall'){for(let i=0;i<95;i++){let x=rng()*512,y=rng()*512;ctx.fillStyle=rng()>.5?'rgba(225,214,193,.055)':'rgba(28,25,23,.045)';ctx.fillRect(x,y,2+rng()*24,30+rng()*190)}}if(type==='floor'||type==='tile'){ctx.strokeStyle=type==='floor'?'#776e5c':'#a49c91';ctx.lineWidth=2;ctx.strokeRect(1,1,510,510);if(type==='floor'){ctx.strokeStyle='#504941';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(160,0);ctx.lineTo(210,240);ctx.lineTo(202,310);ctx.lineTo(290,512);ctx.stroke()}}let t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.wrapS=t.wrapT=T.RepeatWrapping;t.anisotropy=8;t.minFilter=T.LinearMipmapLinearFilter;t.magFilter=T.LinearFilter;return t}
-function surface(g,type,w,d,x,y,z){let map=texture(type);map.repeat.set(w/(type==='floor'?.72:.8),d/(type==='floor'?.72:.8));let o=mesh(g,new T.PlaneGeometry(w,d),new T.MeshStandardMaterial({map,roughness:type==='floor'?.19:.76,metalness:type==='floor'?.22:0,envMapIntensity:type==='floor'?.7:.25}),x,y,z);o.rotation.x=-Math.PI/2;return o}
+function surface(g,type,w,d,x,y,z){let map=texture(type);map.repeat.set(w/(type==='floor'?.72:.8),d/(type==='floor'?.72:.8));let o=mesh(g,new T.PlaneGeometry(w,d),new T.MeshStandardMaterial({map,roughness:type==='floor'?.36:.82,metalness:type==='floor'?.08:0,envMapIntensity:type==='floor'?.7:.25}),x,y,z);o.rotation.x=-Math.PI/2;return o}
 function label(g,text,x,y,z,w=.7,h=.25,color='#a51c59'){let c=document.createElement('canvas');c.width=512;c.height=160;let ctx=c.getContext('2d');ctx.fillStyle=color;ctx.fillRect(0,0,512,160);ctx.fillStyle='#fff';ctx.font='bold 47px Arial';ctx.textAlign='center';ctx.textBaseline='middle';let lines=text.split('|');lines.forEach((s,i)=>ctx.fillText(s,256,80+(i-(lines.length-1)/2)*53,480));let t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;return mesh(g,new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({map:t}),x,y,z)}
 function wall(g,m,w,h,d,x,y,z){return box(g,m,w,h,d,x,y,z)}
 function light(g,x,y,z,tx,ty,tz,intensity=12){const l=new T.SpotLight(0xffe6be,intensity,6,Math.PI/3,.8,1.6);l.position.set(x,y,z);l.target.position.set(tx,ty,tz);g.add(l,l.target);return l}
@@ -161,7 +161,7 @@ export function makeAcademy(scene){
  box(office,white,1.14,2.74,.79,0,1.37,-11.75);coll(0,-11.75,1.14,.79);
  const way=document.createElement('canvas');way.width=1536;way.height=360;const wc=way.getContext('2d');wc.fillStyle='#ad1456';wc.fillRect(0,0,1536,360);wc.fillStyle='#fff';wc.font='bold 82px Arial';wc.textBaseline='middle';['↙ ADA LOVELACE','← DAVID BLACKWELL','← GRACE HOPPER'].forEach((t,i)=>wc.fillText(t,35,68+i*108));wc.fillRect(864,24,5,312);wc.textAlign='right';wc.fillText('KITCHEN →',1495,120);wc.fillText('TECH SUPPORT ↑',1495,228);const wm=new T.CanvasTexture(way);wm.colorSpace=T.SRGBColorSpace;mesh(office,new T.PlaneGeometry(2.5,.58),new T.MeshBasicMaterial({map:wm,toneMapped:false}),0,2.35,-11.34);
  box(office,deskWhite,.87,.80,.40,0,.40,-11.10);for(let x of [-.22,.22]){box(office,black,.21,.012,.12,x,.805,-11.09);label(office,x<0?'PAPER':'PLASTIC',x,.57,-10.895,.29,.085,'#c7c7bc')}coll(0,-11.10,.87,.40);
- for(let x of [-1.70,1.70]){box(office,officeGray,.16,2.36,1.05,x,1.18,-12.25);box(office,black,.045,.10,.05,x+(x>0?-.11:.11),1.04,-11.87);coll(x,-12.25,.16,1.05)}
+ box(office,white,.075,1.15,1.32,.61,1.62,-11.75);box(office,officeGray,.025,1.04,1.22,.657,1.62,-11.75);box(office,frame,.14,.045,1.25,.65,1.06,-11.75);
  // Small desk under the stairs, a white door and water dispenser.
  box(office,white,2.1,.99,.16,-4.75,.495,-8.35);box(office,white,.14,.99,.90,-3.76,.495,-8.79);box(office,oak,2.1,.06,.72,-4.75,1.01,-8.72);box(office,black,.42,.32,.07,-4.6,1.20,-8.85);coll(-4.75,-8.7,2.1,.85);
  box(office,white,.42,1.03,.38,3.0,.515,-11.55);box(office,black,.25,.22,.035,3.0,.65,-11.34);cylinder(office,new T.MeshPhysicalMaterial({color:0xa2c9d3,transparent:true,opacity:.65,roughness:.12}),.17,.36,3.0,1.20,-11.55);coll(3,-11.55,.45,.42);
@@ -218,9 +218,9 @@ export function makeAcademy(scene){
 
  // Second floor: reference-based workspace, with an open route from the stair landing.
  const upper=new T.Group();upper.position.y=2.96;g.add(upper);
- const upperColliders=[];const uc=(x,z,w,d)=>upperColliders.push({x,z,w,d});
+ const upperColliders=[],upperSeats=[];const uc=(x,z,w,d)=>upperColliders.push({x,z,w,d});
  const upperWood=mat(0xb58251,.72),upperDark=mat(0x343638,.84),upperWhite=mat(0xe4e1db,.8);
- surface(upper,'tile',17.8,7.1,0,.006,-12.2);
+ surface(upper,'tile',17.8,7.1,0,.014,-12.2);
  // Remove the visual barrier at the stair arrival by replacing the front rail segment separately.
  function upperDesk(x,z,w,d,wooden){
   const top=wooden?upperWood:upperWhite,legs=wooden?upperWood:black;
@@ -228,19 +228,19 @@ export function makeAcademy(scene){
   for(const dx of [-w/2+.10,w/2-.10])for(const dz of [-d/2+.10,d/2-.10])box(upper,legs,.065,.73,.065,x+dx,.365,z+dz);
   uc(x,z,w,d);
  }
- function upperChair(x,z,face,wooden){
-  const c=new T.Group();c.position.set(x,0,z);c.rotation.y=face;upper.add(c);
+ function upperChair(x,z,face,wooden,computer=null){
+  const c=new T.Group();c.position.set(x,0,z);c.rotation.y=face+Math.PI;upper.add(c);
   box(c,chairFabric,.46,.10,.46,0,.47,0);box(c,chairFabric,.44,.42,.07,0,.73,.20);
   if(wooden){for(const dx of [-.18,.18])for(const dz of [-.18,.18])box(c,upperWood,.055,.43,.055,dx,.22,dz);for(const dx of [-.25,.25])box(c,upperWood,.045,.045,.38,dx,.67,0);}
   else{cylinder(c,black,.055,.43,0,.23,0);for(let k=0;k<5;k++){let a=box(c,black,.045,.045,.25,Math.sin(k*1.257)*.11,.07,Math.cos(k*1.257)*.11);a.rotation.y=k*1.257}}
-  uc(x,z,.49,.50);
+  uc(x,z,.49,.50);const dx=Math.sin(face),dz=Math.cos(face);upperSeats.push({kind:wooden?'library chair':'chair',x,z,height:.52,yaw:face,computer,approaches:[{x:x+dz*.65,z:z-dx*.65},{x:x-dz*.65,z:z+dx*.65},{x:x-dx*.65,z:z-dz*.65}]});
  }
  function upperPC(x,z,face){
   const p=new T.Group();p.position.set(x,.80,z);p.rotation.y=face;upper.add(p);
-  box(p,screen,.53,.32,.045,0,.28,0);box(p,black,.05,.16,.06,0,.10,0);box(p,black,.26,.025,.16,0,.012,0);box(p,black,.32,.018,.11,0,.012,.25);
+  const display=screen.clone();box(p,display,.53,.32,.045,0,.28,0);box(p,black,.05,.16,.06,0,.10,0);box(p,black,.26,.025,.16,0,.012,0);box(p,black,.32,.018,.11,0,.012,.25);return {display,on:false};
  }
  function glassPartition(x,z,length){
-  box(upper,glass,.045,2.3,length,x,1.15,z);box(upper,frosted,.055,.48,length,x,1.22,z);
+  box(upper,glass,.045,2.3,length,x,1.15,z);box(upper,frosted,.061,.48,length,x,1.22,z);
   for(const zz of [z-length/2,z+length/2])box(upper,black,.065,2.4,.065,x,1.2,zz);
   box(upper,black,.065,.065,length,x,2.35,z);box(upper,black,.065,.065,length,x,.035,z);uc(x,z,.08,length);
  }
@@ -255,13 +255,13 @@ export function makeAcademy(scene){
  for(const z of [-12.15,-14.65]){
   upperDesk(-3.0,z,2.65,1.10,false);
   box(upper,upperDark,2.60,.37,.055,-3.0,1.0,z);
-  for(const x of [-3.68,-2.32]){upperPC(x,z+.13,0);upperChair(x,z+.91,0,false);upperPC(x,z-.13,Math.PI);upperChair(x,z-.91,Math.PI,false);}
+  for(const x of [-3.68,-2.32]){const front=upperPC(x,z+.13,0),back=upperPC(x,z-.13,Math.PI);upperChair(x,z+.91,Math.PI,false,front);upperChair(x,z-.91,0,false,back);}
  }
  // Right: warm yellow-oak reading tables, timber chairs and open bookcase.
  const libraryYellow=mat(0xc99b51,.8);
  for(const z of [-10.65,-13.25]){
   upperDesk(4.8,z,2.65,1.15,true);
-  for(const x of [4.05,5.55]){upperChair(x,z+.94,0,true);upperChair(x,z-.94,Math.PI,true);}
+  for(const x of [4.05,5.55]){upperChair(x,z+.94,Math.PI,true);upperChair(x,z-.94,0,true);}
   box(upper,upperWhite,.24,.014,.31,4.08,.802,z+.18);
  }
  for(let i=0;i<4;i++)box(upper,libraryYellow,3.05,.075,.40,5.6,.12+i*.64,-15.35);
@@ -290,17 +290,17 @@ export function makeAcademy(scene){
  const v=new T.Vector3();g.updateMatrixWorld(true);for(const c of circuits){c.on=true;c.lights=[];c.fixtures=[];g.traverse(o=>{if(o.isLight&&c.test({position:o.getWorldPosition(v)}))c.lights.push({light:o,intensity:o.intensity});if(o.isMesh&&[warm,wallLamp].includes(o.material)&&c.test({position:o.getWorldPosition(v)})){o.material=o.material.clone();c.fixtures.push({material:o.material,color:o.material.color.clone()})}});
   let sw=new T.Group();sw.position.set(c.x,c.y,c.z);sw.rotation.y=c.face;g.add(sw);box(sw,white,.135,.19,.035,0,0,0);c.rocker=box(sw,black,.075,.11,.038,0,0,.025);c.indicator=box(sw,new T.MeshBasicMaterial({color:0x77e6b2}),.023,.015,.009,0,.062,.049);c.handle=sw;c.approachX=c.x+(c.face>0?.40:-.40);
  }
- return {upperColliders,level:0,door,plazaDoor,plazaOpen:false,plazaAngle:0,colliders,seats,circuits,open:false,angle:0};
+ return {upperColliders,upperSeats,level:0,door,plazaDoor,plazaOpen:false,plazaAngle:0,colliders,seats,circuits,open:false,angle:0};
 }
 export function doorNearby(state,x,z){return Math.abs(x-.5)<1.6&&Math.abs(z)<1.7}
 export function advanceDoor(state,dt){state.angle=T.MathUtils.damp(state.angle,state.open?Math.PI*.53:0,7,dt);state.door.rotation.y=-state.angle;state.plazaAngle=T.MathUtils.damp(state.plazaAngle,state.plazaOpen?Math.PI*.53:0,7,dt);state.plazaDoor.rotation.y=-state.plazaAngle}
-export function academyWalkable(state,x,z,r=.27){const stair=Math.abs(x+5.45)<.775-r&&z>=-8.65&&z<=-1.95;if(state.level===1){if(stair||Math.abs(x+5.45)<.775-r&&z>=-8.98&&z< -8.65)return true;if(z> -8.65+r||z< -15.8+r||Math.abs(x)>8.86-r)return false;return !state.upperColliders.some(c=>Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r);}if(stair)return true;if(Math.abs(x+5.45)<.775+r&&z>=-8.5&&z<=-2.0)return false;if(z>34.65-r||z< -25.82+r)return false;const ax=Math.abs(x);if(Math.abs(z-23)<.24+r&&(x<r||x>1-r||state.plazaAngle<1.2))return false;if(Math.abs(z-18)<.24+r&&ax>1.20-r)return false;if(z>23.24){if(ax>10.7-r)return false}else if(z>17.76){if(ax>2.8-r)return false}else if(z>10.24){if(ax>5.35-r)return false}else if(z>.22){if(ax>1.75-r)return false}else if(ax>8.97-r)return false;if(Math.abs(z-10)<.24+r&&ax>1.75-r)return false;if(Math.abs(z)<.29+r){if(x<-.1+r||x>1.1-r||state.angle<1.2)return false}return !state.colliders.some(c=>c.r!==undefined?Math.hypot(x-c.x,z-c.z)<c.r+r:Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r)}
+export function academyWalkable(state,x,z,r=.27){const stair=Math.abs(x+5.45)<.775-r&&z>=-8.65&&z<=-1.95;if(state.level===1){if(stair||Math.abs(x+5.45)<.775-r&&z>=-8.98&&z< -8.65)return true;if(z> -8.65+r||z< -15.8+r||Math.abs(x)>8.86-r)return false;return !state.upperColliders.some(c=>Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r);}if(stair)return true;if(Math.abs(x+5.45)<.775+r&&z>=-8.65&&z<=-1.99)return false;if(z>34.65-r||z< -25.82+r)return false;const ax=Math.abs(x);if(Math.abs(z-23)<.24+r&&(x<r||x>1-r||state.plazaAngle<1.2))return false;if(Math.abs(z-18)<.24+r&&ax>1.20-r)return false;if(z>23.24){if(ax>10.7-r)return false}else if(z>17.76){if(ax>2.8-r)return false}else if(z>10.24){if(ax>5.35-r)return false}else if(z>.22){if(ax>1.75-r)return false}else if(ax>8.97-r)return false;if(Math.abs(z-10)<.24+r&&ax>1.75-r)return false;if(Math.abs(z)<.29+r){if(x<-.1+r||x>1.1-r||state.angle<1.2)return false}return !state.colliders.some(c=>c.r!==undefined?Math.hypot(x-c.x,z-c.z)<c.r+r:Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r)}
 
 // Choose reachable seat approaches only; never walk through a different obstacle to reach one.
-export function nearestAcademySeat(state,x,z,maxDistance=1.55){if(state.level===1)return null;let best=null;for(const seat of state.seats||[]){for(const a of seat.approaches){let distance=Math.hypot(x-a.x,z-a.z);if(distance>maxDistance||best&&distance>=best.distance||!academyWalkable(state,a.x,a.z))continue;let clear=true;for(let i=1;i<=12;i++){let t=i/12;if(!academyWalkable(state,x+(a.x-x)*t,z+(a.z-z)*t)){clear=false;break}}if(clear)best={seat,approach:a,distance}}}return best}
+export function nearestAcademySeat(state,x,z,maxDistance=1.55){let best=null;for(const seat of (state.level===1?state.upperSeats:state.seats)||[]){for(const a of seat.approaches){let distance=Math.hypot(x-a.x,z-a.z);if(distance>maxDistance||best&&distance>=best.distance||!academyWalkable(state,a.x,a.z))continue;let clear=true;for(let i=1;i<=12;i++){let t=i/12;if(!academyWalkable(state,x+(a.x-x)*t,z+(a.z-z)*t)){clear=false;break}}if(clear)best={seat,approach:a,distance}}}return best}
 
 export function nearbyLightSwitch(state,x,z,max=1.30){if(state.level===1)return null;let found=null,d=max;for(const c of state.circuits||[]){const n=Math.hypot(x-c.approachX,z-c.z);if(n<d&&academyWalkable(state,c.approachX,c.z)){let clear=true;for(let k=1;k<=10;k++){const t=k/10;if(!academyWalkable(state,x+(c.approachX-x)*t,z+(c.z-z)*t)){clear=false;break}}if(clear){d=n;found=c}}}return found}
 export function setLightCircuit(c,on){c.on=!!on;for(const a of c.lights)a.light.intensity=a.intensity*(c.on?1:0);for(const a of c.fixtures)a.material.color.copy(a.color).multiplyScalar(c.on?1:.035);c.rocker.rotation.x=c.on?-.15:.15;c.indicator.material.color.setHex(c.on?0x77e6b2:0x682e27)}
 
-export function academyGround(x,z,level=0){if(Math.abs(x+5.45)<.80&&z>=-8.65&&z<=-1.99)return Math.min(2.96,Math.max(0,(Math.floor((-1.99-z)/.42)+1)*.19));if(level===1)return 2.96;if(z>=22.28)return -1.8;if(z<=18.68)return 0;return -1.8+.18*Math.min(10,Math.max(1,Math.floor((22.28-z)/.36)+1))}
+export function academyGround(x,z,level=0){if(Math.abs(x+5.45)<.80&&z>=-8.65&&z<=-1.99)return z<-8.29?2.96:Math.min(2.85,Math.max(0,(Math.floor((-1.99-z)/.42)+1)*.19));if(level===1)return 2.96;if(z>=22.28)return -1.8;if(z<=18.68)return 0;return -1.8+.18*Math.min(10,Math.max(1,Math.floor((22.28-z)/.36)+1))}
 export function plazaDoorNearby(state,x,z){return Math.abs(x-.5)<1.65&&Math.abs(z-23)<1.65}
