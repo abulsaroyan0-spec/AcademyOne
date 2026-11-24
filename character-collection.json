@@ -59,8 +59,8 @@
     "id": "male-king",
     "gender": "male",
     "name": "Royal King",
-    "theme": "Owner exclusive · Royal Edition",
-    "symbol": "♂",
+    "theme": "Admin Only",
+    "symbol": "👑",
     "color": "#d6b354",
     "asset": {
       "path": "public/glb/modular_men/King.glb",
