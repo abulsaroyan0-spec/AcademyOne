@@ -13,7 +13,7 @@ export function createHumanoidMotion(root){
  const hp=local(hips);
  for(let l of legs){l.ankle=local(l.foot);l.a=local(l.upper).distanceTo(local(l.lower));l.b=local(l.lower).distanceTo(l.ankle);l.side=Math.sign(local(l.arm).x-hp.x)||Math.sign(local(l.upper).x-hp.x)||1;l.upperDir=l.lower.position.clone().normalize();l.lowerDir=l.foot.position.clone().normalize();l.armDir=l.elbow.position.clone().normalize();l.elbowDir=l.hand.position.clone().normalize()}
  if(legs.some(l=>l.a<.05||l.b<.05))return null;
- let phase=0,blend=0,clock=0,gaitSpeed=0,waveTime=-1,reach=null,blinkAt=2.6,seatWeight=0,seatHeight=.55,airWeight=0,terrain=null;
+ let phase=0,blend=0,clock=0,gaitSpeed=0,waveTime=-1,reach=null,blinkAt=2.6,seatWeight=0,seatHeight=.55,airWeight=0,terrain=null,lookYaw=0,lookPitch=0,targetLookYaw=0,targetLookPitch=0;
  // The modular models use separate eye meshes. Compress only eye geometry visually during a blink.
  const eyes=[];root.traverse(o=>{if(!o.isMesh||!o.geometry?.attributes.position)return;const mats=Array.isArray(o.material)?o.material:[o.material];if(!mats.length||!mats.every(m=>/^eyes?$/i.test(m?.name||'')))return;
   o.geometry=o.geometry.clone();const pos=o.geometry.attributes.position,base=pos.array.slice(),bounds=new T.Box3().setFromBufferAttribute(pos);const size=bounds.getSize(V()),center=bounds.getCenter(V());
@@ -35,7 +35,7 @@ export function createHumanoidMotion(root){
   const bob=(.017*Math.cos(phase*Math.PI*4)-.035-running*.018)*blend+.003*Math.sin(clock*2.2)*(1-blend);
   const h=hp.clone().add(V(.018*Math.sin(phase*2*Math.PI)*blend,bob,0));h.y=T.MathUtils.lerp(h.y,seatHeight+.105,seatWeight);h.z-=.065*seatWeight;h.z+=running*.035*blend*(1-seatWeight);hips.position.copy(hips.parent.worldToLocal(root.localToWorld(h)));hips.updateWorldMatrix(false,true);
   if(chest){orient(chest,T.MathUtils.lerp(.025+running*.09+Math.sin(phase*2*Math.PI)*.026*blend,.035,seatWeight));const twist=new T.Quaternion().setFromAxisAngle(V(0,1,0),Math.sin(phase*2*Math.PI)*.065*blend*(1-seatWeight));chest.quaternion.premultiply(chest.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(rootQ).multiply(twist).multiply(rootQ.clone().invert()).multiply(chest.parent.getWorldQuaternion(new T.Quaternion())));chest.updateWorldMatrix(false,true)}
-  if(head){orient(head,(-.012+Math.sin(clock*1.4)*.012)*(1-seatWeight))}
+  if(head){lookYaw=T.MathUtils.damp(lookYaw,targetLookYaw,9,dt);lookPitch=T.MathUtils.damp(lookPitch,targetLookPitch,9,dt);const neck=find('Neck');if(neck){const delta=new T.Quaternion().setFromEuler(new T.Euler(lookPitch*.24,lookYaw*.24,0,'YXZ'));neck.parent.getWorldQuaternion(parentQ).invert();neck.quaternion.copy(parentQ).multiply(rootQ).multiply(delta).multiply(rest.get(neck).world);neck.updateWorldMatrix(false,true)}const delta=new T.Quaternion().setFromEuler(new T.Euler(lookPitch+(-.012+Math.sin(clock*1.4)*.012)*(1-seatWeight),lookYaw,-lookYaw*.07,'YXZ'));head.parent.getWorldQuaternion(parentQ).invert();head.quaternion.copy(parentQ).multiply(rootQ).multiply(delta).multiply(rest.get(head).world);head.updateWorldMatrix(false,true)}
   for(let i=0;i<legs.length;i++){
    let l=legs[i],t=(phase+i*.5)%1,stance=.63-running*.19,travel=stride*stance*.5;
    let z,y;if(t<stance){z=travel*(1-2*t/stance);y=0}else{let f=(t-stance)/(1-stance),smooth=f*f*(3-2*f);z=travel*(2*smooth-1);y=Math.pow(Math.sin(Math.PI*f),1.25)*(.09+running*.11)}
@@ -67,7 +67,7 @@ export function createHumanoidMotion(root){
   }
   cape?.userData.updateCloth?.(dt,gaitSpeed,seatWeight,airWeight);
  }
- update(0,0);return {update,setTerrain(fn){terrain=fn},setSeat(weight,height=.55){seatWeight=clamp(weight,0,1);seatHeight=height;if(seatWeight>0)waveTime=-1},setAir(weight){airWeight=clamp(weight,0,1)},wave(){if(!reach&&seatWeight<.1)waveTime=0},setReach(target,weight){reach=target?{target,weight:clamp(weight,0,1)}:null;if(reach)waveTime=-1}};
+ update(0,0);return {update,setLook(yaw=0,pitch=0){targetLookYaw=clamp(yaw,-.78,.78);targetLookPitch=clamp(pitch,-.35,.40)},setTerrain(fn){terrain=fn},setSeat(weight,height=.55){seatWeight=clamp(weight,0,1);seatHeight=height;if(seatWeight>0)waveTime=-1},setAir(weight){airWeight=clamp(weight,0,1)},wave(){if(!reach&&seatWeight<.1)waveTime=0},setReach(target,weight){reach=target?{target,weight:clamp(weight,0,1)}:null;if(reach)waveTime=-1}};
 }
 export function royalFinish(root){
  root.updateWorldMatrix(true,true);
