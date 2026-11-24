@@ -150,7 +150,7 @@ function cosmeticRig(model){
  if(cosmeticFits.has(model))return cosmeticFits.get(model);
  model.updateWorldMatrix(true,true);
  let head=null;model.traverse(o=>{if(o.isBone&&/(^|[:_])head$/i.test(o.name))head=o});
- const fit={parts:[],head:null,materials:[],nativeCrowns:[]};
+ const fit={parts:[],head:null,materials:[],nativeCrowns:[],nativeCrownMaterials:[]};
  const points=[],headPoints=[],namedCrowns=[],v=new THREE.Vector3();
  const hp=head?model.worldToLocal(head.getWorldPosition(new THREE.Vector3())):new THREE.Vector3(0,1.37,0);
  model.traverse(o=>{
@@ -163,14 +163,15 @@ function cosmeticRig(model){
    for(const m of mats){if(!m?.color||/skin|hair|eye|face|teeth|mouth|metal|gold|silver|crown|visor|glass|black|white|shoe|boot|glove/i.test(m.name||'')||!/cloth|shirt|jacket|hoodie|tunic|fabric|torso|armor|armour|body|blue|red|green|purple|orange|velvet/i.test(name))continue; if(!fit.materials.some(x=>x.m===m))fit.materials.push({m,color:m.color.clone()})}
   }
   if(!o.visible||/cape|weapon|pistol|rifle|gun/i.test(name))return;
-  const pos=o.geometry.attributes.position,si=o.geometry.attributes.skinIndex,sw=o.geometry.attributes.skinWeight;
+  const pos=o.geometry.attributes.position,si=o.geometry.attributes.skinIndex,sw=o.geometry.attributes.skinWeight;const meshBounds=new THREE.Box3();
   const headIndices=o.isSkinnedMesh&&head?new Set(o.skeleton.bones.map((bone,i)=>bone===head||bone.parent===head?i:-1).filter(i=>i>=0)):null;
   for(let i=0;i<pos.count;i++){
    v.fromBufferAttribute(pos,i);if(o.isSkinnedMesh)o.applyBoneTransform(i,v);o.localToWorld(v);model.worldToLocal(v);
-   if(!Number.isFinite(v.y))continue;
+   if(!Number.isFinite(v.y))continue;meshBounds.expandByPoint(v);
    if(Math.abs(v.x-hp.x)<.40&&Math.abs(v.z-hp.z)<.40&&v.y>hp.y-.025)points.push(v.clone());
    if(headIndices&&si&&sw){let w=0;for(let k=0;k<4;k++)if(headIndices.has(si.getComponent(i,k)))w+=sw.getComponent(i,k);if(w>.55)headPoints.push(v.clone())}
   }
+  if(!meshBounds.isEmpty()&&meshBounds.min.y>hp.y+.065&&meshBounds.max.y>1.55&&/gold/i.test(name)){fit.nativeCrowns.push({mesh:o,visible:o.visible});for(const m of mats)if(m?.color)fit.nativeCrownMaterials.push({m,color:m.color.clone()})}
  });
  const source=points.concat(headPoints).filter(p=>p.y>hp.y-.025&&Math.abs(p.x-hp.x)<.40&&Math.abs(p.z-hp.z)<.40);
  if(head&&source.length){const top=source.reduce((n,p)=>Math.max(n,p.y),1.70),bottom=source.reduce((n,p)=>Math.min(n,p.y),top),height=top-bottom;
@@ -184,12 +185,12 @@ function cosmeticRig(model){
 function equipModel(model,outfit,crown){
  if(!model)return;const fit=cosmeticRig(model);for(const p of fit.parts){p.removeFromParent();dispose(p)}fit.parts=[];
  for(const {m,color} of fit.materials){m.color.copy(color);if(outfit){const target=new THREE.Color(outfit.color),base=color.getHSL({}),hsl=target.getHSL({});m.color.setHSL(hsl.h,Math.min(.72,hsl.s*.80),clamp(base.l*.70+hsl.l*.30,.12,.76))}}
- for(const native of fit.nativeCrowns)native.mesh.visible=crown?false:native.visible;
+ for(const native of fit.nativeCrowns)native.mesh.visible=native.visible;for(const {m,color} of fit.nativeCrownMaterials)m.color.copy(color);if(crown&&model.getObjectByName('RoyalCape')){for(const {m} of fit.nativeCrownMaterials)m.color.set(crown.color);return}for(const native of fit.nativeCrowns)native.mesh.visible=crown?false:native.visible;
  if(!crown||!fit.head)return;
  const h=fit.head,g=new THREE.Group();g.name='AcademyStoreCrown';g.userData.storeCosmetic=true;
  const gold=crown.id==='gold-crown',silver=crown.id==='silver-crown',metal=new THREE.MeshStandardMaterial({color:crown.color,metalness:.75,roughness:.32,side:THREE.DoubleSide});
  // Elliptic open band follows the top cross section, with a bottom rim above the hairline.
- g.position.set(h.center.x,h.top+.018,h.center.z);
+ g.position.set(h.center.x,h.top-.006,h.center.z);
  const band=new THREE.Mesh(new THREE.CylinderGeometry(1.025,1,.032,48,1,true),metal);band.scale.set(h.rx,1,h.rz);g.add(band);
  for(const y of [-.016,.016]){const rim=new THREE.Mesh(new THREE.TorusGeometry(1,.045,8,48),metal);rim.rotation.x=Math.PI/2;rim.scale.set(h.rx,h.rz,.10);rim.position.y=y;g.add(rim)}
  const count=gold?8:silver?6:5,tipHeight=gold?.082:silver?.061:.045;
