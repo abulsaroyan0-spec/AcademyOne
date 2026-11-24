@@ -58,16 +58,17 @@
   {
     "id": "male-king",
     "gender": "male",
-    "name": "Young King",
-    "theme": "Fantasy",
+    "name": "Royal King",
+    "theme": "Owner exclusive · Royal Edition",
     "symbol": "♂",
-    "color": "#c7b188",
+    "color": "#d6b354",
     "asset": {
       "path": "public/glb/modular_men/King.glb",
       "sha": "905e6219bb5605e35d6c71a8c79c81c297b00c68",
       "license": "CC0-1.0",
       "source": "https://quaternius.com/packs/ultimatemodularcharacters.html"
-    }
+    },
+    "exclusive": true
   },
   {
     "id": "male-punk",
