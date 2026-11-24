@@ -244,31 +244,36 @@ export function makeAcademy(scene){
   for(const zz of [z-length/2,z+length/2])box(upper,black,.065,2.4,.065,x,1.2,zz);
   box(upper,black,.065,.065,length,x,2.35,z);box(upper,black,.065,.065,length,x,.035,z);uc(x,z,.08,length);
  }
- // Left wing: glazed meeting spaces and white shared desks with a continuous aisle.
- glassPartition(-7.1,-12.45,4.8);
- for(const z of [-10.3,-12.35,-14.4]){
-  upperDesk(-1.9,z,2.6,1.05,false);
-  box(upper,upperDark,2.55,.37,.055,-1.9,1.0,z);
-  for(const x of [-2.55,-1.25]){upperPC(x,z+.13,0);upperChair(x,z+.92,0,false);upperPC(x,z-.13,Math.PI);upperChair(x,z-.92,Math.PI,false);}
+ // Upstairs arrival is at x=-5.45, facing negative Z. Left: meeting rooms; straight ahead: PC office; right: library.
+ // Keep the landing and transverse aisle open, and reserve a continuous corridor at x=-5.45.
+ glassPartition(-6.65,-12.75,3.7);
+ glassPartition(-6.65,-15.25,.65);
+ // Meeting room furniture behind the glass, accessible through the gap in the partition.
+ upperDesk(-7.72,-12.95,1.15,2.3,false);
+ for(const z of [-12.3,-13.6]){upperChair(-8.48,z,Math.PI/2,false);upperChair(-6.96,z,-Math.PI/2,false);}
+ // Computer office directly ahead and to the left of the central cross-aisle.
+ for(const z of [-12.15,-14.65]){
+  upperDesk(-3.0,z,2.65,1.10,false);
+  box(upper,upperDark,2.60,.37,.055,-3.0,1.0,z);
+  for(const x of [-3.68,-2.32]){upperPC(x,z+.13,0);upperChair(x,z+.91,0,false);upperPC(x,z-.13,Math.PI);upperChair(x,z-.91,Math.PI,false);}
  }
- // Right wing: natural timber collaboration desks and library shelf.
- glassPartition(2.0,-13.45,3.9);
- for(const z of [-10.45,-13.1]){
-  upperDesk(5.65,z,2.35,1.12,true);
-  for(const x of [4.95,6.35]){upperChair(x,z+.91,0,true);upperChair(x,z-.91,Math.PI,true);}
-  upperPC(6.3,z,0);
-  box(upper,upperWhite,.23,.012,.30,4.9,.802,z+.15);
+ // Right: warm yellow-oak reading tables, timber chairs and open bookcase.
+ const libraryYellow=mat(0xc99b51,.8);
+ for(const z of [-10.65,-13.25]){
+  upperDesk(4.8,z,2.65,1.15,true);
+  for(const x of [4.05,5.55]){upperChair(x,z+.94,0,true);upperChair(x,z-.94,Math.PI,true);}
+  box(upper,upperWhite,.24,.014,.31,4.08,.802,z+.18);
  }
- for(let i=0;i<4;i++)box(upper,upperWood,2.45,.07,.38,6.0,.12+i*.64,-15.35);
- for(let i=0;i<3;i++)box(upper,upperWood,.065,2.12,.38,4.82+i*1.18,1.06,-15.35);
- for(let k=0;k<18;k++)box(upper,mat([0xb56b4e,0x536e86,0xc4b99d][k%3]),.11,.19+(k%3)*.04,.22,4.98+(k%6)*.15,.28+Math.floor(k/6)*.64,-15.35);
- uc(6,-15.35,2.45,.40);
+ for(let i=0;i<4;i++)box(upper,libraryYellow,3.05,.075,.40,5.6,.12+i*.64,-15.35);
+ for(let i=0;i<4;i++)box(upper,libraryYellow,.065,2.12,.40,4.12+i*.985,1.06,-15.35);
+ for(let k=0;k<30;k++)box(upper,mat([0xb56b4e,0x536e86,0xc4b99d,0x78816d][k%4]),.105,.19+(k%3)*.04,.22,4.24+(k%10)*.135,.28+Math.floor(k/10)*.64,-15.35);
+ uc(5.6,-15.35,3.05,.40);
  // Ceiling beams, exposed cable trays, strip and rectangular pendant fixtures.
  for(const z of [-10.15,-12.45,-14.75]){
   box(upper,white,17.7,.18,.24,0,2.49,z);
   for(const x of [-5.7,3.35,7.6]){box(upper,black,.11,.09,1.65,x,2.23,z);box(upper,warm,.075,.035,1.59,x,2.165,z);}
-  for(const dx of [-1.05,1.05])box(upper,warm,.045,.045,1.15,-1.9+dx,2.18,z);
-  for(const dz of [-.575,.575])box(upper,warm,2.1,.045,.045,-1.9,2.18,z+dz);
+  for(const dx of [-1.05,1.05])box(upper,warm,.045,.045,1.15,-3.0+dx,2.18,z);
+  for(const dz of [-.575,.575])box(upper,warm,2.1,.045,.045,-3.0,2.18,z+dz);
  }
  box(upper,black,.30,.12,6.8,-5.7,2.37,-12.15);
  for(const x of [-4.5,4.5]){const l=new T.PointLight(0xfff1df,10,9,1.6);l.position.set(x,2.1,-12.3);upper.add(l);}
@@ -289,7 +294,7 @@ export function makeAcademy(scene){
 }
 export function doorNearby(state,x,z){return Math.abs(x-.5)<1.6&&Math.abs(z)<1.7}
 export function advanceDoor(state,dt){state.angle=T.MathUtils.damp(state.angle,state.open?Math.PI*.53:0,7,dt);state.door.rotation.y=-state.angle;state.plazaAngle=T.MathUtils.damp(state.plazaAngle,state.plazaOpen?Math.PI*.53:0,7,dt);state.plazaDoor.rotation.y=-state.plazaAngle}
-export function academyWalkable(state,x,z,r=.27){const stair=Math.abs(x+5.45)<.775-r&&z>=-8.65&&z<=-1.95;if(state.level===1){if(stair)return true;if(z> -8.65+r||z< -15.8+r||Math.abs(x)>8.86-r)return false;return !state.upperColliders.some(c=>Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r);}if(stair)return true;if(Math.abs(x+5.45)<.775+r&&z>=-8.5&&z<=-2.0)return false;if(z>34.65-r||z< -25.82+r)return false;const ax=Math.abs(x);if(Math.abs(z-23)<.24+r&&(x<r||x>1-r||state.plazaAngle<1.2))return false;if(Math.abs(z-18)<.24+r&&ax>1.20-r)return false;if(z>23.24){if(ax>10.7-r)return false}else if(z>17.76){if(ax>2.8-r)return false}else if(z>10.24){if(ax>5.35-r)return false}else if(z>.22){if(ax>1.75-r)return false}else if(ax>8.97-r)return false;if(Math.abs(z-10)<.24+r&&ax>1.75-r)return false;if(Math.abs(z)<.29+r){if(x<-.1+r||x>1.1-r||state.angle<1.2)return false}return !state.colliders.some(c=>c.r!==undefined?Math.hypot(x-c.x,z-c.z)<c.r+r:Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r)}
+export function academyWalkable(state,x,z,r=.27){const stair=Math.abs(x+5.45)<.775-r&&z>=-8.65&&z<=-1.95;if(state.level===1){if(stair||Math.abs(x+5.45)<.775-r&&z>=-8.98&&z< -8.65)return true;if(z> -8.65+r||z< -15.8+r||Math.abs(x)>8.86-r)return false;return !state.upperColliders.some(c=>Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r);}if(stair)return true;if(Math.abs(x+5.45)<.775+r&&z>=-8.5&&z<=-2.0)return false;if(z>34.65-r||z< -25.82+r)return false;const ax=Math.abs(x);if(Math.abs(z-23)<.24+r&&(x<r||x>1-r||state.plazaAngle<1.2))return false;if(Math.abs(z-18)<.24+r&&ax>1.20-r)return false;if(z>23.24){if(ax>10.7-r)return false}else if(z>17.76){if(ax>2.8-r)return false}else if(z>10.24){if(ax>5.35-r)return false}else if(z>.22){if(ax>1.75-r)return false}else if(ax>8.97-r)return false;if(Math.abs(z-10)<.24+r&&ax>1.75-r)return false;if(Math.abs(z)<.29+r){if(x<-.1+r||x>1.1-r||state.angle<1.2)return false}return !state.colliders.some(c=>c.r!==undefined?Math.hypot(x-c.x,z-c.z)<c.r+r:Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r)}
 
 // Choose reachable seat approaches only; never walk through a different obstacle to reach one.
 export function nearestAcademySeat(state,x,z,maxDistance=1.55){if(state.level===1)return null;let best=null;for(const seat of state.seats||[]){for(const a of seat.approaches){let distance=Math.hypot(x-a.x,z-a.z);if(distance>maxDistance||best&&distance>=best.distance||!academyWalkable(state,a.x,a.z))continue;let clear=true;for(let i=1;i<=12;i++){let t=i/12;if(!academyWalkable(state,x+(a.x-x)*t,z+(a.z-z)*t)){clear=false;break}}if(clear)best={seat,approach:a,distance}}}return best}
