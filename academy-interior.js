@@ -31,14 +31,14 @@ export function makeAcademy(scene){
  const wallLamp=glow(0xffe6bc);
  for(let z of [3,7,9]){box(g,wallLamp,.08,.045,.27,2.7,.03,z);light(g,2.72,.1,z,2.8,1.2,z,5)}
  // Hall beyond the entrance: open double-height lounge, stair and mezzanine.
- surface(g,'tile',10.4,13.6,0,0,-6.9);wall(g,white,.22,5.6,13.8,-5.32,2.8,-6.9);wall(g,dark,.22,5.6,13.8,5.32,2.8,-6.9);wall(g,white,10.6,5.6,.22,0,2.8,-13.8);wall(g,white,10.6,.2,14,0,5.65,-6.9);
- for(let z of [-2,-5,-8,-11]){box(g,white,10.4,.38,.23,0,5.25,z);box(g,black,7.8,.11,.17,.2,5.02,z);box(g,warm,6.6,.042,.09,.2,4.82,z);for(let x of [-3.1,3.4]){box(g,black,.035,.48,.035,x,5.12,z)}}
+ surface(g,'tile',13.2,13.6,0,0,-6.9);wall(g,white,.22,5.6,13.8,-6.72,2.8,-6.9);wall(g,dark,.22,5.6,13.8,6.72,2.8,-6.9);wall(g,white,13.4,5.6,.22,0,2.8,-13.8);wall(g,white,13.4,.2,14,0,5.65,-6.9);wall(g,white,3.78,5.6,.28,-4.71,2.8,0);wall(g,white,3.78,5.6,.28,4.71,2.8,0);wall(g,white,5.64,.70,.28,0,5.25,0);
+ for(let z of [-2,-5,-8,-11]){box(g,white,13.2,.38,.23,0,5.25,z);box(g,black,10.6,.11,.17,.2,5.02,z);box(g,warm,9.4,.042,.09,.2,4.82,z);for(let x of [-3.1,3.4]){box(g,black,.035,.48,.035,x,5.12,z)}}
  for(let x of [-3.1,2.6]){let duct=cylinder(g,black,.24,12.5,x,5.0,-6.8);duct.rotation.x=Math.PI/2;for(let z of [-3,-8,-12]){let elbow=cylinder(g,black,.25,2.2,x,5.0,z);elbow.rotation.z=Math.PI/2}}
  // Rear mezzanine and the left-hand stairs.
- box(g,black,10.35,.22,5.0,0,2.85,-11.1);box(g,white,10.35,.16,.25,0,2.66,-8.61);
- for(let i=0;i<9;i++){let x=-5.0+i*1.15;box(g,frame,.045,.98,.045,x,3.45,-8.52);if(i<8)box(g,glass,1.11,.87,.035,x+.575,3.4,-8.52)}box(g,frame,10.1,.065,.06,0,3.97,-8.52);
- for(let i=0;i<15;i++){let h=(i+1)*.19;box(g,black,1.55,h,.43,-4.05,h/2,-2.2-i*.42)}coll(-4.05,-5.2,1.65,6.6);
- const railA=new T.Vector3(-3.22,1.02,-2.0),railB=new T.Vector3(-3.22,3.9,-8.58),dir=railB.clone().sub(railA);let rail=cylinder(g,frame,.035,dir.length(),0,0,0);rail.position.copy(railA).add(railB).multiplyScalar(.5);rail.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),dir.normalize());for(let i=0;i<8;i++){let z=-2.2-i*.8,h=.25+i*.38;box(g,frame,.035,.95,.035,-3.22,h+.46,z);box(g,glass,.036,.80,.75,-3.22,h+.45,z-.33)}
+ box(g,black,13.15,.22,5.0,0,2.85,-11.1);box(g,white,13.15,.16,.25,0,2.66,-8.61);
+ for(let i=0;i<12;i++){let x=-6.45+i*(12.9/11);box(g,frame,.045,.98,.045,x,3.45,-8.52);if(i<11)box(g,glass,12.9/11-.045,.87,.035,x+12.9/22,3.4,-8.52)}box(g,frame,13.0,.065,.06,0,3.97,-8.52);
+ for(let i=0;i<15;i++){let h=(i+1)*.19;box(g,black,1.55,h,.43,-5.45,h/2,-2.2-i*.42)}coll(-5.45,-5.2,1.65,6.6);
+ const railA=new T.Vector3(-4.62,1.02,-2.0),railB=new T.Vector3(-4.62,3.9,-8.58),dir=railB.clone().sub(railA);let rail=cylinder(g,frame,.035,dir.length(),0,0,0);rail.position.copy(railA).add(railB).multiplyScalar(.5);rail.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),dir.normalize());for(let i=0;i<8;i++){let z=-2.2-i*.8,h=.25+i*.38;box(g,frame,.035,.95,.035,-4.62,h+.46,z);box(g,glass,.036,.80,.75,-4.62,h+.45,z-.33)}
  // Photo reference: elongated S-shaped, double-sided seating island.
  const spine=new T.CatmullRomCurve3([
   new T.Vector3(.78,0,-2.05),new T.Vector3(-.38,0,-2.55),new T.Vector3(-.52,0,-3.75),
@@ -75,32 +75,32 @@ export function makeAcademy(scene){
  for(let i=0;i<=28;i++){let p=spine.getPointAt(i/28);colliders.push({x:p.x,z:p.z,r:.94})}
  // Reference: dark raised study strip with parallel long tables and wooden benches.
  const timber=mat(0xb77a3b,.65),topMat=mat(0x343638,.65),platform=mat(0x252729,.85);
- box(g,platform,2.55,.085,11.65,3.88,.0425,-6.65);
- box(g,warm,.022,.025,11.65,2.60,.075,-6.65);
+ box(g,platform,2.55,.085,11.65,5.28,.0425,-6.65);
+ box(g,warm,.022,.025,11.65,4.00,.075,-6.65);
  for(let z of [-2.55,-5.25,-7.95,-10.65]){
-  box(g,topMat,.86,.075,2.12,4.31,.84,z);
-  for(let zz of [-.91,.91])for(let x of [3.94,4.68])box(g,black,.045,.79,.045,x,.425,z+zz);
+  box(g,topMat,.86,.075,2.12,5.71,.84,z);
+  for(let zz of [-.91,.91])for(let x of [5.34,6.08])box(g,black,.045,.79,.045,x,.425,z+zz);
   // Wood modesty panel facing the lounge, on the outer bench side.
-  box(g,timber,.055,.49,2.05,3.00,.35,z);
-  box(g,timber,.40,.065,2.06,3.26,.51,z);box(g,timber,.36,.065,2.06,5.00,.51,z);
-  for(let zz of [-.86,.86])for(let x of [3.26,5.00]){box(g,black,.045,.47,.045,x,.28,z+zz);box(g,black,.32,.045,.045,x,.10,z+zz)}
-  coll(4.05,z,2.12,2.18);
+  box(g,timber,.055,.49,2.05,4.40,.35,z);
+  box(g,timber,.40,.065,2.06,4.66,.51,z);box(g,timber,.36,.065,2.06,6.40,.51,z);
+  for(let zz of [-.86,.86])for(let x of [4.66,6.40]){box(g,black,.045,.47,.045,x,.28,z+zz);box(g,black,.32,.045,.045,x,.10,z+zz)}
+  coll(5.45,z,2.12,2.18);
  }
- // Large white backlit lettering on a charcoal fascia over the right-side desks.
- // Alpha canvas preserves individual illuminated letters rather than a rectangular sign.
- const fascia=mat(0x292929,.83);box(g,fascia,.075,1.12,9.5,5.15,3.38,-6.65);
- const signCanvas=document.createElement('canvas');signCanvas.width=2048;signCanvas.height=256;
- const sc=signCanvas.getContext('2d');sc.clearRect(0,0,2048,256);sc.textAlign='center';sc.textBaseline='middle';
- sc.font='600 176px Arial';sc.shadowColor='#e8ffff';sc.shadowBlur=28;sc.fillStyle='#e9ffff';sc.fillText('Picsart Academy',1024,135,1960);
- sc.shadowBlur=0;sc.fillStyle='#ffffff';sc.fillText('Picsart Academy',1024,135,1960);
- const signMap=new T.CanvasTexture(signCanvas);signMap.colorSpace=T.SRGBColorSpace;
- const letters=mesh(g,new T.PlaneGeometry(8.8,1.1),new T.MeshBasicMaterial({map:signMap,transparent:true,depthWrite:false}),5.101,3.38,-6.65);letters.rotation.y=-Math.PI/2;
- box(g,warm,.025,.025,9.48,5.095,2.79,-6.65);
+ // Oversized, directly illuminated academy lettering above the study tables.
+ const fascia=mat(0x252525,.86);box(g,fascia,.075,1.42,11.85,6.54,2.02,-6.65);
+ const signCanvas=document.createElement('canvas');signCanvas.width=2048;signCanvas.height=320;
+ const sc=signCanvas.getContext('2d');sc.clearRect(0,0,2048,320);sc.textAlign='center';sc.textBaseline='middle';
+ sc.font='600 238px Arial';sc.shadowColor='#efffff';sc.shadowBlur=36;sc.fillStyle='#f5ffff';sc.fillText('Picsart Academy',1024,165,1940);
+ sc.shadowBlur=0;sc.fillStyle='#ffffff';sc.fillText('Picsart Academy',1024,165,1940);
+ const signMap=new T.CanvasTexture(signCanvas);signMap.colorSpace=T.SRGBColorSpace;signMap.anisotropy=4;
+ const letters=mesh(g,new T.PlaneGeometry(11.35,1.38),new T.MeshBasicMaterial({map:signMap,transparent:true,depthWrite:false,toneMapped:false}),6.475,2.02,-6.65);letters.rotation.y=-Math.PI/2;
+ box(g,warm,.027,.032,11.85,6.47,1.30,-6.65);
+ const signLight=new T.PointLight(0xfff5df,7,8,1.6);signLight.position.set(6.0,2.45,-6.65);g.add(signLight);
  // Warm rectangular pendant outlines over the desks.
  for(let z of [-3.3,-7.1,-10.9]){
-  box(g,warm,.045,.045,2.6,3.55,4.48,z);box(g,warm,.045,.045,2.6,4.95,4.48,z);
-  box(g,warm,1.4,.045,.045,4.25,4.48,z-1.3);box(g,warm,1.4,.045,.045,4.25,4.48,z+1.3);
-  for(let x of [3.55,4.95])box(g,black,.018,.55,.018,x,4.78,z);
+  box(g,warm,.045,.045,2.6,4.95,4.48,z);box(g,warm,.045,.045,2.6,6.35,4.48,z);
+  box(g,warm,1.4,.045,.045,5.65,4.48,z-1.3);box(g,warm,1.4,.045,.045,5.65,4.48,z+1.3);
+  for(let x of [4.95,6.35])box(g,black,.018,.55,.018,x,4.78,z);
  }
  box(g,white,2.1,1.0,.75,-1.65,.5,-11.6);box(g,black,2.2,.055,.82,-1.65,1.02,-11.6);coll(-1.65,-11.6,2.2,.9);
  let hallLight=new T.PointLight(0xffecd2,14,19,1.3);hallLight.position.set(0,4.4,-6.2);g.add(hallLight);
@@ -109,4 +109,4 @@ export function makeAcademy(scene){
 }
 export function doorNearby(state,x,z){return Math.abs(x-.5)<1.6&&Math.abs(z)<1.7}
 export function advanceDoor(state,dt){state.angle=T.MathUtils.damp(state.angle,state.open?Math.PI*.53:0,7,dt);state.door.rotation.y=-state.angle}
-export function academyWalkable(state,x,z,r=.27){if(z>9.7-r||z< -13.55+r)return false;if(z>.22){if(Math.abs(x)>2.8-r)return false}else if(Math.abs(x)>5.17-r)return false;if(Math.abs(z)<.29+r){if(x<-.1+r||x>1.1-r||state.angle<1.2)return false}return !state.colliders.some(c=>c.r!==undefined?Math.hypot(x-c.x,z-c.z)<c.r+r:Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r)}
+export function academyWalkable(state,x,z,r=.27){if(z>9.7-r||z< -13.55+r)return false;if(z>.22){if(Math.abs(x)>2.8-r)return false}else if(Math.abs(x)>6.57-r)return false;if(Math.abs(z)<.29+r){if(x<-.1+r||x>1.1-r||state.angle<1.2)return false}return !state.colliders.some(c=>c.r!==undefined?Math.hypot(x-c.x,z-c.z)<c.r+r:Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r)}
