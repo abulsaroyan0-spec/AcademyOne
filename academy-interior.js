@@ -41,9 +41,9 @@ export function makeAcademy(scene){
  const railA=new T.Vector3(-4.62,1.02,-2.0),railB=new T.Vector3(-4.62,3.9,-8.58),dir=railB.clone().sub(railA);let rail=cylinder(g,frame,.035,dir.length(),0,0,0);rail.position.copy(railA).add(railB).multiplyScalar(.5);rail.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),dir.normalize());for(let i=0;i<8;i++){let z=-2.2-i*.8,h=.25+i*.38;box(g,frame,.035,.95,.035,-4.62,h+.46,z);box(g,glass,.036,.80,.75,-4.62,h+.45,z-.33)}
  // Photo reference: elongated S-shaped, double-sided seating island.
  const spine=new T.CatmullRomCurve3([
-  new T.Vector3(.78,0,-2.05),new T.Vector3(-.38,0,-2.55),new T.Vector3(-.52,0,-3.75),
-  new T.Vector3(.28,0,-5.0),new T.Vector3(.97,0,-6.15),new T.Vector3(.91,0,-7.4),
-  new T.Vector3(.14,0,-8.35),new T.Vector3(-.38,0,-8.55)
+  new T.Vector3(.78,0,-3.25),new T.Vector3(-.38,0,-3.75),new T.Vector3(-.52,0,-4.95),
+  new T.Vector3(.28,0,-6.2),new T.Vector3(.97,0,-7.35),new T.Vector3(.91,0,-8.6),
+  new T.Vector3(.14,0,-9.55),new T.Vector3(-.38,0,-9.75)
  ],false,'centripetal');
  const sofaFrame=mat(0x98630f,.92),seatMat=mat(0xd39a28,.94),backMat=mat(0xbf8620,.94),soil=mat(0x4c4636,.95),seamMat=mat(0xa87520,.95);
  // Sweep a rounded upholstered cross-section along the spine. Shared vertices give smooth curves.
