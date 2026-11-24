@@ -78,7 +78,7 @@ export function royalFinish(root){
   m.needsUpdate=true;
  }});
  let chest=null;root.traverse(b=>{if(b.isBone&&norm(b.name)==='chest'&&!chest)chest=b});if(!chest)return;
- const cape=new T.Group();root.add(cape);let gold=new T.MeshStandardMaterial({color:0xe5bb61,metalness:.7,roughness:.3}),velvet=new T.MeshStandardMaterial({color:0x820e2e,roughness:.84,side:T.DoubleSide}),verts=[],idx=[];
+ const cape=new T.Group();cape.name='RoyalCape';root.add(cape);let gold=new T.MeshStandardMaterial({color:0xe5bb61,metalness:.7,roughness:.3}),velvet=new T.MeshStandardMaterial({color:0x820e2e,roughness:.84,side:T.DoubleSide}),verts=[],idx=[];
  const rows=16,cols=18;for(let y=0;y<=rows;y++){let t=y/rows,width=.17+.16*t;for(let x=0;x<=cols;x++){let a=x/cols*2-1;verts.push(a*width,1.25-.91*t,-.22-.19*t+.028*Math.cos(a*3*Math.PI)*t-.02*a*a);if(y&&x){let i=y*(cols+1)+x;idx.push(i-cols-2,i-1,i-cols-1,i-cols-1,i-1,i)}}}
  let geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(verts,3));geo.setIndex(idx);geo.computeVertexNormals();cape.add(new T.Mesh(geo,velvet));
  for(let side of [-1,1]){let pts=[];for(let y=0;y<=rows;y++){let t=y/rows;pts.push(new T.Vector3(side*(.17+.16*t),1.25-.91*t,-.22-.19*t+.028*Math.cos(3*Math.PI)*t-.02))}cape.add(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),20,.009,6,false),gold))}
