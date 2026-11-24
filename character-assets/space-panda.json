@@ -1,0 +1,9 @@
+{
+  "approved": true,
+  "license": "CC0-1.0",
+  "source": "https://quaternius.com/packs/ultimatespacekit.html",
+  "author": "Quaternius",
+  "sourceBlob": "e59c81c45c1fddbb7b60579ac70e19075716a049",
+  "mirror": "https://github.com/trebeljahr/quaternius-showcase",
+  "notes": "Original rigged asset; hide optional pistol mesh in viewer."
+}
