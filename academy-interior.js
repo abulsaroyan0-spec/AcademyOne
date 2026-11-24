@@ -116,10 +116,10 @@ export function makeAcademy(scene){
   leaves.instanceMatrix.needsUpdate=true;g.add(leaves);
  }
  // Seat anchors follow the exact sofa curve, facing away from its planted center.
- for(let i=1;i<=10;i++){let t=.07+i*.078,p=spine.getPointAt(t),d=spine.getTangentAt(t);for(let side of [-1,1]){let nx=-d.z*side,nz=d.x*side;seats.push({kind:'sofa',x:p.x+nx*.64,z:p.z+nz*.64,height:.57,yaw:Math.atan2(nx,nz),approaches:[{x:p.x+nx*1.40,z:p.z+nz*1.40},{x:p.x+nx*1.60,z:p.z+nz*1.60}]})}}
+ for(let i=1;i<=10;i++){let t=.07+i*.078,p=spine.getPointAt(t),d=spine.getTangentAt(t);for(let side of [-1,1]){let nx=-d.z*side,nz=d.x*side;seats.push({kind:'sofa',x:p.x+nx*.76,z:p.z+nz*.76,height:.57,yaw:Math.atan2(nx,nz),approaches:[{x:p.x+nx*1.40,z:p.z+nz*1.40},{x:p.x+nx*1.60,z:p.z+nz*1.60}]})}}
  // Local circular collision samples preserve the open walkways on both sides.
  for(let i=0;i<=28;i++){let p=spine.getPointAt(i/28);colliders.push({x:p.x,z:p.z,r:.94})}
- const study=new T.Group();study.position.x=2.4;g.add(study);
+ const study=new T.Group();study.position.x=1.35;g.add(study);
  // Reference: dark raised study strip with parallel long tables and wooden benches.
  const timber=mat(0xb77a3b,.65),topMat=mat(0x343638,.65),platform=mat(0x252729,.85);
  box(study,platform,2.55,.085,11.65,5.28,.0425,-6.65);
@@ -131,17 +131,25 @@ export function makeAcademy(scene){
   box(study,timber,.055,.49,2.05,4.40,.35,z);
   box(study,timber,.40,.065,2.06,4.66,.51,z);box(study,timber,.36,.065,2.06,6.40,.51,z);
   for(let zz of [-.86,.86])for(let x of [4.66,6.40]){box(study,black,.045,.47,.045,x,.28,z+zz);box(study,black,.32,.045,.045,x,.10,z+zz)}
-  coll(7.85,z,2.12,2.18);
+  const sx=study.position.x;
+  coll(sx+5.71,z,.86,2.12);
+  for(const bx of [4.66,6.40]){
+   coll(sx+bx,z,.40,2.06);
+   const face=bx<5.71?1:-1;
+   for(const zz of [-.48,.48]){
+    seats.push({kind:'study bench',x:sx+bx,z:z+zz,height:.455,yaw:face*Math.PI/2,approaches:[{x:sx+bx,z:z-1.46},{x:sx+bx,z:z+1.46},{x:sx+bx-face*.64,z:z+zz}]});
+   }
+  }
  }
  // Oversized, directly illuminated academy lettering above the study tables.
- const fascia=mat(0x252525,.86);box(study,fascia,.075,1.42,11.85,6.54,2.02,-6.65);
+ const fascia=mat(0x252525,.86);box(study,fascia,.075,1.42,11.85,7.59,2.02,-6.65);
  const signCanvas=document.createElement('canvas');signCanvas.width=2048;signCanvas.height=320;
  const sc=signCanvas.getContext('2d');sc.clearRect(0,0,2048,320);sc.textAlign='center';sc.textBaseline='middle';
  sc.font='600 238px Arial';sc.shadowColor='#efffff';sc.shadowBlur=36;sc.fillStyle='#f5ffff';sc.fillText('Picsart Academy',1024,165,1940);
  sc.shadowBlur=0;sc.fillStyle='#ffffff';sc.fillText('Picsart Academy',1024,165,1940);
  const signMap=new T.CanvasTexture(signCanvas);signMap.colorSpace=T.SRGBColorSpace;signMap.anisotropy=4;
- const letters=mesh(study,new T.PlaneGeometry(11.35,1.38),new T.MeshBasicMaterial({map:signMap,transparent:true,depthWrite:false,toneMapped:false}),6.475,2.02,-6.65);letters.rotation.y=-Math.PI/2;
- box(study,warm,.027,.032,11.85,6.47,1.30,-6.65);
+ const letters=mesh(study,new T.PlaneGeometry(11.35,1.38),new T.MeshBasicMaterial({map:signMap,transparent:true,depthWrite:false,toneMapped:false}),7.525,2.02,-6.65);letters.rotation.y=-Math.PI/2;
+ box(study,warm,.027,.032,11.85,7.52,1.30,-6.65);
  const signLight=new T.PointLight(0xfff5df,7,8,1.6);signLight.position.set(6.0,2.45,-6.65);study.add(signLight);
  // Warm rectangular pendant outlines over the desks.
  for(let z of [-3.3,-7.1,-10.9]){
