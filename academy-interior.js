@@ -34,7 +34,7 @@ export function makeAcademy(scene){
  function glazedLeaf(parent,x,y,z){box(parent,exteriorGlass,.94,2.65,.05,x,y+1.325,z);for(let dx of [-.48,.48])box(parent,steel,.045,2.65,.075,x+dx,y+1.325,z);for(let dy of [.03,2.62])box(parent,steel,1,.06,.075,x,y+dy,z);box(parent,steel,.04,.65,.10,x-.33,y+1.15,z+.07)}
  glazedLeaf(plazaDoor,-.5,0,0);glazedLeaf(plaza,-.5,-1.8,entryZ);label(plaza,'EXIT',0,1.13,entryZ+.08,.48,.18,'#285a40');
  // Ten usable stair treads. Surface elevations are shared with the movement controller.
- for(let i=0;i<10;i++){const z=22.1-i*.36,y=-1.8+(i+1)*.18;box(plaza,stone,5.65,.18,.36,0,y-.09,z);box(plaza,mat(0x79716a,.85),5.61,.012,.035,0,y+.006,z+.15)}
+ for(let i=0;i<10;i++){const z=22.1-i*.36,y=-1.8+(i+1)*.18;box(plaza,stone,5.65,y+1.8,.36,0,(y-1.8)/2,z);box(plaza,mat(0x79716a,.85),5.61,.012,.035,0,y+.006,z+.15)}
  box(plaza,stone,6.15,.14,.72,0,-1.87,22.64);box(plaza,stone,6.15,.14,.72,0,-.07,18.32);
  for(let side of [-1,1]){for(let i=0;i<6;i++){let z=22.25-i*.65,y=-1.8+i*.325;box(plaza,steel,.045,.94,.045,side*2.83,y+.47,z)}const p1=new T.Vector3(side*2.83,-.86,22.25),p2=new T.Vector3(side*2.83,.94,18.65),d=p2.clone().sub(p1);let rail=cylinder(plaza,steel,.035,d.length(),0,0,0);rail.position.copy(p1).add(p2).multiplyScalar(.5);rail.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),d.normalize())}
  for(let x of [-3,-1.24,1.24,3])box(plaza,steel,.065,3.1,.07,x,1.55,18);for(let x of [-2.13,2.13])box(plaza,exteriorGlass,1.67,3.05,.045,x,1.55,18);box(plaza,steel,6.1,.10,.12,0,3.1,18);
@@ -51,7 +51,7 @@ export function makeAcademy(scene){
  box(lobby,cream,2.4,.48,.85,-3.55,.26,15.72);box(lobby,cream,2.4,.64,.18,-3.55,.67,16.07);for(let x of [-4.66,-2.44])box(lobby,cream,.19,.38,.85,x,.60,15.72);coll(-3.55,15.72,2.4,.85);
  box(lobby,marble,1.35,.42,.55,-3.55,.21,14.65);coll(-3.55,14.65,1.35,.55);
  for(let z of [13.65,16.75]){box(lobby,cream,.68,.45,.72,-4.85,.26,z);box(lobby,cream,.16,.65,.72,-5.13,.60,z);coll(-4.85,z,.68,.72)}
- for(let x of [-4.2,-3.55,-2.9])seats.push({kind:'lobby sofa',x,z:15.72,height:.50,yaw:Math.PI,approaches:[{x,z:14.99},{x:x+.5,z:15.02}]});
+ for(let x of [-4.2,-3.55,-2.9])seats.push({kind:'lobby sofa',x,z:15.72,height:.50,yaw:Math.PI,approaches:[{x,z:14.99},{x:x+.5,z:15.02},{x:-2.0,z:15.72}]});
  for(let z of [11,17.1]){cylinder(lobby,steel,.23,.37,-4.95,.185,z);for(let i=0;i<12;i++){let leaf=mesh(lobby,new T.SphereGeometry(1,7,5),mat(0x53694a,.9),-4.95+(rng()-.5)*.5,.46+rng()*.65,z+(rng()-.5)*.5);leaf.scale.set(.07,.23,.04);leaf.rotation.z=(rng()-.5)*1.7}coll(-4.95,z,.5,.5)}
  const elevator=mat(0x8c8c83,.31,.65);box(lobby,elevator,1.72,2.55,.15,4.42,1.275,11.1);for(let x of [3.99,4.85])box(lobby,exteriorGlass,.35,1.55,.035,x,1.40,11.19);box(lobby,steel,.025,2.55,.025,4.42,1.275,11.19);label(lobby,'LIFT',4.42,2.75,11.20,.54,.18,'#24282c');coll(4.42,11.1,1.72,.18);
  for(let z of [12,16]){let l=new T.PointLight(0xffedcf,17,12,1.5);l.position.set(0,3.9,z);lobby.add(l)}
@@ -216,6 +216,7 @@ export function makeAcademy(scene){
  let corridorLight=new T.PointLight(0xffe2b6,8,13,1.4);corridorLight.position.set(0,3.7,4);g.add(corridorLight);
  // Local electrical circuits: physical switches on wall/column and independently dimmed light sources.
  const circuits=[
+ {id:'plaza',name:'Reception',x:5.32,z:14.4,y:1.16,face:-Math.PI/2,test:o=>o.position.z>10&&o.position.z<=18},
  {id:'entrance',name:'Entrance',x:1.70,z:2.0,y:1.16,face:-Math.PI/2,test:o=>o.position.z>0&&o.position.z<=10},
  {id:'lounge',name:'Lounge',x:-7.59,z:-2.05,y:1.16,face:Math.PI/2,test:o=>o.position.z<=0&&o.position.z>=-13.6},
  {id:'workspace',name:'Workspace',x:-7.59,z:-15.2,y:1.16,face:Math.PI/2,test:o=>o.position.z<-13.6}
