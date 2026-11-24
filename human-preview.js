@@ -43,7 +43,7 @@ function detect(){
  for(let m of mm){if(!m.color)continue;rememberMaterial(m);let name=(m.name||'').toLowerCase(),mesh=semantic(o).toLowerCase(),sem=name+' '+mesh;
  if(!hairOnly&&/(^|[\s_.-])iris($|[\s_.-]|\d)/i.test(sem)&&!/skin|head|body|sclera/i.test(name)){m.userData.eyeMode='iris';materialGroups.eyeColor.add(m)}
  else if(!hairOnly&&/(^|[\s_.-])eyes?($|[\s_.-]|\d)/i.test(sem)&&!/brow|lash|skin|head|body|teeth/i.test(name)&&m.map?.image){m.userData.eyeMode='texture';if(canRecolorEye(m))materialGroups.eyeColor.add(m)}
- if(!hairOnly&&/(^|[\s_.-])skin($|[\s_.-]|\d)|face.?skin|head.?skin|body.?skin/i.test(sem)&&!/eye|hair|brow|lash|teeth|cloth|outfit/i.test(name))materialGroups.skin.add(m);
+ if(!hairOnly&&/(^|[\s_.-])skin($|[\s_.-]|\d)|face.?skin|head.?skin|body.?skin|^(body|head|face)([_.-]|$)/i.test(sem)&&!/eye|hair|brow|lash|teeth|cloth|outfit|shoe|trouser|shirt/i.test(name+' '+mesh))materialGroups.skin.add(m);
  }
  });
  targetFit=fitOf(originalHair);sourceFit=null;
@@ -61,19 +61,19 @@ function recolorMap(m,tint,kind){
  const source=m.userData.faceMap;if(!source)return null;const key=source.uuid+'|'+kind+'|'+tint;if(derivedTextures.has(key))return derivedTextures.get(key);
  try{let data=getImageData(source);if(!data)return null;const {c,ctx,im}=data;let rgb=new THREE.Color(tint).getRGB(new THREE.Color(),THREE.SRGBColorSpace);let target=[rgb.r*255,rgb.g*255,rgb.b*255];
  for(let i=0;i<im.data.length;i+=4){let r=im.data[i],g=im.data[i+1],b=im.data[i+2];if(im.data[i+3]<5||kind==='eye'&&!irisMask(r,g,b))continue;let lum=.2126*r+.7152*g+.0722*b;let gain=kind==='hair'?THREE.MathUtils.clamp(.48+lum/150,.40,1.55):THREE.MathUtils.clamp(lum/105,.42,1.55);for(let k=0;k<3;k++)im.data[i+k]=Math.round(THREE.MathUtils.clamp(target[k]*gain,0,255))}
- ctx.putImageData(im,0,0);let tex=source.clone();tex.image=c;tex.needsUpdate=true;derivedTextures.set(key,tex);return tex}catch{return null}
+ ctx.putImageData(im,0,0);let tex=source.clone();tex.source=new THREE.Source(c);tex.needsUpdate=true;derivedTextures.set(key,tex);return tex}catch{return null}
 }
-function tintMat(m,opt,kind){if(!m.color)return;rememberMaterial(m);m.color.copy(m.userData.faceOriginal);m.map=m.userData.faceMap||null;if(!opt?.tint){m.needsUpdate=true;return}
+function tintMat(m,opt,kind){if(!m.color)return;rememberMaterial(m);const before=m.map;m.color.copy(m.userData.faceOriginal);m.map=m.userData.faceMap||null;if(!opt?.tint){if(before!==m.map)m.needsUpdate=true;return}
  if(kind==='eyeColor'&&m.userData.eyeMode==='texture'){let map=recolorMap(m,opt.tint,'eye');if(map)m.map=map;}
  else if(kind==='hairColor'){if(m.userData.tint?.gain){m.color.set(opt.tint).multiplyScalar(m.userData.tint.gain)}else{let map=recolorMap(m,opt.tint,'hair');if(map){m.map=map;m.color.set(0xffffff)}else m.color.set(opt.tint)}}
- else m.color.multiply(new THREE.Color(opt.tint));m.needsUpdate=true;
+ else m.color.multiply(new THREE.Color(opt.tint));if(before!==m.map)m.needsUpdate=true;
 }
 async function sourceHair(id){
  const gen=hairGeneration;if(hairAssets.has(id))return hairAssets.get(id);if(hairPending.has(id))return hairPending.get(id);
- const job=(async()=>{let res=await fetch('/hair-models/'+id+'.glb');if(!res.ok)throw Error('Hair download failed');let gltf=await loader.parseAsync(await res.arrayBuffer(),'/hair-models/');if(gen!==hairGeneration){dispose(gltf.scene);throw Error('Model changed')}
+ const job=(async()=>{let res=await fetch('/hair-models/'+id+'.glb',{signal:AbortSignal.timeout(35000)});if(!res.ok)throw Error('Hair download failed');let gltf=await loader.parseAsync(await res.arrayBuffer(),'/hair-models/');if(gen!==hairGeneration){dispose(gltf.scene);throw Error('Model changed')}
  gltf.scene.updateMatrixWorld(true);const candidates=[];gltf.scene.traverse(o=>{if(o.isMesh&&o.geometry?.attributes.position&&(/hair/i.test(o.name)||mats(o).some(m=>/hair/i.test(m.name||''))))candidates.push(o)});if(!candidates.length){gltf.scene.traverse(o=>{if(o.isMesh&&o.geometry?.attributes.position)candidates.push(o)})}
  if(!candidates.length){dispose(gltf.scene);throw Error('No hair geometry')}
- const root=new THREE.Group();for(let o of candidates){let g=o.geometry.clone(),pos=g.attributes.position,p=new THREE.Vector3();o.updateWorldMatrix(true,false);if(o.isSkinnedMesh)o.skeleton.update();for(let i=0;i<pos.count;i++){o.getVertexPosition(i,p);p.applyMatrix4(o.matrixWorld);pos.setXYZ(i,p.x,p.y,p.z)}pos.needsUpdate=true;g.morphAttributes={};g.deleteAttribute('skinIndex');g.deleteAttribute('skinWeight');g.deleteAttribute('skinIndex1');g.deleteAttribute('skinWeight1');if(g.attributes.normal)g.attributes.normal.applyNormalMatrix(new THREE.Matrix3().getNormalMatrix(o.matrixWorld));else g.computeVertexNormals();g.computeBoundingBox();g.computeBoundingSphere();for(let m of mats(o)){rememberMaterial(m);m.side=THREE.DoubleSide;m.roughness=.82;m.metalness=0;m.envMapIntensity=.30;if(m.map){m.alphaTest=.36;m.transparent=false;m.depthWrite=true;m.alphaToCoverage=true}m.needsUpdate=true}let mesh=new THREE.Mesh(g,o.material);mesh.name='SwappableHair';root.add(mesh)}
+ const root=new THREE.Group();for(let o of candidates){let g=o.geometry.clone(),src=o.geometry.attributes.position,positions=new Float32Array(src.count*3),p=new THREE.Vector3();o.updateWorldMatrix(true,false);if(o.isSkinnedMesh)o.skeleton.update();for(let i=0;i<src.count;i++){o.getVertexPosition(i,p);p.applyMatrix4(o.matrixWorld);positions.set([p.x,p.y,p.z],i*3)}g.setAttribute('position',new THREE.BufferAttribute(positions,3));g.morphAttributes={};g.deleteAttribute('skinIndex');g.deleteAttribute('skinWeight');g.deleteAttribute('skinIndex1');g.deleteAttribute('skinWeight1');if(g.attributes.normal){const src=g.attributes.normal,normals=new Float32Array(src.count*3),matrix=new THREE.Matrix3().getNormalMatrix(o.matrixWorld);for(let i=0;i<src.count;i++){p.fromBufferAttribute(src,i).applyNormalMatrix(matrix);normals.set([p.x,p.y,p.z],i*3)}g.setAttribute('normal',new THREE.BufferAttribute(normals,3))}else g.computeVertexNormals();g.computeBoundingBox();g.computeBoundingSphere();for(let m of mats(o)){rememberMaterial(m);m.side=THREE.DoubleSide;m.roughness=.82;m.metalness=0;m.envMapIntensity=.30;if(m.map){m.alphaTest=.36;m.transparent=false;m.depthWrite=true;m.alphaToCoverage=true}m.needsUpdate=true}let mesh=new THREE.Mesh(g,o.material);mesh.name='SwappableHair';root.add(mesh)}
  root.updateMatrixWorld(true);let fit=fitOf(root.children);if(!fit){dispose(root);throw Error('Hair geometry scale unsupported')}
  const item={root,fit,source:gltf.scene};hairAssets.set(id,item);return item})();
  hairPending.set(id,job);try{return await job}finally{if(hairPending.get(id)===job)hairPending.delete(id)}
