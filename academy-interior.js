@@ -39,17 +39,47 @@ export function makeAcademy(scene){
  for(let i=0;i<9;i++){let x=-5.0+i*1.15;box(g,frame,.045,.98,.045,x,3.45,-8.52);if(i<8)box(g,glass,1.11,.87,.035,x+.575,3.4,-8.52)}box(g,frame,10.1,.065,.06,0,3.97,-8.52);
  for(let i=0;i<15;i++){let h=(i+1)*.19;box(g,black,1.55,h,.43,-4.05,h/2,-2.2-i*.42)}coll(-4.05,-5.2,1.65,6.6);
  const railA=new T.Vector3(-3.22,1.02,-2.0),railB=new T.Vector3(-3.22,3.9,-8.58),dir=railB.clone().sub(railA);let rail=cylinder(g,frame,.035,dir.length(),0,0,0);rail.position.copy(railA).add(railB).multiplyScalar(.5);rail.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),dir.normalize());for(let i=0;i<8;i++){let z=-2.2-i*.8,h=.25+i*.38;box(g,frame,.035,.95,.035,-3.22,h+.46,z);box(g,glass,.036,.80,.75,-3.22,h+.45,z-.33)}
- // Curved mustard upholstered sofa and green planter visible on the right.
- const sofaX=2.05,sofaZ=-4.8,st=-.56,en=2.02;
- arc(g,mustard,2.45,.78,.30,st,en,sofaX,.08,sofaZ);arc(g,cushion,2.45,.82,.13,st,en,sofaX,.41,sofaZ);arc(g,mustard,1.70,.18,.62,st,en,sofaX,.52,sofaZ);
- for(let i=1;i<6;i++){let a=st+(en-st)*i/6;let z=sofaZ-Math.sin(a)*2.03,x=sofaX+Math.cos(a)*2.03;let seam=box(g,mat(0x98691c,.95),.022,.015,.67,x,.555,z);seam.rotation.y=a-Math.PI/2}
- cylinder(g,dark,1.48,.48,sofaX,.24,sofaZ);cylinder(g,mat(0x4e4435),1.43,.04,sofaX,.49,sofaZ);
- let leaves=new T.InstancedMesh(new T.SphereGeometry(1,6,4),mat(0x6a8352,.95),160),obj=new T.Object3D();for(let i=0;i<160;i++){let a=rng()*Math.PI*2,r=Math.sqrt(rng())*1.32;obj.position.set(sofaX+Math.cos(a)*r,.63+rng()*.40,sofaZ+Math.sin(a)*r);obj.scale.set(.035+rng()*.03,.16+rng()*.19,.045);obj.rotation.set((rng()-.5)*1.3,rng()*6.28,(rng()-.5)*1.5);obj.updateMatrix();leaves.setMatrixAt(i,obj.matrix)}g.add(leaves);coll(sofaX,sofaZ,4.8,4.8);
- // Right-hand shared worktables and shelves.
- for(let z of [-9.6,-12.1]){box(g,black,2.3,.10,1.25,3.55,.82,z);for(let x of [2.65,4.45])for(let zz of [-.46,.46])box(g,wood,.075,.8,.075,x,.4,z+zz);for(let x of [2.95,4.1]){box(g,wood,.48,.08,.46,x,.47,z+.99);box(g,wood,.48,.44,.07,x,.74,z+1.18);for(let dx of [-.18,.18])for(let dz of [-.17,.17])box(g,black,.035,.45,.035,x+dx,.23,z+.99+dz)}coll(3.55,z,2.5,2.6)}
- for(let y of [1.6,2.1,2.6,3.1,3.6,4.1])box(g,wood,.36,.07,3.8,5.0,y,-11.5);for(let z of [-13.3,-12,-10.8,-9.6])box(g,wood,.36,2.7,.055,5.0,2.85,z);
+ // Double-sided mustard seating wraps the central planted island.
+ const sofaX=1.15,sofaZ=-4.8,st=-1.20,en=4.85;
+ const seamMat=mat(0x98691c,.95);
+ for(const [a,b] of [[st,1.75],[1.86,en]]){
+  arc(g,mustard,1.98,.66,.30,a,b,sofaX,.08,sofaZ);
+  arc(g,cushion,1.98,.68,.13,a,b,sofaX,.41,sofaZ);
+  arc(g,mustard,1.38,.17,.62,a,b,sofaX,.52,sofaZ);
+  for(let i=1;i<6;i++){let t=a+(b-a)*i/6;let z=sofaZ-Math.sin(t)*1.66,x=sofaX+Math.cos(t)*1.66;let seam=box(g,seamMat,.018,.012,.53,x,.555,z);seam.rotation.y=t-Math.PI/2}
+ }
+ cylinder(g,dark,1.20,.48,sofaX,.24,sofaZ);cylinder(g,mat(0x4e4435),1.16,.04,sofaX,.49,sofaZ);
+ let leaves=new T.InstancedMesh(new T.SphereGeometry(1,6,4),mat(0x6a8352,.95),160),obj=new T.Object3D();for(let i=0;i<160;i++){let a=rng()*Math.PI*2,r=Math.sqrt(rng())*1.05;obj.position.set(sofaX+Math.cos(a)*r,.63+rng()*.40,sofaZ+Math.sin(a)*r);obj.scale.set(.035+rng()*.03,.16+rng()*.19,.045);obj.rotation.set((rng()-.5)*1.3,rng()*6.28,(rng()-.5)*1.5);obj.updateMatrix();leaves.setMatrixAt(i,obj.matrix)}g.add(leaves);coll(sofaX,sofaZ,4.0,4.0);
+ // Long black worktables with wooden aprons and mustard chairs along the right wall.
+ const chairMat=mat(0xbe8529,.9);
+ for(let z of [-2.65,-5.35,-8.05,-10.75]){
+  box(g,black,1.05,.085,2.12,4.52,.83,z);
+  box(g,wood,.08,.22,2.08,4.00,.67,z);
+  for(let x of [4.12,4.92])for(let zz of [-.88,.88])box(g,black,.055,.78,.055,x,.39,z+zz);
+  for(let zz of [-.58,.58]){
+   const cx=3.66,cz=z+zz;
+   box(g,chairMat,.44,.075,.46,cx,.46,cz);box(g,chairMat,.07,.43,.46,cx-.23,.72,cz);
+   for(let dx of [-.16,.16])for(let dz of [-.16,.16])box(g,black,.035,.43,.035,cx+dx,.215,cz+dz);
+  }
+  coll(4.36,z,1.9,2.2);
+ }
+ // Large white backlit lettering on a charcoal fascia over the right-side desks.
+ // Alpha canvas preserves individual illuminated letters rather than a rectangular sign.
+ const fascia=mat(0x292929,.83);box(g,fascia,.075,1.12,9.5,5.15,3.38,-6.65);
+ const signCanvas=document.createElement('canvas');signCanvas.width=2048;signCanvas.height=256;
+ const sc=signCanvas.getContext('2d');sc.clearRect(0,0,2048,256);sc.textAlign='center';sc.textBaseline='middle';
+ sc.font='600 176px Arial';sc.shadowColor='#e8ffff';sc.shadowBlur=28;sc.fillStyle='#e9ffff';sc.fillText('Picsart Academy',1024,135,1960);
+ sc.shadowBlur=0;sc.fillStyle='#ffffff';sc.fillText('Picsart Academy',1024,135,1960);
+ const signMap=new T.CanvasTexture(signCanvas);signMap.colorSpace=T.SRGBColorSpace;
+ const letters=mesh(g,new T.PlaneGeometry(8.8,1.1),new T.MeshBasicMaterial({map:signMap,transparent:true,depthWrite:false}),5.101,3.38,-6.65);letters.rotation.y=-Math.PI/2;
+ box(g,warm,.025,.025,9.48,5.095,2.79,-6.65);
+ // Warm rectangular pendant outlines over the desks.
+ for(let z of [-3.3,-7.1,-10.9]){
+  box(g,warm,.045,.045,2.6,3.55,4.48,z);box(g,warm,.045,.045,2.6,4.95,4.48,z);
+  box(g,warm,1.4,.045,.045,4.25,4.48,z-1.3);box(g,warm,1.4,.045,.045,4.25,4.48,z+1.3);
+  for(let x of [3.55,4.95])box(g,black,.018,.55,.018,x,4.78,z);
+ }
  box(g,white,2.1,1.0,.75,-1.65,.5,-11.6);box(g,black,2.2,.055,.82,-1.65,1.02,-11.6);coll(-1.65,-11.6,2.2,.9);
- label(g,'Picsart Academy',1.0,2.57,-13.66,2.7,.55,'#302c29');
  let hallLight=new T.PointLight(0xffecd2,14,19,1.3);hallLight.position.set(0,4.4,-6.2);g.add(hallLight);
  let corridorLight=new T.PointLight(0xffe2b6,8,13,1.4);corridorLight.position.set(0,3.7,4);g.add(corridorLight);
  return {door,colliders,open:false,angle:0};
