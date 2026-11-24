@@ -25,6 +25,59 @@ export function journeyCurve(){
  const knots=[[0,0,16],[0,0,-14],[0,0,-44],[0,0,-74],[0,0,-104],[0,0,-134],[5,0,-162],[29,1,-176],[62,1,-176],[95,1,-176],[126,0,-177],[151,-8,-182],[172,-23,-191],[190,-37,-200],[205,-40,-203]];
  const curve=new T.CatmullRomCurve3(knots.map(p=>new T.Vector3(...p)),false,'centripetal');curve.arcLengthDivisions=1600;curve.updateArcLengths();return curve;
 }
+
+/* Red signal atmosphere follows the complete curved route. */
+function createSignalWind(scene,curve,length){
+ const rng=rand(9182),samples=1024,frames=[],Y=new T.Vector3(0,1,0);
+ for(let i=0;i<=samples;i++){
+  const u=i/samples,c=curve.getPointAt(u),t=curve.getTangentAt(u).normalize(),r=new T.Vector3().crossVectors(t,Y).normalize(),up=new T.Vector3().crossVectors(r,t).normalize();
+  frames.push({c,r,up});
+ }
+ const pos=[],uv=[],laneAttr=[],rights=[],ups=[],indices=[],lanes=7,segments=320;
+ for(let lane=0;lane<lanes;lane++){
+  let base=pos.length/3,offset=(lane-(lanes-1)/2)*1.8;
+  for(let i=0;i<=segments;i++){
+   let u=i/segments,f=frames[Math.round(u*samples)],x=offset+Math.sin(u*28+lane*1.8)*.55,y=3.2+(lane%3)*.92+.36*Math.sin(u*40+lane),width=.20+(lane%3)*.085;
+   for(let side of [-1,1]){
+    let point=f.c.clone().addScaledVector(f.r,x).addScaledVector(f.up,y+side*width);
+    pos.push(...point.toArray());uv.push(u,side*.5+.5);laneAttr.push(lane);rights.push(...f.r.toArray());ups.push(...f.up.toArray());
+   }
+   if(i<segments){let a=base+i*2;indices.push(a,a+1,a+2,a+1,a+3,a+2)}
+  }
+ }
+ const ribbonGeo=new T.BufferGeometry();
+ ribbonGeo.setAttribute('position',new T.Float32BufferAttribute(pos,3));ribbonGeo.setAttribute('uv',new T.Float32BufferAttribute(uv,2));ribbonGeo.setAttribute('aLane',new T.Float32BufferAttribute(laneAttr,1));ribbonGeo.setAttribute('aRight',new T.Float32BufferAttribute(rights,3));ribbonGeo.setAttribute('aUp',new T.Float32BufferAttribute(ups,3));ribbonGeo.setIndex(indices);
+ const ribbonMat=new T.ShaderMaterial({uniforms:{uTime:{value:0},uProgress:{value:0}},transparent:true,depthWrite:false,side:T.DoubleSide,blending:T.AdditiveBlending,
+ vertexShader:'uniform float uTime; attribute float aLane; attribute vec3 aRight; attribute vec3 aUp; varying vec2 vUv; varying float vLane; varying float vDepth; void main(){vUv=uv;vLane=aLane;vec3 p=position+aUp*(sin(uv.x*95.0-uTime*1.9+aLane*1.6)*.27)+aRight*(sin(uv.x*58.0-uTime*.8+aLane*2.4)*.35);vec4 mv=modelViewMatrix*vec4(p,1.0);vDepth=-mv.z;gl_Position=projectionMatrix*mv;}',
+ fragmentShader:'uniform float uTime; uniform float uProgress; varying vec2 vUv; varying float vLane; varying float vDepth; float pulse(float x){return smoothstep(.05,.18,x)*(1.0-smoothstep(.31,.85,x));} void main(){float line=abs(vUv.y-.5)*2.0;float glow=pow(max(0.0,1.0-line),2.2);float core=exp(-line*line*24.0);float wave=pulse(fract(vUv.x*29.0+uTime*.63+vLane*.173));float signal=pulse(fract(vUv.x*61.0+uTime*1.1+vLane*.27));float fade=smoothstep(1.2,4.0,vDepth)*(1.0-smoothstep(25.0,67.0,vDepth));float gate=1.0-.55*smoothstep(.94,.99,uProgress);vec3 color=mix(vec3(.95,.025,.07),vec3(1.0,.28,.13),core*.76+signal*.18);float alpha=(glow*(.045+.29*wave)+core*(.035+.32*signal))*fade*gate;gl_FragColor=vec4(color,alpha);}'
+ });
+ const ribbons=new T.Mesh(ribbonGeo,ribbonMat);ribbons.frustumCulled=false;scene.add(ribbons);
+ const canvas=document.createElement('canvas');canvas.width=256;canvas.height=64;const ctx=canvas.getContext('2d');
+ ctx.font='bold 37px monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor='#ff233e';ctx.shadowBlur=10;ctx.fillStyle='#ffb0a0';
+ ['0','1','+','/'].forEach((g,i)=>ctx.fillText(g,i*64+32,33));
+ const atlas=new T.CanvasTexture(canvas);atlas.minFilter=T.LinearFilter;atlas.magFilter=T.LinearFilter;atlas.generateMipmaps=false;
+ const count=420,coords=new Float32Array(count*3),glyphs=new Float32Array(count),sizes=new Float32Array(count),alphas=new Float32Array(count),particles=[];
+ for(let i=0;i<count;i++){let seed=rng();glyphs[i]=seed<.42?0:seed<.84?1:seed<.93?2:3;sizes[i]=.75+rng()*1.15;particles.push({offset:rng(),speed:(7+rng()*15)/length,x:(rng()-.5)*13,y:2.7+rng()*3.1,phase:rng()*Math.PI*2})}
+ const glyphGeo=new T.BufferGeometry(),pa=new T.BufferAttribute(coords,3).setUsage(T.DynamicDrawUsage),aa=new T.BufferAttribute(alphas,1).setUsage(T.DynamicDrawUsage);
+ glyphGeo.setAttribute('position',pa);glyphGeo.setAttribute('aGlyph',new T.BufferAttribute(glyphs,1));glyphGeo.setAttribute('aSize',new T.BufferAttribute(sizes,1));glyphGeo.setAttribute('aAlpha',aa);
+ const glyphMat=new T.ShaderMaterial({uniforms:{uAtlas:{value:atlas}},transparent:true,depthWrite:false,blending:T.AdditiveBlending,
+ vertexShader:'attribute float aGlyph; attribute float aSize; attribute float aAlpha; varying float vGlyph; varying float vAlpha; void main(){vec4 mv=modelViewMatrix*vec4(position,1.0);float d=-mv.z;vGlyph=aGlyph;vAlpha=aAlpha*smoothstep(1.4,4.0,d)*(1.0-smoothstep(28.0,65.0,d));gl_Position=projectionMatrix*mv;gl_PointSize=clamp((205.0/max(d,1.0))*aSize,4.0,36.0);}',
+ fragmentShader:'uniform sampler2D uAtlas; varying float vGlyph; varying float vAlpha; void main(){vec2 uv=vec2((vGlyph+gl_PointCoord.x)*.25,1.0-gl_PointCoord.y);vec4 tex=texture2D(uAtlas,uv);gl_FragColor=vec4(vec3(1.0,.11,.13)*mix(.6,1.4,tex.r),tex.a*vAlpha);}'
+ });
+ const cloud=new T.Points(glyphGeo,glyphMat);cloud.frustumCulled=false;scene.add(cloud);
+ const axes=['x','y','z'];
+ function update(time,p){
+  ribbonMat.uniforms.uTime.value=time;ribbonMat.uniforms.uProgress.value=p;
+  for(let i=0;i<count;i++){
+   let a=particles[i],u=((a.offset-time*a.speed)%1+1)%1,n=u*samples,k=Math.min(samples-1,Math.floor(n)),f=n-k,A=frames[k],B=frames[k+1],w=a.x+.65*Math.sin(time*1.3+a.phase+u*18),h=a.y+.46*Math.cos(time*1.7+a.phase+u*22);
+   for(let axis=0;axis<3;axis++){let key=axes[axis];coords[i*3+axis]=T.MathUtils.lerp(A.c[key]+A.r[key]*w+A.up[key]*h,B.c[key]+B.r[key]*w+B.up[key]*h,f)}
+   alphas[i]=(.32+.36*(.5+.5*Math.sin(time*2+a.phase)))*ease(0,.014,u)*(1-ease(.977,1,u))*(1-.5*ease(.94,.99,p));
+  }
+  pa.needsUpdate=true;aa.needsUpdate=true;
+ }
+ return {update,dispose:()=>atlas.dispose()};
+}
+
 export function makeJourney(scene){
  scene.background=new T.Color(0x020910);scene.fog=new T.FogExp2(0x020910,.026);scene.add(new T.AmbientLight(0x86c4c9,2.1));
  const curve=journeyCurve(),length=curve.getLength(),half=length/24,forward=new T.Vector3(0,0,-1),rng=rand(317);
@@ -57,7 +110,8 @@ export function makeJourney(scene){
    case 11:{for(let i=0;i<5;i++){let z=l-i*2*l/5;let o=loop(g,z,4.4-i*.15,i%2?blue:green);o.rotation.z=i*.2}const gate=station(.975);for(let i=0;i<5;i++){let o=mesh(gate,new T.TorusGeometry(3.4+i*.4,.07,8,96),i%2?blue:green,0,0,i*.19);spinners.push({o,axis:'z',speed:i%2?.22:-.18})}const center=mesh(gate,new T.CircleGeometry(3.35,80),new T.MeshBasicMaterial({color:0xcffff2,transparent:true,opacity:.9,side:T.DoubleSide}),0,0,-.3);panel(gate,'ACCESS GRANTED',0,4.3,-.4,5.5);break}
   }
  }
- return {curve,length,rings,spinners,packets,pulseMaterials,sections};
+ const signalWind=createSignalWind(scene,curve,length);
+ return {curve,length,rings,spinners,packets,pulseMaterials,sections,signalWind};
 }
 export function animateJourney(state,camera,p,time){
  const q=T.MathUtils.clamp(p,0,1),c=state.curve.getPointAt(q),tan=state.curve.getTangentAt(q).normalize(),right=new T.Vector3().crossVectors(tan,new T.Vector3(0,1,0)).normalize();
@@ -66,6 +120,7 @@ export function animateJourney(state,camera,p,time){
  const fov=42+8*ease(.40,.52,q)-5*ease(.65,.76,q)+8*ease(.81,.91,q);if(Math.abs(camera.fov-fov)>.02){camera.fov=fov;camera.updateProjectionMatrix()}
  for(let [i,o] of state.rings.entries())o.scale.setScalar(1+.025*Math.sin(time*1.8+i));for(let {o,axis,speed} of state.spinners)o.rotation[axis]=time*speed;
  for(let a of state.packets){let f=(time*a.speed+a.offset)%1;a.obj.position.lerpVectors(a.from,a.to,f);const direction=a.to.clone().sub(a.from).normalize();a.obj.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),direction)}
+ state.signalWind.update(time,q);
  for(let m of state.pulseMaterials)m.color.setHSL(.43,.85,.48+.12*Math.sin(time*3));
  // Only adjacent chapters need to draw; all are already constructed.
  let n=Math.min(11,Math.floor(q*12));state.sections.forEach((g,i)=>g.visible=Math.abs(i-n)<=2);
