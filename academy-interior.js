@@ -31,7 +31,7 @@ export function makeAcademy(scene){
  const wallLamp=glow(0xffe6bc);
  for(let z of [3,7,9]){box(g,wallLamp,.08,.045,.27,2.7,.03,z);light(g,2.72,.1,z,2.8,1.2,z,5)}
  // Hall beyond the entrance: open double-height lounge, stair and mezzanine.
- surface(g,'tile',13.2,13.6,0,0,-6.9);wall(g,white,.22,5.6,13.8,-6.72,2.8,-6.9);wall(g,dark,.22,5.6,13.8,6.72,2.8,-6.9);wall(g,white,13.4,5.6,.22,0,2.8,-13.8);wall(g,white,13.4,.2,14,0,5.65,-6.9);wall(g,white,6.5,5.6,.28,-3.35,2.8,0);wall(g,white,5.5,5.6,.28,3.85,2.8,0);wall(g,white,1.2,3.15,.28,.5,4.025,0);
+ surface(g,'tile',13.2,13.6,0,0,-6.9);wall(g,white,.22,5.6,13.8,-6.72,2.8,-6.9);wall(g,dark,.22,5.6,13.8,6.72,2.8,-6.9);wall(g,white,13.4,5.6,.22,0,2.8,-13.8);wall(g,white,13.4,.2,14,0,5.65,-6.9);wall(g,white,3.78,5.6,.28,-4.71,2.8,0);wall(g,white,3.78,5.6,.28,4.71,2.8,0);wall(g,white,5.64,.70,.28,0,5.25,0);
  for(let z of [-2,-5,-8,-11]){box(g,white,13.2,.38,.23,0,5.25,z);box(g,black,10.6,.11,.17,.2,5.02,z);box(g,warm,9.4,.042,.09,.2,4.82,z);for(let x of [-3.1,3.4]){box(g,black,.035,.48,.035,x,5.12,z)}}
  for(let x of [-3.1,2.6]){let duct=cylinder(g,black,.24,12.5,x,5.0,-6.8);duct.rotation.x=Math.PI/2;for(let z of [-3,-8,-12]){let elbow=cylinder(g,black,.25,2.2,x,5.0,z);elbow.rotation.z=Math.PI/2}}
  // Rear mezzanine and the left-hand stairs.
@@ -87,15 +87,15 @@ export function makeAcademy(scene){
   coll(5.45,z,2.12,2.18);
  }
  // Oversized, directly illuminated academy lettering above the study tables.
- const fascia=mat(0x252525,.86);box(g,fascia,.075,1.53,11.85,6.54,3.72,-6.65);
+ const fascia=mat(0x252525,.86);box(g,fascia,.075,1.42,11.85,6.54,2.02,-6.65);
  const signCanvas=document.createElement('canvas');signCanvas.width=2048;signCanvas.height=320;
  const sc=signCanvas.getContext('2d');sc.clearRect(0,0,2048,320);sc.textAlign='center';sc.textBaseline='middle';
  sc.font='600 238px Arial';sc.shadowColor='#efffff';sc.shadowBlur=36;sc.fillStyle='#f5ffff';sc.fillText('Picsart Academy',1024,165,1940);
  sc.shadowBlur=0;sc.fillStyle='#ffffff';sc.fillText('Picsart Academy',1024,165,1940);
  const signMap=new T.CanvasTexture(signCanvas);signMap.colorSpace=T.SRGBColorSpace;signMap.anisotropy=4;
- const letters=mesh(g,new T.PlaneGeometry(11.35,1.50),new T.MeshBasicMaterial({map:signMap,transparent:true,depthWrite:false,toneMapped:false}),6.475,3.72,-6.65);letters.rotation.y=-Math.PI/2;
- box(g,warm,.027,.032,11.85,6.47,2.95,-6.65);
- const signLight=new T.PointLight(0xfff5df,7,8,1.6);signLight.position.set(6.0,3.2,-6.65);g.add(signLight);
+ const letters=mesh(g,new T.PlaneGeometry(11.35,1.38),new T.MeshBasicMaterial({map:signMap,transparent:true,depthWrite:false,toneMapped:false}),6.475,2.02,-6.65);letters.rotation.y=-Math.PI/2;
+ box(g,warm,.027,.032,11.85,6.47,1.30,-6.65);
+ const signLight=new T.PointLight(0xfff5df,7,8,1.6);signLight.position.set(6.0,2.45,-6.65);g.add(signLight);
  // Warm rectangular pendant outlines over the desks.
  for(let z of [-3.3,-7.1,-10.9]){
   box(g,warm,.045,.045,2.6,4.95,4.48,z);box(g,warm,.045,.045,2.6,6.35,4.48,z);
