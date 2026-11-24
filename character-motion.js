@@ -13,7 +13,7 @@ export function createHumanoidMotion(root){
  const hp=local(hips);
  for(let l of legs){l.ankle=local(l.foot);l.a=local(l.upper).distanceTo(local(l.lower));l.b=local(l.lower).distanceTo(l.ankle);l.side=Math.sign(local(l.arm).x-hp.x)||Math.sign(local(l.upper).x-hp.x)||1;l.upperDir=l.lower.position.clone().normalize();l.lowerDir=l.foot.position.clone().normalize();l.armDir=l.elbow.position.clone().normalize();l.elbowDir=l.hand.position.clone().normalize()}
  if(legs.some(l=>l.a<.05||l.b<.05))return null;
- let phase=0,blend=0,clock=0,gaitSpeed=0,waveTime=-1,reach=null,blinkAt=2.6,seatWeight=0,seatHeight=.55,airWeight=0;
+ let phase=0,blend=0,clock=0,gaitSpeed=0,waveTime=-1,reach=null,blinkAt=2.6,seatWeight=0,seatHeight=.55,airWeight=0,terrain=null;
  // The modular models use separate eye meshes. Compress only eye geometry visually during a blink.
  const eyes=[];root.traverse(o=>{if(!o.isMesh||!o.geometry?.attributes.position)return;const mats=Array.isArray(o.material)?o.material:[o.material];if(!mats.length||!mats.every(m=>/^eyes?$/i.test(m?.name||'')))return;
   o.geometry=o.geometry.clone();const pos=o.geometry.attributes.position,base=pos.array.slice(),bounds=new T.Box3().setFromBufferAttribute(pos);const size=bounds.getSize(V()),center=bounds.getCenter(V());
@@ -39,7 +39,7 @@ export function createHumanoidMotion(root){
   for(let i=0;i<legs.length;i++){
    let l=legs[i],t=(phase+i*.5)%1,stance=.62-running*.12,travel=stride*stance*.5;
    let z,y;if(t<stance){z=travel*(1-2*t/stance);y=0}else{let f=(t-stance)/(1-stance),smooth=f*f*(3-2*f);z=travel*(2*smooth-1);y=Math.sin(Math.PI*f)*(.085+running*.10)}
-   let ankle=l.ankle.clone().add(V(0,y*blend,z*blend));const seated=l.ankle.clone();seated.z+=l.a*.86;seated.y=l.ankle.y+.012;ankle.lerp(seated,seatWeight);ankle.y+=airWeight*.10;ankle.z+=airWeight*.045*(i===0?1:-1);let hip=local(l.upper),delta=ankle.clone().sub(hip),dist=clamp(delta.length(),Math.abs(l.a-l.b)+.001,l.a+l.b-.001),dir=delta.normalize();
+   let ankle=l.ankle.clone().add(V(0,y*blend,z*blend));const seated=l.ankle.clone();seated.z+=l.a*.86;seated.y=l.ankle.y+.012;ankle.lerp(seated,seatWeight);ankle.y+=airWeight*.10;ankle.z+=airWeight*.045*(i===0?1:-1);if(terrain&&!seatWeight&&!airWeight){const foot=root.localToWorld(ankle.clone());const base=terrain(foot.x,foot.z);if(Number.isFinite(base))ankle.y+=clamp(base-root.position.y,-.28,.28)}let hip=local(l.upper),delta=ankle.clone().sub(hip),dist=clamp(delta.length(),Math.abs(l.a-l.b)+.001,l.a+l.b-.001),dir=delta.normalize();
    let bend=V(0,0,1).addScaledVector(dir,-dir.z).normalize();if(bend.lengthSq()<.01)bend.set(0,1,0);
    let along=(l.a*l.a-l.b*l.b+dist*dist)/(2*dist),height=Math.sqrt(Math.max(0,l.a*l.a-along*along)),knee=hip.clone().addScaledVector(dir,along).addScaledVector(bend,height);
    ankle=hip.clone().addScaledVector(dir,dist);
@@ -67,7 +67,7 @@ export function createHumanoidMotion(root){
   }
   cape?.userData.updateCloth?.(dt,gaitSpeed,seatWeight,airWeight);
  }
- update(0,0);return {update,setSeat(weight,height=.55){seatWeight=clamp(weight,0,1);seatHeight=height;if(seatWeight>0)waveTime=-1},setAir(weight){airWeight=clamp(weight,0,1)},wave(){if(!reach&&seatWeight<.1)waveTime=0},setReach(target,weight){reach=target?{target,weight:clamp(weight,0,1)}:null;if(reach)waveTime=-1}};
+ update(0,0);return {update,setTerrain(fn){terrain=fn},setSeat(weight,height=.55){seatWeight=clamp(weight,0,1);seatHeight=height;if(seatWeight>0)waveTime=-1},setAir(weight){airWeight=clamp(weight,0,1)},wave(){if(!reach&&seatWeight<.1)waveTime=0},setReach(target,weight){reach=target?{target,weight:clamp(weight,0,1)}:null;if(reach)waveTime=-1}};
 }
 export function royalFinish(root){
  root.updateWorldMatrix(true,true);
