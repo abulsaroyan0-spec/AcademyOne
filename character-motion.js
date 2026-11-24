@@ -13,7 +13,7 @@ export function createHumanoidMotion(root){
  const hp=local(hips);
  for(let l of legs){l.ankle=local(l.foot);l.a=local(l.upper).distanceTo(local(l.lower));l.b=local(l.lower).distanceTo(l.ankle);l.side=Math.sign(local(l.arm).x-hp.x)||Math.sign(local(l.upper).x-hp.x)||1;l.upperDir=l.lower.position.clone().normalize();l.lowerDir=l.foot.position.clone().normalize();l.armDir=l.elbow.position.clone().normalize();l.elbowDir=l.hand.position.clone().normalize()}
  if(legs.some(l=>l.a<.05||l.b<.05))return null;
- let phase=0,blend=0,clock=0,gaitSpeed=0,waveTime=-1,reach=null,blinkAt=2.6;
+ let phase=0,blend=0,clock=0,gaitSpeed=0,waveTime=-1,reach=null,blinkAt=2.6,seatWeight=0,seatHeight=.55,airWeight=0;
  // The modular models use separate eye meshes. Compress only eye geometry visually during a blink.
  const eyes=[];root.traverse(o=>{if(!o.isMesh||!o.geometry?.attributes.position)return;const mats=Array.isArray(o.material)?o.material:[o.material];if(!mats.length||!mats.every(m=>/^eyes?$/i.test(m?.name||'')))return;
   o.geometry=o.geometry.clone();const pos=o.geometry.attributes.position,base=pos.array.slice(),bounds=new T.Box3().setFromBufferAttribute(pos);const size=bounds.getSize(V()),center=bounds.getCenter(V());
@@ -32,13 +32,13 @@ export function createHumanoidMotion(root){
   for(let b of bones){let r=rest.get(b);b.quaternion.copy(r.q);b.position.copy(r.p)}
   root.updateWorldMatrix(true,true);
   const bob=(.012*Math.cos(phase*Math.PI*4)-.028)*blend+.003*Math.sin(clock*2.2)*(1-blend);
-  const h=hp.clone().add(V(.018*Math.sin(phase*2*Math.PI)*blend,bob,0));hips.position.copy(hips.parent.worldToLocal(root.localToWorld(h)));hips.updateWorldMatrix(false,true);
+  const h=hp.clone().add(V(.018*Math.sin(phase*2*Math.PI)*blend,bob,0));h.y=T.MathUtils.lerp(h.y,seatHeight+.10,seatWeight);hips.position.copy(hips.parent.worldToLocal(root.localToWorld(h)));hips.updateWorldMatrix(false,true);
   if(chest){orient(chest,.025+running*.09+Math.sin(phase*2*Math.PI)*.026*blend);const twist=new T.Quaternion().setFromAxisAngle(V(0,1,0),Math.sin(phase*2*Math.PI)*.045*blend);chest.quaternion.premultiply(chest.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(rootQ).multiply(twist).multiply(rootQ.clone().invert()).multiply(chest.parent.getWorldQuaternion(new T.Quaternion())));chest.updateWorldMatrix(false,true)}
   if(head){orient(head,-.012+Math.sin(clock*1.4)*.012)}
   for(let i=0;i<legs.length;i++){
    let l=legs[i],t=(phase+i*.5)%1,stance=.62-running*.12,travel=stride*stance*.5;
    let z,y;if(t<stance){z=travel*(1-2*t/stance);y=0}else{let f=(t-stance)/(1-stance),smooth=f*f*(3-2*f);z=travel*(2*smooth-1);y=Math.sin(Math.PI*f)*(.085+running*.10)}
-   let ankle=l.ankle.clone().add(V(0,y*blend,z*blend)),hip=local(l.upper),delta=ankle.clone().sub(hip),dist=clamp(delta.length(),Math.abs(l.a-l.b)+.001,l.a+l.b-.001),dir=delta.normalize();
+   let ankle=l.ankle.clone().add(V(0,y*blend,z*blend));const seated=l.ankle.clone();seated.z+=l.a*.91;seated.y=Math.max(l.ankle.y,seatHeight+.10-l.b);ankle.lerp(seated,seatWeight);ankle.y+=airWeight*.10;ankle.z+=airWeight*.045*(i===0?1:-1);let hip=local(l.upper),delta=ankle.clone().sub(hip),dist=clamp(delta.length(),Math.abs(l.a-l.b)+.001,l.a+l.b-.001),dir=delta.normalize();
    let bend=V(0,0,1).addScaledVector(dir,-dir.z).normalize();if(bend.lengthSq()<.01)bend.set(0,1,0);
    let along=(l.a*l.a-l.b*l.b+dist*dist)/(2*dist),height=Math.sqrt(Math.max(0,l.a*l.a-along*along)),knee=hip.clone().addScaledVector(dir,along).addScaledVector(bend,height);
    ankle=hip.clone().addScaledVector(dir,dist);
@@ -47,8 +47,8 @@ export function createHumanoidMotion(root){
    const swing=-Math.cos(t*2*Math.PI)*(.24+running*.19)*blend;
    const elbowFlex=.085+running*.33;
    const outward=.20+running*.035;
-   aim(l.arm,l.armDir,V(l.side*outward,-1,swing));
-   aim(l.elbow,l.elbowDir,V(l.side*.13,-1,swing+elbowFlex));
+   aim(l.arm,l.armDir,V(l.side*outward,-1,swing).lerp(V(l.side*.18,-1,.20),seatWeight).lerp(V(l.side*.27,-.85,.25),airWeight));
+   aim(l.elbow,l.elbowDir,V(l.side*.13,-1,swing+elbowFlex).lerp(V(-l.side*.08,-.28,1),seatWeight).lerp(V(l.side*.13,-.45,.9),airWeight));
    // Keep the relaxed wrist aligned with its parent instead of forcing the bind-pose world rotation.
    l.hand.quaternion.copy(rest.get(l.hand).q);l.hand.updateWorldMatrix(false,true);
    // Keep the elbow and wrist outside the torso with a minimum lateral clearance.
@@ -65,7 +65,7 @@ export function createHumanoidMotion(root){
    aim(l.arm,l.armDir,mid.clone().sub(shoulder));aim(l.elbow,l.elbowDir,end.sub(mid));const uq=l.arm.quaternion.clone(),fq=l.elbow.quaternion.clone();l.arm.quaternion.copy(u).slerp(uq,reach.weight);l.elbow.quaternion.copy(f).slerp(fq,reach.weight);l.arm.updateWorldMatrix(false,true);
   }
  }
- update(0,0);return {update,wave(){if(!reach)waveTime=0},setReach(target,weight){reach=target?{target,weight:clamp(weight,0,1)}:null;if(reach)waveTime=-1}};
+ update(0,0);return {update,setSeat(weight,height=.55){seatWeight=clamp(weight,0,1);seatHeight=height;if(seatWeight>0)waveTime=-1},setAir(weight){airWeight=clamp(weight,0,1)},wave(){if(!reach&&seatWeight<.1)waveTime=0},setReach(target,weight){reach=target?{target,weight:clamp(weight,0,1)}:null;if(reach)waveTime=-1}};
 }
 export function royalFinish(root){
  root.updateWorldMatrix(true,true);
