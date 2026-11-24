@@ -160,7 +160,7 @@ function cosmeticRig(model){
   if(/crown|tiara|coronet/i.test(name)){namedCrowns.push(o);fit.nativeCrowns.push({mesh:o,visible:o.visible});return}
   // Keep eyes, face, skin, hair and metallic hardware unchanged.
   if(!/weapon|pistol|rifle|gun/i.test(name)){
-   for(const m of mats){if(!m?.color||/skin|hair|eye|face|teeth|mouth|metal|gold|silver|crown/i.test(m.name||''))continue; if(!fit.materials.some(x=>x.m===m))fit.materials.push({m,color:m.color.clone()})}
+   for(const m of mats){if(!m?.color||/skin|hair|eye|face|teeth|mouth|metal|gold|silver|crown|visor|glass|black|white|shoe|boot|glove/i.test(m.name||'')||!/cloth|shirt|jacket|hoodie|tunic|fabric|torso|armor|armour|body|blue|red|green|purple|orange|velvet/i.test(name))continue; if(!fit.materials.some(x=>x.m===m))fit.materials.push({m,color:m.color.clone()})}
   }
   if(!o.visible||/cape|weapon|pistol|rifle|gun/i.test(name))return;
   const pos=o.geometry.attributes.position,si=o.geometry.attributes.skinIndex,sw=o.geometry.attributes.skinWeight;
@@ -172,24 +172,24 @@ function cosmeticRig(model){
    if(headIndices&&si&&sw){let w=0;for(let k=0;k<4;k++)if(headIndices.has(si.getComponent(i,k)))w+=sw.getComponent(i,k);if(w>.55)headPoints.push(v.clone())}
   }
  });
- const source=(headPoints.length>8?headPoints:points).filter(p=>p.y>hp.y-.025&&Math.abs(p.x-hp.x)<.40&&Math.abs(p.z-hp.z)<.40);
- if(head&&source.length){const top=Math.max(...source.map(p=>p.y)),bottom=Math.min(...source.map(p=>p.y)),height=top-bottom;
+ const source=points.concat(headPoints).filter(p=>p.y>hp.y-.025&&Math.abs(p.x-hp.x)<.40&&Math.abs(p.z-hp.z)<.40);
+ if(head&&source.length){const top=source.reduce((n,p)=>Math.max(n,p.y),1.70),bottom=source.reduce((n,p)=>Math.min(n,p.y),top),height=top-bottom;
   const bandY=top-Math.min(.037,Math.max(.012,height*.12));
   let ring=source.filter(p=>p.y>=bandY-.055&&p.y<=top+.001);if(ring.length<6)ring=source.filter(p=>p.y>=top-height*.36);
   const box=new THREE.Box3().setFromPoints(ring.length?ring:source),center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
-  fit.head={bone:head,center,top,bandY,rx:Math.max(.065,size.x*.5+.013),rz:Math.max(.065,size.z*.5+.013),reference:head.matrixWorld.clone().invert().multiply(model.matrixWorld)};
+  fit.head={bone:head,center,top,bandY,rx:clamp(size.x*.5+.018,.090,.145),rz:clamp(size.z*.5+.018,.090,.145),reference:head.matrixWorld.clone().invert().multiply(model.matrixWorld)};
  }
  cosmeticFits.set(model,fit);return fit;
 }
 function equipModel(model,outfit,crown){
  if(!model)return;const fit=cosmeticRig(model);for(const p of fit.parts){p.removeFromParent();dispose(p)}fit.parts=[];
- for(const {m,color} of fit.materials){m.color.copy(color);if(outfit)m.color.lerp(new THREE.Color(outfit.color),.82)}
+ for(const {m,color} of fit.materials){m.color.copy(color);if(outfit){const target=new THREE.Color(outfit.color),base=color.getHSL({}),hsl=target.getHSL({});m.color.setHSL(hsl.h,Math.min(.72,hsl.s*.80),clamp(base.l*.70+hsl.l*.30,.12,.76))}}
  for(const native of fit.nativeCrowns)native.mesh.visible=crown?false:native.visible;
  if(!crown||!fit.head)return;
  const h=fit.head,g=new THREE.Group();g.name='AcademyStoreCrown';g.userData.storeCosmetic=true;
  const gold=crown.id==='gold-crown',silver=crown.id==='silver-crown',metal=new THREE.MeshStandardMaterial({color:crown.color,metalness:.75,roughness:.32,side:THREE.DoubleSide});
  // Elliptic open band follows the top cross section, with a bottom rim above the hairline.
- g.position.set(h.center.x,h.bandY+.012,h.center.z);
+ g.position.set(h.center.x,h.top+.018,h.center.z);
  const band=new THREE.Mesh(new THREE.CylinderGeometry(1.025,1,.032,48,1,true),metal);band.scale.set(h.rx,1,h.rz);g.add(band);
  for(const y of [-.016,.016]){const rim=new THREE.Mesh(new THREE.TorusGeometry(1,.045,8,48),metal);rim.rotation.x=Math.PI/2;rim.scale.set(h.rx,h.rz,.10);rim.position.y=y;g.add(rim)}
  const count=gold?8:silver?6:5,tipHeight=gold?.082:silver?.061:.045;
