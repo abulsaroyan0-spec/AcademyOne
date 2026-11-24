@@ -21,7 +21,7 @@ export function createHumanoidMotion(root){
   const up=V(0,1,0).applyQuaternion(root.getWorldQuaternion(new T.Quaternion())).applyQuaternion(o.getWorldQuaternion(new T.Quaternion()).invert()).normalize();
   eyes.push({pos,base,center,up});
  });
- function blink(amount){for(const e of eyes){for(let i=0;i<e.pos.count;i++){const k=i*3,dx=e.base[k]-e.center.x,dy=e.base[k+1]-e.center.y,dz=e.base[k+2]-e.center.z,d=(dx*e.up.x+dy*e.up.y+dz*e.up.z)*amount;e.pos.setXYZ(i,e.base[k]-e.up.x*d,e.base[k+1]-e.up.y*d,e.base[k+2]-e.up.z*d)}e.pos.needsUpdate=true}}
+ let lastBlink=-1;function blink(amount){if(Math.abs(amount-lastBlink)<.002)return;lastBlink=amount;for(const e of eyes){for(let i=0;i<e.pos.count;i++){const k=i*3,dx=e.base[k]-e.center.x,dy=e.base[k+1]-e.center.y,dz=e.base[k+2]-e.center.z,d=(dx*e.up.x+dy*e.up.y+dz*e.up.z)*amount;e.pos.setXYZ(i,e.base[k]-e.up.x*d,e.base[k+1]-e.up.y*d,e.base[k+2]-e.up.z*d)}e.pos.needsUpdate=true}}
  const parentQ=new T.Quaternion(),q=new T.Quaternion(),v=V(),rootQ=new T.Quaternion(),axis=V(1,0,0);
  function aim(b,childDir,target){b.parent.getWorldQuaternion(parentQ).invert();v.copy(target).applyQuaternion(rootQ).applyQuaternion(parentQ).normalize();q.setFromUnitVectors(childDir.clone().applyQuaternion(rest.get(b).q),v);b.quaternion.copy(q).multiply(rest.get(b).q);b.updateWorldMatrix(false,true)}
  function orient(b,angle){if(!b)return;b.parent.getWorldQuaternion(parentQ).invert();q.setFromAxisAngle(axis,angle);b.quaternion.copy(parentQ).multiply(rootQ).multiply(q).multiply(rest.get(b).world);b.updateWorldMatrix(false,true)}
@@ -79,8 +79,8 @@ export function royalFinish(root){
  }});
  let chest=null;root.traverse(b=>{if(b.isBone&&norm(b.name)==='chest'&&!chest)chest=b});if(!chest)return;
  const cape=new T.Group();root.add(cape);let gold=new T.MeshStandardMaterial({color:0xe5bb61,metalness:.7,roughness:.3}),velvet=new T.MeshStandardMaterial({color:0x820e2e,roughness:.84,side:T.DoubleSide}),verts=[],idx=[];
- const rows=16,cols=18;for(let y=0;y<=rows;y++){let t=y/rows,width=.17+.16*t;for(let x=0;x<=cols;x++){let a=x/cols*2-1;verts.push(a*width,1.25-.91*t,-.14-.13*t+.028*Math.cos(a*3*Math.PI)*t-.02*a*a);if(y&&x){let i=y*(cols+1)+x;idx.push(i-cols-2,i-1,i-cols-1,i-cols-1,i-1,i)}}}
+ const rows=16,cols=18;for(let y=0;y<=rows;y++){let t=y/rows,width=.17+.16*t;for(let x=0;x<=cols;x++){let a=x/cols*2-1;verts.push(a*width,1.25-.91*t,-.22-.19*t+.028*Math.cos(a*3*Math.PI)*t-.02*a*a);if(y&&x){let i=y*(cols+1)+x;idx.push(i-cols-2,i-1,i-cols-1,i-cols-1,i-1,i)}}}
  let geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(verts,3));geo.setIndex(idx);geo.computeVertexNormals();cape.add(new T.Mesh(geo,velvet));
- for(let side of [-1,1]){let pts=[];for(let y=0;y<=rows;y++){let t=y/rows;pts.push(new T.Vector3(side*(.17+.16*t),1.25-.91*t,-.14-.13*t+.028*Math.cos(3*Math.PI)*t-.02))}cape.add(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),20,.009,6,false),gold))}
+ for(let side of [-1,1]){let pts=[];for(let y=0;y<=rows;y++){let t=y/rows;pts.push(new T.Vector3(side*(.17+.16*t),1.25-.91*t,-.22-.19*t+.028*Math.cos(3*Math.PI)*t-.02))}cape.add(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),20,.009,6,false),gold))}
  root.updateWorldMatrix(true,true);chest.attach(cape);
 }
