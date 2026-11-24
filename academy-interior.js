@@ -14,7 +14,7 @@ function washTexture(){let c=document.createElement('canvas');c.width=128;c.heig
 function arc(g,m,r,depth,height,start,end,x,y,z){const shape=new T.Shape();let N=36;for(let i=0;i<=N;i++){let a=start+(end-start)*i/N;let X=Math.cos(a)*r,Z=Math.sin(a)*r;i?shape.lineTo(X,Z):shape.moveTo(X,Z)}for(let i=N;i>=0;i--){let a=start+(end-start)*i/N;shape.lineTo(Math.cos(a)*(r-depth),Math.sin(a)*(r-depth))}shape.closePath();const geo=new T.ExtrudeGeometry(shape,{depth:height,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.035,bevelThickness:.035,curveSegments:12});geo.rotateX(-Math.PI/2);return mesh(g,geo,m,x,y,z)}
 export function makeAcademy(scene){
  scene.background=new T.Color(0x171513);scene.fog=new T.Fog(0x25221e,22,47);const g=new T.Group();scene.add(g);
- const concrete=new T.MeshStandardMaterial({map:texture('wall'),roughness:.93}),black=mat(0x222222,.46,.25),frame=mat(0x343632,.45,.55),white=mat(0xd9d1c1,.84),wood=mat(0x895637,.6),mustard=mat(0xb17a1a,.94),cushion=mat(0xc08a24,.95),glass=new T.MeshStandardMaterial({color:0xa9b9b3,transparent:true,opacity:.19,roughness:.16,metalness:.12,depthWrite:false}),warm=glow(0xfff1d5),dark=mat(0x302c29,.88),colliders=[];
+ const concrete=new T.MeshStandardMaterial({map:texture('wall'),roughness:.93}),black=mat(0x222222,.46,.25),frame=mat(0x343632,.45,.55),white=mat(0xd9d1c1,.84),wood=mat(0x895637,.6),mustard=mat(0xb17a1a,.94),cushion=mat(0xc08a24,.95),glass=new T.MeshStandardMaterial({color:0xa9b9b3,transparent:true,opacity:.19,roughness:.16,metalness:.12,depthWrite:false}),warm=glow(0xfff1d5),dark=mat(0x302c29,.88),colliders=[],seats=[];
  const coll=(x,z,w,d)=>colliders.push({x,z,w,d});
  // Entrance reconstructed from the supplied front-facing photograph. Dimensions are estimates.
  surface(g,'floor',5.6,10,0,0,5);
@@ -71,6 +71,8 @@ export function makeAcademy(scene){
   for(let i=0;i<100;i++){let t=rng(),p=spine.getPointAt(t),d=spine.getTangentAt(t),off=(rng()-.5)*.38;obj.position.set(p.x-d.z*off,1.03+rng()*.23,p.z+d.x*off);obj.scale.set(.026+rng()*.035,.15+rng()*.18,.028+rng()*.018);obj.rotation.set((rng()-.5)*1.7,rng()*6.28,(rng()-.5)*1.6);obj.updateMatrix();leaves.setMatrixAt(i,obj.matrix)}
   leaves.instanceMatrix.needsUpdate=true;g.add(leaves);
  }
+ // Seat anchors follow the exact sofa curve, facing away from its planted center.
+ for(let i=1;i<=10;i++){let t=.07+i*.078,p=spine.getPointAt(t),d=spine.getTangentAt(t);for(let side of [-1,1]){let nx=-d.z*side,nz=d.x*side;seats.push({kind:'sofa',x:p.x+nx*.64,z:p.z+nz*.64,height:.57,yaw:Math.atan2(nx,nz),approaches:[{x:p.x+nx*1.40,z:p.z+nz*1.40},{x:p.x+nx*1.60,z:p.z+nz*1.60}]})}}
  // Local circular collision samples preserve the open walkways on both sides.
  for(let i=0;i<=28;i++){let p=spine.getPointAt(i/28);colliders.push({x:p.x,z:p.z,r:.94})}
  const study=new T.Group();study.position.x=1;g.add(study);
@@ -131,25 +133,25 @@ export function makeAcademy(scene){
  for(let z of [-14.3,-16.1,-17.9]){box(office,glass,.035,1.68,1.76,2.05,1.9,z);box(office,frosted,.041,.48,1.76,2.05,1.9,z);box(office,black,.065,2.66,.065,2.05,1.33,z-.9);box(office,black,.065,.065,1.8,2.05,2.75,z)}
  box(office,black,.065,2.66,.065,2.05,1.33,-13.4);coll(2.05,-15.65,.09,5.4);
  // Shared desk islands with monitors, keyboards and mesh-backed swivel chairs.
- function chair(x,z,angle){
-  let c=new T.Group();c.position.set(x,0,z);c.rotation.y=angle;office.add(c);
+ function chair(x,z,angle,computer){
+  let c=new T.Group();c.position.set(x,0,z);c.rotation.y=angle+Math.PI;office.add(c);
   box(c,chairFabric,.49,.10,.48,0,.49,0);box(c,chairFabric,.46,.50,.075,0,.79,.21);
   for(let xx of [-.27,.27]){box(c,black,.065,.055,.34,xx,.72,.02);box(c,black,.035,.24,.035,xx,.59,.10)}
   cylinder(c,black,.055,.43,0,.23,0);
   for(let k=0;k<5;k++){let arm=box(c,black,.045,.035,.26,Math.sin(k*1.257)*.11,.075,Math.cos(k*1.257)*.11);arm.rotation.y=k*1.257}
-  coll(x,z,.54,.55);
+  coll(x,z,.54,.55);const dx=Math.sin(angle),dz=Math.cos(angle);seats.push({kind:'chair',x,z,height:.54,yaw:angle,computer,approaches:[{x:x+dz*.65,z:z-dx*.65},{x:x-dz*.65,z:z+dx*.65},{x:x-dx*.60+dz*.66,z:z-dz*.60-dx*.66},{x:x-dx*.60-dz*.66,z:z-dz*.60+dx*.66}]});
  }
  function workstation(x,z,face){
   let d=new T.Group();d.position.set(x,.79,z);d.rotation.y=face;office.add(d);
-  box(d,screen,.54,.33,.055,0,.32,-.22);box(d,black,.055,.18,.065,0,.13,-.22);box(d,black,.28,.025,.18,0,.012,-.22);
-  box(d,black,.35,.022,.13,0,.015,.12);box(d,black,.075,.025,.11,.25,.018,.12);
+  const display=screen.clone();box(d,display,.54,.33,.055,0,.32,-.22);box(d,black,.055,.18,.065,0,.13,-.22);box(d,black,.28,.025,.18,0,.012,-.22);
+  box(d,black,.35,.022,.13,0,.015,.12);box(d,black,.075,.025,.11,.25,.018,.12);return {display,on:false};
  }
  for(let z of [-15.1,-18.35,-21.65]){
   box(office,deskWhite,1.20,.07,2.35,4.4,.75,z);
   for(let x of [3.9,4.9])for(let zz of [-1.02,1.02])box(office,black,.045,.72,.045,x,.36,z+zz);
   for(let zz of [-.55,.55]){
-   workstation(4.13,z+zz,Math.PI/2);workstation(4.67,z+zz,-Math.PI/2);
-   chair(3.31,z+zz,Math.PI/2);chair(5.49,z+zz,-Math.PI/2);
+   const left=workstation(4.13,z+zz,-Math.PI/2),right=workstation(4.67,z+zz,Math.PI/2);
+   chair(3.31,z+zz,Math.PI/2,left);chair(5.49,z+zz,-Math.PI/2,right);
   }
   coll(4.4,z,1.2,2.35);
  }
@@ -170,8 +172,11 @@ export function makeAcademy(scene){
  for(let [x,z] of [[6.6,-14.2],[6.5,-22.8],[.2,-23.0]]){cylinder(office,black,.23,.34,x,.57,z);for(let dx of [-.16,.16])for(let dz of [-.16,.16])box(office,black,.025,.52,.025,x+dx,.26,z+dz);for(let i=0;i<13;i++){let leaf=mesh(office,new T.SphereGeometry(1,7,5),greenLeaves,x+(rng()-.5)*.45,.88+rng()*.38,z+(rng()-.5)*.45);leaf.scale.set(.07,.23,.04);leaf.rotation.z=(rng()-.5)*1.5}coll(x,z,.49,.49)}
  let hallLight=new T.PointLight(0xffecd2,14,19,1.3);hallLight.position.set(0,4.4,-6.2);g.add(hallLight);
  let corridorLight=new T.PointLight(0xffe2b6,8,13,1.4);corridorLight.position.set(0,3.7,4);g.add(corridorLight);
- return {door,colliders,open:false,angle:0};
+ return {door,colliders,seats,open:false,angle:0};
 }
 export function doorNearby(state,x,z){return Math.abs(x-.5)<1.6&&Math.abs(z)<1.7}
 export function advanceDoor(state,dt){state.angle=T.MathUtils.damp(state.angle,state.open?Math.PI*.53:0,7,dt);state.door.rotation.y=-state.angle}
 export function academyWalkable(state,x,z,r=.27){if(z>9.7-r||z< -23.62+r)return false;if(z>.22){if(Math.abs(x)>2.8-r)return false}else if(Math.abs(x)>7.57-r)return false;if(Math.abs(z)<.29+r){if(x<-.1+r||x>1.1-r||state.angle<1.2)return false}return !state.colliders.some(c=>c.r!==undefined?Math.hypot(x-c.x,z-c.z)<c.r+r:Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r)}
+
+// Choose reachable seat approaches only; never walk through a different obstacle to reach one.
+export function nearestAcademySeat(state,x,z,maxDistance=1.55){let best=null;for(const seat of state.seats||[]){for(const a of seat.approaches){let distance=Math.hypot(x-a.x,z-a.z);if(distance>maxDistance||best&&distance>=best.distance||!academyWalkable(state,a.x,a.z))continue;let clear=true;for(let i=1;i<=12;i++){let t=i/12;if(!academyWalkable(state,x+(a.x-x)*t,z+(a.z-z)*t)){clear=false;break}}if(clear)best={seat,approach:a,distance}}}return best}
