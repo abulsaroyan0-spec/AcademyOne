@@ -1,138 +1,220 @@
 [
   {
+    "id": "male-adventurer",
+    "gender": "male",
+    "name": "Explorer",
+    "theme": "Adventure",
+    "symbol": "♂",
+    "color": "#b99cdd",
+    "asset": {
+      "path": "public/glb/modular_men/Adventurer.glb",
+      "sha": "14456cd24345ad437840365396b60e82af653507",
+      "license": "CC0-1.0",
+      "source": "https://quaternius.com/packs/ultimatemodularcharacters.html"
+    }
+  },
+  {
+    "id": "male-casual",
+    "gender": "male",
+    "name": "Campus Boy",
+    "theme": "Everyday",
+    "symbol": "♂",
+    "color": "#89b1be",
+    "asset": {
+      "path": "public/glb/modular_men/Casual.glb",
+      "sha": "a74f94183952267a874c24ac73c4d2382fd0187d",
+      "license": "CC0-1.0",
+      "source": "https://quaternius.com/packs/ultimatemodularcharacters.html"
+    }
+  },
+  {
+    "id": "male-casual2",
+    "gender": "male",
+    "name": "Street Boy",
+    "theme": "Everyday",
+    "symbol": "♂",
+    "color": "#d0a18d",
+    "asset": {
+      "path": "public/glb/modular_men/Casual2.glb",
+      "sha": "8de02ab8cc15be5d4375373675f886d347bef11e",
+      "license": "CC0-1.0",
+      "source": "https://quaternius.com/packs/ultimatemodularcharacters.html"
+    }
+  },
+  {
+    "id": "male-farmer",
+    "gender": "male",
+    "name": "Farm Boy",
+    "theme": "Nature",
+    "symbol": "♂",
+    "color": "#98b494",
+    "asset": {
+      "path": "public/glb/modular_men/Farmer.glb",
+      "sha": "1bb26933075508de97d04c815032aff00d4b0a53",
+      "license": "CC0-1.0",
+      "source": "https://quaternius.com/packs/ultimatemodularcharacters.html"
+    }
+  },
+  {
+    "id": "male-king",
+    "gender": "male",
+    "name": "Young King",
+    "theme": "Fantasy",
+    "symbol": "♂",
+    "color": "#c7b188",
+    "asset": {
+      "path": "public/glb/modular_men/King.glb",
+      "sha": "905e6219bb5605e35d6c71a8c79c81c297b00c68",
+      "license": "CC0-1.0",
+      "source": "https://quaternius.com/packs/ultimatemodularcharacters.html"
+    }
+  },
+  {
+    "id": "male-punk",
+    "gender": "male",
+    "name": "Punk Boy",
+    "theme": "Street",
+    "symbol": "♂",
+    "color": "#a7a3c1",
+    "asset": {
+      "path": "public/glb/modular_men/Punk.glb",
+      "sha": "519955c7a1bedfb84728869ab1f83a59e3649aaf",
+      "license": "CC0-1.0",
+      "source": "https://quaternius.com/packs/ultimatemodularcharacters.html"
+    }
+  },
+  {
+    "id": "male-spacesuit",
+    "gender": "male",
+    "name": "Astronaut",
+    "theme": "Space",
+    "symbol": "♂",
+    "color": "#9faed4",
+    "asset": {
+      "path": "public/glb/modular_men/Spacesuit.glb",
+      "sha": "c29cc9fd43303dcde1a39afd6d2046dcc6258154",
+      "license": "CC0-1.0",
+      "source": "https://quaternius.com/packs/ultimatemodularcharacters.html"
+    }
+  },
+  {
+    "id": "male-suit",
+    "gender": "male",
+    "name": "Gentleman",
+    "theme": "Formal",
+    "symbol": "♂",
+    "color": "#9a99b1",
+    "asset": {
+      "path": "public/glb/modular_men/Suit.glb",
+      "sha": "7de8d95b6ad1cab6119e4bea4e08ae6f258604ca",
+      "license": "CC0-1.0",
+      "source": "https://quaternius.com/packs/ultimatemodularcharacters.html"
+    }
+  },
+  {
+    "id": "female-adventurer",
+    "gender": "female",
+    "name": "Adventure Girl",
+    "theme": "Adventure",
+    "symbol": "♀",
+    "color": "#b99cdd",
+    "asset": {
+      "path": "public/glb/modular_women/Adventurer.glb",
+      "sha": "1f7208c84d68a66527c12a1c541fcecb6d0e8953",
+      "license": "CC0-1.0",
+      "source": "https://quaternius.com/packs/ultimatemodularwomen.html"
+    }
+  },
+  {
+    "id": "female-casual",
+    "gender": "female",
+    "name": "Campus Girl",
+    "theme": "Everyday",
+    "symbol": "♀",
+    "color": "#89b1be",
+    "asset": {
+      "path": "public/glb/modular_women/Casual.glb",
+      "sha": "f64c3d48148aef1e431abec40ae0cf33c1db93d5",
+      "license": "CC0-1.0",
+      "source": "https://quaternius.com/packs/ultimatemodularwomen.html"
+    }
+  },
+  {
+    "id": "female-formal",
+    "gender": "female",
+    "name": "Elegant Girl",
+    "theme": "Formal",
+    "symbol": "♀",
+    "color": "#d0a18d",
+    "asset": {
+      "path": "public/glb/modular_women/Formal.glb",
+      "sha": "b53a2e76450e5b7636a44b2780f52aede5de950f",
+      "license": "CC0-1.0",
+      "source": "https://quaternius.com/packs/ultimatemodularwomen.html"
+    }
+  },
+  {
+    "id": "female-medieval",
+    "gender": "female",
+    "name": "Fantasy Girl",
+    "theme": "Fantasy",
+    "symbol": "♀",
+    "color": "#98b494",
+    "asset": {
+      "path": "public/glb/modular_women/Medieval.glb",
+      "sha": "a1fefb1cde0036c12575e1a186c01b31152cbef3",
+      "license": "CC0-1.0",
+      "source": "https://quaternius.com/packs/ultimatemodularwomen.html"
+    }
+  },
+  {
+    "id": "female-punk",
+    "gender": "female",
+    "name": "Punk Girl",
+    "theme": "Street",
+    "symbol": "♀",
+    "color": "#c7b188",
+    "asset": {
+      "path": "public/glb/modular_women/Punk.glb",
+      "sha": "f03590de93c85deb24efcbc210657471543ec1dc",
+      "license": "CC0-1.0",
+      "source": "https://quaternius.com/packs/ultimatemodularwomen.html"
+    }
+  },
+  {
+    "id": "female-scifi",
+    "gender": "female",
+    "name": "Space Girl",
+    "theme": "Space",
+    "symbol": "♀",
+    "color": "#a7a3c1",
+    "asset": {
+      "path": "public/glb/modular_women/SciFi.glb",
+      "sha": "171c37504041c36396e9a67cdf441481fbd676b0",
+      "license": "CC0-1.0",
+      "source": "https://quaternius.com/packs/ultimatemodularwomen.html"
+    }
+  },
+  {
+    "id": "female-witch",
+    "gender": "female",
+    "name": "Magic Girl",
+    "theme": "Fantasy",
+    "symbol": "♀",
+    "color": "#9faed4",
+    "asset": {
+      "path": "public/glb/modular_women/Witch.glb",
+      "sha": "53cba7e2abd309b04a4c5cbcb3ee32d121eb488a",
+      "license": "CC0-1.0",
+      "source": "https://quaternius.com/packs/ultimatemodularwomen.html"
+    }
+  },
+  {
     "id": "space-panda",
     "gender": "mascot",
     "name": "Space Panda",
     "theme": "Adventure",
     "symbol": "🐼",
     "color": "#a79bd5"
-  },
-  {
-    "id": "web-hero",
-    "gender": "male",
-    "name": "Web Hero",
-    "theme": "Action",
-    "symbol": "🕸️",
-    "color": "#df647e"
-  },
-  {
-    "id": "power-giant",
-    "gender": "male",
-    "name": "Power Giant",
-    "theme": "Action",
-    "symbol": "💪",
-    "color": "#78a676"
-  },
-  {
-    "id": "space-explorer",
-    "gender": "male",
-    "name": "Space Explorer",
-    "theme": "Adventure",
-    "symbol": "🧑‍🚀",
-    "color": "#849dc4"
-  },
-  {
-    "id": "street-boy",
-    "gender": "male",
-    "name": "Street Boy",
-    "theme": "Everyday",
-    "symbol": "🎧",
-    "color": "#d69a66"
-  },
-  {
-    "id": "wizard",
-    "gender": "male",
-    "name": "Young Wizard",
-    "theme": "Fantasy",
-    "symbol": "✨",
-    "color": "#a283d9"
-  },
-  {
-    "id": "cyber-hero",
-    "gender": "male",
-    "name": "Cyber Hero",
-    "theme": "Action",
-    "symbol": "⚡",
-    "color": "#678ab8"
-  },
-  {
-    "id": "footballer",
-    "gender": "male",
-    "name": "Footballer",
-    "theme": "Sport",
-    "symbol": "⚽",
-    "color": "#89aa92"
-  },
-  {
-    "id": "ninja",
-    "gender": "male",
-    "name": "Ninja",
-    "theme": "Action",
-    "symbol": "🥷",
-    "color": "#77758a"
-  },
-  {
-    "id": "glass-princess",
-    "gender": "female",
-    "name": "Glass Princess",
-    "theme": "Fantasy",
-    "symbol": "👑",
-    "color": "#90b6dd"
-  },
-  {
-    "id": "ice-princess",
-    "gender": "female",
-    "name": "Ice Princess",
-    "theme": "Fantasy",
-    "symbol": "❄️",
-    "color": "#94cbdc"
-  },
-  {
-    "id": "space-girl",
-    "gender": "female",
-    "name": "Space Girl",
-    "theme": "Adventure",
-    "symbol": "🧑‍🚀",
-    "color": "#9b92c7"
-  },
-  {
-    "id": "street-girl",
-    "gender": "female",
-    "name": "Street Girl",
-    "theme": "Everyday",
-    "symbol": "🎧",
-    "color": "#df9eb4"
-  },
-  {
-    "id": "fairy",
-    "gender": "female",
-    "name": "Fairy",
-    "theme": "Fantasy",
-    "symbol": "🦋",
-    "color": "#a8c8a7"
-  },
-  {
-    "id": "cyber-girl",
-    "gender": "female",
-    "name": "Cyber Girl",
-    "theme": "Action",
-    "symbol": "⚡",
-    "color": "#9c87d1"
-  },
-  {
-    "id": "goth-girl",
-    "gender": "female",
-    "name": "Goth Girl",
-    "theme": "Fantasy",
-    "symbol": "🌙",
-    "color": "#82738f"
-  },
-  {
-    "id": "star-hero",
-    "gender": "female",
-    "name": "Star Hero",
-    "theme": "Action",
-    "symbol": "⭐",
-    "color": "#d9ad78"
   }
 ]
