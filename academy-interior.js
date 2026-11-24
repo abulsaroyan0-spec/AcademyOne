@@ -139,7 +139,7 @@ export function makeAcademy(scene){
   for(let xx of [-.27,.27]){box(c,black,.065,.055,.34,xx,.72,.02);box(c,black,.035,.24,.035,xx,.59,.10)}
   cylinder(c,black,.055,.43,0,.23,0);
   for(let k=0;k<5;k++){let arm=box(c,black,.045,.035,.26,Math.sin(k*1.257)*.11,.075,Math.cos(k*1.257)*.11);arm.rotation.y=k*1.257}
-  coll(x,z,.54,.55);const dx=Math.sin(angle),dz=Math.cos(angle);seats.push({kind:'chair',x,z,height:.54,yaw:angle,computer,approaches:[{x:x-dx*.76,z:z-dz*.76},{x:x-dx*.90,z:z-dz*.90},{x:x-dx*.66+dz*.55,z:z-dz*.66-dx*.55},{x:x-dx*.66-dz*.55,z:z-dz*.66+dx*.55}]});
+  coll(x,z,.54,.55);const dx=Math.sin(angle),dz=Math.cos(angle);seats.push({kind:'chair',x,z,height:.54,yaw:angle,computer,approaches:[{x:x+dz*.65,z:z-dx*.65},{x:x-dz*.65,z:z+dx*.65},{x:x-dx*.60+dz*.66,z:z-dz*.60-dx*.66},{x:x-dx*.60-dz*.66,z:z-dz*.60+dx*.66}]});
  }
  function workstation(x,z,face){
   let d=new T.Group();d.position.set(x,.79,z);d.rotation.y=face;office.add(d);
