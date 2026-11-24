@@ -1,0 +1,130 @@
+[
+  {
+    "id": "web-hero",
+    "gender": "male",
+    "name": "Web Hero",
+    "theme": "Action",
+    "symbol": "🕸️",
+    "color": "#df647e"
+  },
+  {
+    "id": "power-giant",
+    "gender": "male",
+    "name": "Power Giant",
+    "theme": "Action",
+    "symbol": "💪",
+    "color": "#78a676"
+  },
+  {
+    "id": "space-explorer",
+    "gender": "male",
+    "name": "Space Explorer",
+    "theme": "Adventure",
+    "symbol": "🧑‍🚀",
+    "color": "#849dc4"
+  },
+  {
+    "id": "street-boy",
+    "gender": "male",
+    "name": "Street Boy",
+    "theme": "Everyday",
+    "symbol": "🎧",
+    "color": "#d69a66"
+  },
+  {
+    "id": "wizard",
+    "gender": "male",
+    "name": "Young Wizard",
+    "theme": "Fantasy",
+    "symbol": "✨",
+    "color": "#a283d9"
+  },
+  {
+    "id": "cyber-hero",
+    "gender": "male",
+    "name": "Cyber Hero",
+    "theme": "Action",
+    "symbol": "⚡",
+    "color": "#678ab8"
+  },
+  {
+    "id": "footballer",
+    "gender": "male",
+    "name": "Footballer",
+    "theme": "Sport",
+    "symbol": "⚽",
+    "color": "#89aa92"
+  },
+  {
+    "id": "ninja",
+    "gender": "male",
+    "name": "Ninja",
+    "theme": "Action",
+    "symbol": "🥷",
+    "color": "#77758a"
+  },
+  {
+    "id": "glass-princess",
+    "gender": "female",
+    "name": "Glass Princess",
+    "theme": "Fantasy",
+    "symbol": "👑",
+    "color": "#90b6dd"
+  },
+  {
+    "id": "ice-princess",
+    "gender": "female",
+    "name": "Ice Princess",
+    "theme": "Fantasy",
+    "symbol": "❄️",
+    "color": "#94cbdc"
+  },
+  {
+    "id": "space-girl",
+    "gender": "female",
+    "name": "Space Girl",
+    "theme": "Adventure",
+    "symbol": "🧑‍🚀",
+    "color": "#9b92c7"
+  },
+  {
+    "id": "street-girl",
+    "gender": "female",
+    "name": "Street Girl",
+    "theme": "Everyday",
+    "symbol": "🎧",
+    "color": "#df9eb4"
+  },
+  {
+    "id": "fairy",
+    "gender": "female",
+    "name": "Fairy",
+    "theme": "Fantasy",
+    "symbol": "🦋",
+    "color": "#a8c8a7"
+  },
+  {
+    "id": "cyber-girl",
+    "gender": "female",
+    "name": "Cyber Girl",
+    "theme": "Action",
+    "symbol": "⚡",
+    "color": "#9c87d1"
+  },
+  {
+    "id": "goth-girl",
+    "gender": "female",
+    "name": "Goth Girl",
+    "theme": "Fantasy",
+    "symbol": "🌙",
+    "color": "#82738f"
+  },
+  {
+    "id": "star-hero",
+    "gender": "female",
+    "name": "Star Hero",
+    "theme": "Action",
+    "symbol": "⭐",
+    "color": "#d9ad78"
+  }
+]
