@@ -39,29 +39,52 @@ export function makeAcademy(scene){
  for(let i=0;i<9;i++){let x=-5.0+i*1.15;box(g,frame,.045,.98,.045,x,3.45,-8.52);if(i<8)box(g,glass,1.11,.87,.035,x+.575,3.4,-8.52)}box(g,frame,10.1,.065,.06,0,3.97,-8.52);
  for(let i=0;i<15;i++){let h=(i+1)*.19;box(g,black,1.55,h,.43,-4.05,h/2,-2.2-i*.42)}coll(-4.05,-5.2,1.65,6.6);
  const railA=new T.Vector3(-3.22,1.02,-2.0),railB=new T.Vector3(-3.22,3.9,-8.58),dir=railB.clone().sub(railA);let rail=cylinder(g,frame,.035,dir.length(),0,0,0);rail.position.copy(railA).add(railB).multiplyScalar(.5);rail.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),dir.normalize());for(let i=0;i<8;i++){let z=-2.2-i*.8,h=.25+i*.38;box(g,frame,.035,.95,.035,-3.22,h+.46,z);box(g,glass,.036,.80,.75,-3.22,h+.45,z-.33)}
- // Double-sided mustard seating wraps the central planted island.
- const sofaX=1.15,sofaZ=-4.8,st=-1.20,en=4.85;
- const seamMat=mat(0x98691c,.95);
- for(const [a,b] of [[st,1.75],[1.86,en]]){
-  arc(g,mustard,1.98,.66,.30,a,b,sofaX,.08,sofaZ);
-  arc(g,cushion,1.98,.68,.13,a,b,sofaX,.41,sofaZ);
-  arc(g,mustard,1.38,.17,.62,a,b,sofaX,.52,sofaZ);
-  for(let i=1;i<6;i++){let t=a+(b-a)*i/6;let z=sofaZ-Math.sin(t)*1.66,x=sofaX+Math.cos(t)*1.66;let seam=box(g,seamMat,.018,.012,.53,x,.555,z);seam.rotation.y=t-Math.PI/2}
- }
- cylinder(g,dark,1.20,.48,sofaX,.24,sofaZ);cylinder(g,mat(0x4e4435),1.16,.04,sofaX,.49,sofaZ);
- let leaves=new T.InstancedMesh(new T.SphereGeometry(1,6,4),mat(0x6a8352,.95),160),obj=new T.Object3D();for(let i=0;i<160;i++){let a=rng()*Math.PI*2,r=Math.sqrt(rng())*1.05;obj.position.set(sofaX+Math.cos(a)*r,.63+rng()*.40,sofaZ+Math.sin(a)*r);obj.scale.set(.035+rng()*.03,.16+rng()*.19,.045);obj.rotation.set((rng()-.5)*1.3,rng()*6.28,(rng()-.5)*1.5);obj.updateMatrix();leaves.setMatrixAt(i,obj.matrix)}g.add(leaves);coll(sofaX,sofaZ,4.0,4.0);
- // Long black worktables with wooden aprons and mustard chairs along the right wall.
- const chairMat=mat(0xbe8529,.9);
- for(let z of [-2.65,-5.35,-8.05,-10.75]){
-  box(g,black,1.05,.085,2.12,4.52,.83,z);
-  box(g,wood,.08,.22,2.08,4.00,.67,z);
-  for(let x of [4.12,4.92])for(let zz of [-.88,.88])box(g,black,.055,.78,.055,x,.39,z+zz);
-  for(let zz of [-.58,.58]){
-   const cx=3.66,cz=z+zz;
-   box(g,chairMat,.44,.075,.46,cx,.46,cz);box(g,chairMat,.07,.43,.46,cx-.23,.72,cz);
-   for(let dx of [-.16,.16])for(let dz of [-.16,.16])box(g,black,.035,.43,.035,cx+dx,.215,cz+dz);
+ // Photo reference: elongated S-shaped, double-sided seating island.
+ const spine=new T.CatmullRomCurve3([
+  new T.Vector3(.78,0,-2.05),new T.Vector3(-.38,0,-2.55),new T.Vector3(-.52,0,-3.75),
+  new T.Vector3(.28,0,-5.0),new T.Vector3(.97,0,-6.15),new T.Vector3(.91,0,-7.4),
+  new T.Vector3(.14,0,-8.35),new T.Vector3(-.38,0,-8.55)
+ ],false,'centripetal');
+ const sofaFrame=mat(0x98630f,.92),seatMat=mat(0xd39a28,.94),backMat=mat(0xbf8620,.94),soil=mat(0x4c4636,.95),seamMat=mat(0xa87520,.95);
+ // Sweep a rounded upholstered cross-section along the spine. Shared vertices give smooth curves.
+ function sweep(material,offset,height,width,thickness,from=0,to=1){
+  const steps=Math.max(6,Math.ceil((to-from)*88)),sides=12,verts=[],indices=[];
+  for(let i=0;i<=steps;i++){
+   const t=from+(to-from)*i/steps,p=spine.getPointAt(t),d=spine.getTangentAt(t);
+   const nx=-d.z,nz=d.x;const cap=Math.min(1,.7+Math.min(i,steps-i)*.15);
+   for(let k=0;k<sides;k++){let a=2*Math.PI*k/sides,v=offset+Math.cos(a)*width*.5*cap;verts.push(p.x+nx*v,height+Math.sin(a)*thickness*.5,p.z+nz*v)}
+   if(i){for(let k=0;k<sides;k++){let a=(i-1)*sides+k,b=(i-1)*sides+(k+1)%sides,c=i*sides+k,d2=i*sides+(k+1)%sides;indices.push(a,c,b,b,c,d2)}}
   }
-  coll(4.36,z,1.9,2.2);
+  for(let k=1;k<sides-1;k++){indices.push(0,k,k+1);let b=steps*sides;indices.push(b,b+k+1,b+k)}
+  const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(verts,3));geo.setIndex(indices);geo.computeVertexNormals();return mesh(g,geo,material);
+ }
+ sweep(sofaFrame,0,.21,1.84,.40);
+ for(let side of [-1,1]){
+  sweep(seatMat,side*.57,.45,.72,.24);
+  sweep(backMat,side*.24,.76,.22,.64);
+ }
+ sweep(soil,0,.91,.30,.12);
+ // Soft cushion joins and silver-green foliage follow the same curve.
+ for(let i=1;i<13;i++){let t=i/13,p=spine.getPointAt(t),d=spine.getTangentAt(t);for(let side of [-1,1]){let m=box(g,seamMat,.016,.009,.56,p.x-d.z*side*.57,.565,p.z+d.x*side*.57);m.rotation.y=Math.atan2(d.x,d.z)}}
+ const leafColors=[0x8a9b75,0xa0ae85,0x657f56];for(let q=0;q<3;q++){
+  let leaves=new T.InstancedMesh(new T.SphereGeometry(1,6,4),mat(leafColors[q],.94),100),obj=new T.Object3D();
+  for(let i=0;i<100;i++){let t=rng(),p=spine.getPointAt(t),d=spine.getTangentAt(t),off=(rng()-.5)*.38;obj.position.set(p.x-d.z*off,1.03+rng()*.23,p.z+d.x*off);obj.scale.set(.026+rng()*.035,.15+rng()*.18,.028+rng()*.018);obj.rotation.set((rng()-.5)*1.7,rng()*6.28,(rng()-.5)*1.6);obj.updateMatrix();leaves.setMatrixAt(i,obj.matrix)}
+  leaves.instanceMatrix.needsUpdate=true;g.add(leaves);
+ }
+ // Local circular collision samples preserve the open walkways on both sides.
+ for(let i=0;i<=28;i++){let p=spine.getPointAt(i/28);colliders.push({x:p.x,z:p.z,r:.94})}
+ // Reference: dark raised study strip with parallel long tables and wooden benches.
+ const timber=mat(0xb77a3b,.65),topMat=mat(0x343638,.65),platform=mat(0x252729,.85);
+ box(g,platform,2.55,.085,11.65,3.88,.0425,-6.65);
+ box(g,warm,.022,.025,11.65,2.60,.075,-6.65);
+ for(let z of [-2.55,-5.25,-7.95,-10.65]){
+  box(g,topMat,.86,.075,2.12,4.31,.84,z);
+  for(let zz of [-.91,.91])for(let x of [3.94,4.68])box(g,black,.045,.79,.045,x,.425,z+zz);
+  // Wood modesty panel facing the lounge, on the outer bench side.
+  box(g,timber,.055,.49,2.05,3.00,.35,z);
+  box(g,timber,.40,.065,2.06,3.26,.51,z);box(g,timber,.36,.065,2.06,5.00,.51,z);
+  for(let zz of [-.86,.86])for(let x of [3.26,5.00]){box(g,black,.045,.47,.045,x,.28,z+zz);box(g,black,.32,.045,.045,x,.10,z+zz)}
+  coll(4.05,z,2.12,2.18);
  }
  // Large white backlit lettering on a charcoal fascia over the right-side desks.
  // Alpha canvas preserves individual illuminated letters rather than a rectangular sign.
@@ -86,4 +109,4 @@ export function makeAcademy(scene){
 }
 export function doorNearby(state,x,z){return Math.abs(x-.5)<1.6&&Math.abs(z)<1.7}
 export function advanceDoor(state,dt){state.angle=T.MathUtils.damp(state.angle,state.open?Math.PI*.53:0,7,dt);state.door.rotation.y=-state.angle}
-export function academyWalkable(state,x,z,r=.27){if(z>9.7-r||z< -13.55+r)return false;if(z>.22){if(Math.abs(x)>2.8-r)return false}else if(Math.abs(x)>5.17-r)return false;if(Math.abs(z)<.29+r){if(x<-.1+r||x>1.1-r||state.angle<1.2)return false}return !state.colliders.some(c=>Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r)}
+export function academyWalkable(state,x,z,r=.27){if(z>9.7-r||z< -13.55+r)return false;if(z>.22){if(Math.abs(x)>2.8-r)return false}else if(Math.abs(x)>5.17-r)return false;if(Math.abs(z)<.29+r){if(x<-.1+r||x>1.1-r||state.angle<1.2)return false}return !state.colliders.some(c=>c.r!==undefined?Math.hypot(x-c.x,z-c.z)<c.r+r:Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r)}
