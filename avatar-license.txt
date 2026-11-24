@@ -30,3 +30,7 @@ SOFTWARE.
 ```
 
 Converted assets: Rohit Biradar, https://github.com/memoriesrohit/avatar-studio (MIT); source commit 2fd9ec82fbe1613d40ae38aadcca3f410725f740.
+
+
+## Additional hairstyles
+MakeHuman system hair assets (short02, short04, afro01, bob01, bob02, long01, ponytail01, braid01), CC0 1.0 Universal. Exported GLB assets by Kasper Olesen, CharacterCreator, https://github.com/kblood/CharacterCreator/tree/852e48f316b90a0937234886630e4fb4cdfd1f78/output . See LICENSE-NOTES.md in that revision. Only the CC0 generated art assets are used, not the GPL application code.
