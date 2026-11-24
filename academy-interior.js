@@ -172,7 +172,16 @@ export function makeAcademy(scene){
  for(let [x,z] of [[6.6,-14.2],[6.5,-22.8],[.2,-23.0]]){cylinder(office,black,.23,.34,x,.57,z);for(let dx of [-.16,.16])for(let dz of [-.16,.16])box(office,black,.025,.52,.025,x+dx,.26,z+dz);for(let i=0;i<13;i++){let leaf=mesh(office,new T.SphereGeometry(1,7,5),greenLeaves,x+(rng()-.5)*.45,.88+rng()*.38,z+(rng()-.5)*.45);leaf.scale.set(.07,.23,.04);leaf.rotation.z=(rng()-.5)*1.5}coll(x,z,.49,.49)}
  let hallLight=new T.PointLight(0xffecd2,14,19,1.3);hallLight.position.set(0,4.4,-6.2);g.add(hallLight);
  let corridorLight=new T.PointLight(0xffe2b6,8,13,1.4);corridorLight.position.set(0,3.7,4);g.add(corridorLight);
- return {door,colliders,seats,open:false,angle:0};
+ // Local electrical circuits: physical switches on wall/column and independently dimmed light sources.
+ const circuits=[
+ {id:'entrance',name:'Entrance',x:2.78,z:2.0,y:1.16,face:-Math.PI/2,test:o=>o.position.z>0},
+ {id:'lounge',name:'Lounge',x:-7.59,z:-2.05,y:1.16,face:Math.PI/2,test:o=>o.position.z<=0&&o.position.z>=-13.6},
+ {id:'workspace',name:'Workspace',x:-7.59,z:-15.2,y:1.16,face:Math.PI/2,test:o=>o.position.z<-13.6}
+ ];
+ const v=new T.Vector3();g.updateMatrixWorld(true);for(const c of circuits){c.on=true;c.lights=[];c.fixtures=[];g.traverse(o=>{if(o.isLight&&c.test({position:o.getWorldPosition(v)}))c.lights.push({light:o,intensity:o.intensity});if(o.isMesh&&[warm,wallLamp].includes(o.material)&&c.test({position:o.getWorldPosition(v)})){o.material=o.material.clone();c.fixtures.push({material:o.material,color:o.material.color.clone()})}});
+  let sw=new T.Group();sw.position.set(c.x,c.y,c.z);sw.rotation.y=c.face;g.add(sw);box(sw,white,.135,.19,.035,0,0,0);c.rocker=box(sw,black,.075,.11,.038,0,0,.025);c.indicator=box(sw,new T.MeshBasicMaterial({color:0x77e6b2}),.023,.015,.009,0,.062,.049);c.handle=sw;c.approachX=c.x+(c.face>0?.40:-.40);
+ }
+ return {door,colliders,seats,circuits,open:false,angle:0};
 }
 export function doorNearby(state,x,z){return Math.abs(x-.5)<1.6&&Math.abs(z)<1.7}
 export function advanceDoor(state,dt){state.angle=T.MathUtils.damp(state.angle,state.open?Math.PI*.53:0,7,dt);state.door.rotation.y=-state.angle}
@@ -180,3 +189,6 @@ export function academyWalkable(state,x,z,r=.27){if(z>9.7-r||z< -23.62+r)return 
 
 // Choose reachable seat approaches only; never walk through a different obstacle to reach one.
 export function nearestAcademySeat(state,x,z,maxDistance=1.55){let best=null;for(const seat of state.seats||[]){for(const a of seat.approaches){let distance=Math.hypot(x-a.x,z-a.z);if(distance>maxDistance||best&&distance>=best.distance||!academyWalkable(state,a.x,a.z))continue;let clear=true;for(let i=1;i<=12;i++){let t=i/12;if(!academyWalkable(state,x+(a.x-x)*t,z+(a.z-z)*t)){clear=false;break}}if(clear)best={seat,approach:a,distance}}}return best}
+
+export function nearbyLightSwitch(state,x,z,max=1.30){let found=null,d=max;for(const c of state.circuits||[]){const n=Math.hypot(x-c.approachX,z-c.z);if(n<d&&academyWalkable(state,c.approachX,c.z)){let clear=true;for(let k=1;k<=10;k++){const t=k/10;if(!academyWalkable(state,x+(c.approachX-x)*t,z+(c.z-z)*t)){clear=false;break}}if(clear){d=n;found=c}}}return found}
+export function setLightCircuit(c,on){c.on=!!on;for(const a of c.lights)a.light.intensity=a.intensity*(c.on?1:0);for(const a of c.fixtures)a.material.color.copy(a.color).multiplyScalar(c.on?1:.035);c.rocker.rotation.x=c.on?-.15:.15;c.indicator.material.color.setHex(c.on?0x77e6b2:0x682e27)}
