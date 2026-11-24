@@ -13,7 +13,7 @@ function light(g,x,y,z,tx,ty,tz,intensity=12){const l=new T.SpotLight(0xffe6be,i
 function washTexture(){let c=document.createElement('canvas');c.width=128;c.height=256;let ctx=c.getContext('2d'),gr=ctx.createRadialGradient(64,234,4,64,234,135);gr.addColorStop(0,'rgba(255,235,190,.8)');gr.addColorStop(.24,'rgba(255,221,158,.29)');gr.addColorStop(1,'rgba(255,221,158,0)');ctx.fillStyle=gr;ctx.fillRect(0,0,128,256);let t=new T.CanvasTexture(c);return t}
 function arc(g,m,r,depth,height,start,end,x,y,z){const shape=new T.Shape();let N=36;for(let i=0;i<=N;i++){let a=start+(end-start)*i/N;let X=Math.cos(a)*r,Z=Math.sin(a)*r;i?shape.lineTo(X,Z):shape.moveTo(X,Z)}for(let i=N;i>=0;i--){let a=start+(end-start)*i/N;shape.lineTo(Math.cos(a)*(r-depth),Math.sin(a)*(r-depth))}shape.closePath();const geo=new T.ExtrudeGeometry(shape,{depth:height,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.035,bevelThickness:.035,curveSegments:12});geo.rotateX(-Math.PI/2);return mesh(g,geo,m,x,y,z)}
 export function makeAcademy(scene){
- scene.background=new T.Color(0x171513);scene.fog=new T.Fog(0x25221e,22,47);const g=new T.Group();scene.add(g);
+ scene.background=new T.Color(0x171513);scene.fog=new T.Fog(0x25221e,29,65);const g=new T.Group();scene.add(g);
  const concrete=new T.MeshStandardMaterial({map:texture('wall'),roughness:.93}),black=mat(0x222222,.46,.25),frame=mat(0x343632,.45,.55),white=mat(0xd9d1c1,.84),wood=mat(0x895637,.6),mustard=mat(0xb17a1a,.94),cushion=mat(0xc08a24,.95),glass=new T.MeshStandardMaterial({color:0xa9b9b3,transparent:true,opacity:.19,roughness:.16,metalness:.12,depthWrite:false}),warm=glow(0xfff1d5),dark=mat(0x302c29,.88),colliders=[],seats=[];
  const coll=(x,z,w,d)=>colliders.push({x,z,w,d});
 
@@ -156,26 +156,21 @@ export function makeAcademy(scene){
  wall(office,white,15.4,2.95,.22,0,1.47,-23.85);wall(office,white,15.4,.20,10.4,0,2.92,-18.7);
  // Close the high level beyond the mezzanine without blocking the ground floor.
  wall(office,white,15.4,2.55,.22,0,4.25,-13.64);
- // Counter on the right side of a continuous open aisle; shelves face the aisle.
- box(office,officeGray,.13,1.13,6.7,.95,.565,-16.9);
- box(office,oak,.66,.085,6.95,.95,1.18,-16.9);
- for(let z of [-20.25,-18.56,-16.87,-15.18,-13.5]){
-  box(office,oak,.35,1.17,.09,.84,.585,z);
-  for(let y of [.42,.79])box(office,oak,.32,.055,.65,.60,y,z+.31);
- }
- box(office,oak,.60,1.15,.07,.95,.575,-20.35);box(office,oak,.60,1.15,.07,.95,.575,-13.45);
- coll(.95,-16.9,.9,6.95);
- // Period-style CRTs on the two ends of the counter.
- const beige=mat(0xc6c1aa,.83);
- function crt(z){let group=new T.Group();group.position.set(.94,1.23,z);office.add(group);
-  box(group,beige,.32,.39,.48,.07,.23,0);box(group,beige,.25,.33,.40,.27,.23,0);box(group,screen,.018,.25,.35,-.10,.23,0);
-  box(group,beige,.37,.05,.51,.07,.025,0);box(group,beige,.25,.027,.38,-.22,.018,0);
- }
- crt(-14.05);crt(-19.8);
- // Glass dividers with black frames and frosted horizontal stripe.
+
+ // Actual first-floor junction: the central white pillar is directly behind the S-sofa.
+ box(office,white,1.14,2.74,.79,0,1.37,-11.75);coll(0,-11.75,1.14,.79);
+ const way=document.createElement('canvas');way.width=1536;way.height=360;const wc=way.getContext('2d');wc.fillStyle='#ad1456';wc.fillRect(0,0,1536,360);wc.fillStyle='#fff';wc.font='bold 82px Arial';wc.textBaseline='middle';['↙ ADA LOVELACE','← DAVID BLACKWELL','← GRACE HOPPER'].forEach((t,i)=>wc.fillText(t,35,68+i*108));wc.fillRect(864,24,5,312);wc.textAlign='right';wc.fillText('KITCHEN →',1495,120);wc.fillText('TECH SUPPORT ↑',1495,228);const wm=new T.CanvasTexture(way);wm.colorSpace=T.SRGBColorSpace;mesh(office,new T.PlaneGeometry(2.5,.58),new T.MeshBasicMaterial({map:wm,toneMapped:false}),0,2.35,-11.34);
+ box(office,deskWhite,.87,.80,.40,0,.40,-11.10);for(let x of [-.22,.22]){box(office,black,.21,.012,.12,x,.805,-11.09);label(office,x<0?'PAPER':'PLASTIC',x,.57,-10.895,.29,.085,'#c7c7bc')}coll(0,-11.10,.87,.40);
+ for(let x of [-1.70,1.70]){box(office,officeGray,.16,2.36,1.05,x,1.18,-12.25);box(office,black,.045,.10,.05,x+(x>0?-.11:.11),1.04,-11.87);coll(x,-12.25,.16,1.05)}
+ // Small desk under the stairs, a white door and water dispenser.
+ box(office,white,2.1,.99,.16,-4.75,.495,-10.55);box(office,white,.14,.99,.90,-3.76,.495,-10.99);box(office,oak,2.1,.06,.72,-4.75,1.01,-10.92);box(office,black,.42,.32,.07,-4.6,1.20,-11.05);coll(-4.75,-10.9,2.1,.85);
+ box(office,white,.42,1.03,.38,3.0,.515,-11.55);box(office,black,.25,.22,.035,3.0,.65,-11.34);cylinder(office,new T.MeshPhysicalMaterial({color:0xa2c9d3,transparent:true,opacity:.65,roughness:.12}),.17,.36,3.0,1.20,-11.55);coll(3,-11.55,.45,.42);
+ // Crosswise cabinet fronts facing the lounge; open passages at both sides.
+ box(office,officeGray,6.1,1.13,.54,0,.565,-13.6);box(office,oak,6.22,.075,.67,0,1.17,-13.6);
+ for(let x=-2.8;x<3;x+=.65){box(office,oak,.032,1.10,.56,x,.56,-13.6);for(let y of [.35,.79])box(office,black,.11,.025,.045,x+.28,y,-13.30)}coll(0,-13.6,6.22,.67);
+ const beige=mat(0xc6c1aa,.83);for(let x of [-2.65,2.65]){box(office,beige,.47,.36,.40,x,1.40,-13.6);box(office,screen,.35,.24,.025,x,1.42,-13.38);box(office,beige,.40,.04,.42,x,1.21,-13.6)}
  const frosted=new T.MeshStandardMaterial({color:0xb7d5d1,transparent:true,opacity:.58,roughness:.6,depthWrite:false});
- for(let z of [-14.3,-16.1,-17.9]){box(office,glass, .035,1.68,1.76,2.05,1.9,z);box(office,frosted,.043,.48,1.758,2.05,1.9,z);box(office,black,.065,2.66,.065,2.05,1.33,z-.9);box(office,black,.065,.065,1.8,2.05,2.75,z)}
- box(office,black,.065,2.66,.065,2.05,1.33,-13.4);coll(2.05,-15.65,.09,5.4);
+ for(let z of [-15.5,-17.3,-19.1]){box(office,glass,.035,2.54,1.76,-2.85,1.35,z);box(office,frosted,.043,.48,1.75,-2.85,1.50,z);box(office,black,.065,2.68,.065,-2.85,1.34,z-.9);box(office,black,.065,.065,1.8,-2.85,2.66,z)}box(office,black,.065,2.68,.065,-2.85,1.34,-14.6);coll(-2.85,-17.3,.09,5.4);
  // Shared desk islands with monitors, keyboards and mesh-backed swivel chairs.
  function chair(x,z,angle,computer){
   let c=new T.Group();c.position.set(x,0,z);c.rotation.y=angle+Math.PI;office.add(c);
@@ -190,25 +185,28 @@ export function makeAcademy(scene){
   const display=screen.clone();box(d,display,.54,.33,.055,0,.32,-.22);box(d,black,.055,.18,.065,0,.13,-.22);box(d,black,.28,.025,.18,0,.012,-.22);
   box(d,black,.35,.022,.13,0,.015,.12);box(d,black,.075,.025,.11,.25,.018,.12);return {display,on:false};
  }
- for(let z of [-15.1,-18.35,-21.65]){
-  box(office,deskWhite,1.20,.07,2.35,4.4,.75,z);
-  for(let x of [3.9,4.9])for(let zz of [-1.02,1.02])box(office,black,.045,.72,.045,x,.36,z+zz);
-  for(let zz of [-.55,.55]){
-   const left=workstation(4.13,z+zz,-Math.PI/2),right=workstation(4.67,z+zz,Math.PI/2);
-   chair(3.31,z+zz,Math.PI/2,left);chair(5.49,z+zz,-Math.PI/2,right);
-  }
-  coll(4.4,z,1.2,2.35);
+
+ // Photo shows a continuous double-sided white desk, monitors back-to-back.
+ box(office,deskWhite,1.74,.075,6.80,0,.75,-18.30);
+ for(let x of [-.81,.81])for(let z of [-15.0,-18.3,-21.6])box(office,black,.055,.72,.055,x,.36,z);
+ for(let z of [-15.85,-17.48,-19.11,-20.74]){
+   const left=workstation(-.32,z,-Math.PI/2),right=workstation(.32,z,Math.PI/2);
+   chair(-1.42,z,Math.PI/2,left);chair(1.42,z,-Math.PI/2,right);
  }
+ coll(0,-18.30,1.74,6.80);
+ // Desktop humidifier, wastebasket, paper and cable details from reference.
+ cylinder(office,deskWhite,.15,.35,-.51,.96,-21.18);cylinder(office,deskWhite,.13,.018,-.51,1.145,-21.18);cylinder(office,black,.19,.39,0,.195,-20.9,.22);
+ for(let z of [-16.1,-18.1,-20.1]){box(office,deskWhite,.19,.007,.26,.62,.795,z);cylinder(office,deskWhite,.043,.085,-.63,.84,z)}
  // Rear desks, pale blinds and a blue geometric accent column.
  for(let x of [-.8,1.4,6.35]){box(office,mat(0xc4c4bf,.94),1.65,1.46,.055,x,1.72,-23.69);box(office,black,.045,1.50,.055,x-.83,1.72,-23.65)}
- box(office,blue,.83,2.78,.12,3.04,1.39,-23.63);
+ box(office,blue,.83,2.78,.12,3.04,1.39,-23.63);box(office,blue,.95,.34,.12,0,2.62,-13.9);
  for(let i=0;i<4;i++){let m=box(office,deskWhite,.018,.75,.018,3.04+(i%2?.15:-.15),.45+i*.58,-23.55);m.rotation.z=i%2?.62:-.57}
  // Ceiling cable tray and rectangular pendant lamps.
  box(office,black,.46,.10,9.8,-2.2,2.68,-18.7);
  for(let z of [-14.1,-16.1,-18.1,-20.1,-22.1]){box(office,black,.55,.045,.10,-2.2,2.60,z);box(office,black,.023,.20,.023,-2.2,2.81,z);let l=cylinder(office,warm,.13,.025,-4.1,2.79,z);box(office,warm,.28,.045,.40,-2.2,2.61,z)}
  for(let z of [-15.4,-19.1,-22.0]){
-  for(let x of [3.0,5.9]){box(office,black,.10,.12,1.75,x,2.48,z);box(office,warm,.055,.025,1.68,x,2.405,z)}
-  for(let zz of [-.875,.875]){box(office,black,2.9,.12,.10,4.45,2.48,z+zz);box(office,warm,2.82,.025,.055,4.45,2.405,z+zz)}
+  for(let x of [-1.45,1.45]){box(office,black,.10,.12,1.75,x,2.48,z);box(office,warm,.055,.025,1.68,x,2.405,z)}
+  for(let zz of [-.875,.875]){box(office,black,2.9,.12,.10,0,2.48,z+zz);box(office,warm,2.82,.025,.055,0,2.405,z+zz)}
  }
  for(let z of [-15.7,-21.5]){let l=new T.PointLight(0xfff1dd,14,10,1.55);l.position.set(1.5,2.58,z);office.add(l)}
  // Green plants in slim dark metal stands.
@@ -229,7 +227,7 @@ export function makeAcademy(scene){
 }
 export function doorNearby(state,x,z){return Math.abs(x-.5)<1.6&&Math.abs(z)<1.7}
 export function advanceDoor(state,dt){state.angle=T.MathUtils.damp(state.angle,state.open?Math.PI*.53:0,7,dt);state.door.rotation.y=-state.angle;state.plazaAngle=T.MathUtils.damp(state.plazaAngle,state.plazaOpen?Math.PI*.53:0,7,dt);state.plazaDoor.rotation.y=-state.plazaAngle}
-export function academyWalkable(state,x,z,r=.27){if(z>34.65-r||z< -23.62+r)return false;const ax=Math.abs(x);if(z>23.24){if(ax>10.7-r)return false}else if(z>17.76){if(ax>2.8-r)return false;if(Math.abs(z-23)<.24+r&&(x<r||x>1-r||state.plazaAngle<1.2))return false;if(Math.abs(z-18)<.24+r&&ax>1.20-r)return false}else if(z>10.24){if(ax>5.35-r)return false}else if(z>.22){if(ax>1.75-r)return false}else if(ax>7.57-r)return false;if(Math.abs(z-10)<.24+r&&ax>1.75-r)return false;if(Math.abs(z)<.29+r){if(x<-.1+r||x>1.1-r||state.angle<1.2)return false}return !state.colliders.some(c=>c.r!==undefined?Math.hypot(x-c.x,z-c.z)<c.r+r:Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r)}
+export function academyWalkable(state,x,z,r=.27){if(z>34.65-r||z< -23.62+r)return false;const ax=Math.abs(x);if(Math.abs(z-23)<.24+r&&(x<r||x>1-r||state.plazaAngle<1.2))return false;if(Math.abs(z-18)<.24+r&&ax>1.20-r)return false;if(z>23.24){if(ax>10.7-r)return false}else if(z>17.76){if(ax>2.8-r)return false}else if(z>10.24){if(ax>5.35-r)return false}else if(z>.22){if(ax>1.75-r)return false}else if(ax>7.57-r)return false;if(Math.abs(z-10)<.24+r&&ax>1.75-r)return false;if(Math.abs(z)<.29+r){if(x<-.1+r||x>1.1-r||state.angle<1.2)return false}return !state.colliders.some(c=>c.r!==undefined?Math.hypot(x-c.x,z-c.z)<c.r+r:Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r)}
 
 // Choose reachable seat approaches only; never walk through a different obstacle to reach one.
 export function nearestAcademySeat(state,x,z,maxDistance=1.55){let best=null;for(const seat of state.seats||[]){for(const a of seat.approaches){let distance=Math.hypot(x-a.x,z-a.z);if(distance>maxDistance||best&&distance>=best.distance||!academyWalkable(state,a.x,a.z))continue;let clear=true;for(let i=1;i<=12;i++){let t=i/12;if(!academyWalkable(state,x+(a.x-x)*t,z+(a.z-z)*t)){clear=false;break}}if(clear)best={seat,approach:a,distance}}}return best}
