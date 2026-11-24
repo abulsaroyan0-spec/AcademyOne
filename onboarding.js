@@ -140,19 +140,41 @@ $$('[data-key]').forEach(b=>{b.addEventListener('pointerdown',e=>{b.setPointerCa
 document.addEventListener('visibilitychange',()=>{keys.clear();if(!document.hidden)fillThumbs()});$('#retry').onclick=()=>location.reload();
 
 
-let storeState=null,storeBusy=false,cosmeticCrown=null;
-const originalColors=new WeakMap();
-function applyEquipment(){
- if(!hero||!storeState)return;
- const outfit=storeState.items.find(i=>i.id===storeState.outfit),crown=storeState.items.find(i=>i.id===storeState.crown);
- hero.traverse(o=>{if(!o.isMesh||o.userData.storeCosmetic)return;for(const m of (Array.isArray(o.material)?o.material:[o.material])){if(!m?.color||!/shirt|hoodie|jacket|cloth|torso|top|tunic|fabric|blue/i.test((m.name||'')+' '+(o.name||''))||/skin|hair|eye|gold|metal|face/i.test(m.name||''))continue;if(!originalColors.has(m))originalColors.set(m,m.color.clone());m.color.copy(originalColors.get(m));if(outfit)m.color.set(outfit.color);}});
- const old=hero.getObjectByName('AcademyStoreCrown');if(old){old.removeFromParent();dispose(old)}
- if(crown){const head=hero.getObjectByName('Head')||(()=>{let h=null;hero.traverse(o=>{if(o.isBone&&/^head$/i.test(o.name))h=o});return h})();const group=new THREE.Group();group.name='AcademyStoreCrown';group.userData.storeCosmetic=true;const metal=new THREE.MeshStandardMaterial({color:crown.color,metalness:.72,roughness:.3});const ring=new THREE.Mesh(new THREE.TorusGeometry(.115,.021,8,32),metal);ring.rotation.x=Math.PI/2;group.add(ring);for(let i=0;i<8;i++){const angle=i*Math.PI/4;const tip=new THREE.Mesh(new THREE.ConeGeometry(.027,.105,4),metal);tip.position.set(Math.cos(angle)*.115,.055,Math.sin(angle)*.115);group.add(tip)}hero.add(group);group.position.set(0,1.74,0);if(head){hero.updateMatrixWorld(true);head.attach(group)}}
+
+let storeState=null,storeBusy=false;
+const originalColors=new WeakMap(),originalCrownVisibility=new WeakMap(),storePreviews=new Map();
+function equipModel(model,outfit,crown){
+ if(!model)return;
+ const old=model.getObjectByName('AcademyStoreCrown');if(old){old.removeFromParent();dispose(old)}
+ model.traverse(o=>{if(!o.isMesh)return;const name=(o.name||'');if(/crown|tiara|coronet/i.test(name)){if(!originalCrownVisibility.has(o))originalCrownVisibility.set(o,o.visible);o.visible=crown?false:originalCrownVisibility.get(o)}for(const m of (Array.isArray(o.material)?o.material:[o.material])){if(!m?.color||!/shirt|hoodie|jacket|cloth|torso|top|tunic|fabric|blue|velvet/i.test((m.name||'')+' '+name)||/skin|hair|eye|gold|metal|face/i.test(m.name||''))continue;if(!originalColors.has(m))originalColors.set(m,m.color.clone());m.color.copy(originalColors.get(m));if(outfit)m.color.set(outfit.color);}});
+ if(!crown)return;
+ let head=null;model.traverse(o=>{if(o.isBone&&/(^|[:_])head$/i.test(o.name))head=o});
+ model.updateWorldMatrix(true,true);
+ const headPoint=head?model.worldToLocal(head.getWorldPosition(new THREE.Vector3())):new THREE.Vector3(0,1.43,0);
+ const bounds=new THREE.Box3(),v=new THREE.Vector3();let samples=[];
+ model.traverse(o=>{if(!o.isMesh||!o.visible||!/hair|head|face|skin/i.test(o.name+' '+(o.material?.name||''))||!o.geometry?.attributes.position)return;const p=o.geometry.attributes.position;for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);if(o.isSkinnedMesh)o.applyBoneTransform(i,v);o.localToWorld(v);model.worldToLocal(v);if(v.y>headPoint.y+.045&&Math.abs(v.x-headPoint.x)<.27&&Math.abs(v.z-headPoint.z)<.27)samples.push(v.clone())}});
+ for(const p of samples)bounds.expandByPoint(p);
+ const size=bounds.isEmpty()?new THREE.Vector3(.23,.20,.22):bounds.getSize(new THREE.Vector3()),center=bounds.isEmpty()?headPoint.clone().add(new THREE.Vector3(0,.12,0)):bounds.getCenter(new THREE.Vector3());
+ const baseY=bounds.isEmpty()?headPoint.y+.19:bounds.max.y-clamp(size.y*.16,.025,.055);
+ const radius=clamp(Math.max(size.x,size.z)*.48,.085,.155);
+ const group=new THREE.Group();group.name='AcademyStoreCrown';group.userData.storeCosmetic=true;
+ const metal=new THREE.MeshStandardMaterial({color:crown.color,metalness:.72,roughness:.3});
+ const band=new THREE.Mesh(new THREE.CylinderGeometry(radius*1.03,radius,.035,40,1,true),metal);metal.side=THREE.DoubleSide;group.add(band);
+ const rim=new THREE.Mesh(new THREE.TorusGeometry(radius,.008,8,40),metal);rim.rotation.x=Math.PI/2;rim.position.y=-.018;group.add(rim);
+ for(let i=0;i<8;i++){const angle=i*Math.PI/4;const tip=new THREE.Mesh(new THREE.ConeGeometry(radius*.23,radius*.58,4),metal);tip.position.set(Math.cos(angle)*radius,.042,Math.sin(angle)*radius);tip.rotation.y=-angle;group.add(tip)}
+ model.add(group);group.position.set(center.x,baseY,center.z);model.updateWorldMatrix(true,true);if(head)head.attach(group);
 }
-function renderStore(){const root=$('#storeItems');root.replaceChildren();$('#storeBalance').textContent=(storeState.admin?'Admin · all items unlocked · ':'')+'🪙 '+storeState.coins;for(const item of storeState.items){const card=document.createElement('div');card.className='store-item';const sw=document.createElement('div');sw.className='store-swatch';sw.style.background=item.color;sw.textContent=item.slot==='crown'?'♛':'👕';const name=document.createElement('strong');name.textContent=item.name;const owned=storeState.owned.includes(item.id),equipped=storeState[item.slot]===item.id;const meta=document.createElement('small');meta.textContent=equipped?'Equipped':owned?'In inventory':item.price+' Coins';const button=document.createElement('button');button.className='btn';button.textContent=equipped?'Unequip':owned?'Equip':'Buy · '+item.price;button.disabled=storeBusy||(!owned&&storeState.coins<item.price);button.onclick=()=>storeAction(owned?'equip':'buy',equipped?null:item.id,item.slot);card.append(sw,name,meta,button);root.append(card)}}
+function applyEquipment(){if(!hero||!storeState)return;equipModel(hero,storeState.items.find(i=>i.id===storeState.outfit),storeState.items.find(i=>i.id===storeState.crown))}
+let previewJob=null;
+async function generateStorePreviews(){
+ const character=selected?.id||avatar.characterId,entry=catalog.find(i=>i.id===character);if(!entry?.model||!storeState||previewJob)return;
+ const missing=storeState.items.filter(i=>!storePreviews.has(character+':'+i.id));if(!missing.length)return;
+ previewJob=(async()=>{let model;try{const response=await fetch(entry.model);if(!response.ok)throw Error('Preview unavailable');const g=await loader.parseAsync(await response.arrayBuffer(),'/');model=fit(g.scene);if(character==='male-king')royalFinish(model);createHumanoidMotion(model);for(const item of missing){if(!$('#storeDialog').open)break;equipModel(model,item.slot==='outfit'?item:null,item.slot==='crown'?item:null);storePreviews.set(character+':'+item.id,thumbnail(model));if($('#storeDialog').open)renderStore();await new Promise(resolve=>requestAnimationFrame(resolve));}}catch(e){$('#storeFeedback').textContent='Some 3D previews unavailable.'}finally{if(model)dispose(model)}})();try{await previewJob}finally{previewJob=null}
+}
+function renderStore(){const root=$('#storeItems');root.replaceChildren();$('#storeBalance').textContent=(storeState.admin?'Admin · all items unlocked · ':'')+'🪙 '+storeState.coins;for(const item of storeState.items){const card=document.createElement('div');card.className='store-item';const sw=document.createElement('div');sw.className='store-swatch';const preview=storePreviews.get((selected?.id||avatar.characterId)+':'+item.id);if(preview){const img=document.createElement('img');img.src=preview;img.alt=item.name+' on your character';sw.append(img)}else{sw.style.background=item.color;sw.textContent='Loading preview…'}const name=document.createElement('strong');name.textContent=item.name;const owned=storeState.owned.includes(item.id),equipped=storeState[item.slot]===item.id;const meta=document.createElement('small');meta.textContent=equipped?'Equipped':owned?'In inventory':item.price+' Coins';const button=document.createElement('button');button.className='btn';button.textContent=equipped?'Unequip':owned?'Equip':'Buy · '+item.price;button.disabled=storeBusy||(!owned&&storeState.coins<item.price);button.onclick=()=>storeAction(owned?'equip':'buy',equipped?null:item.id,item.slot);card.append(sw,name,meta,button);root.append(card)}}
 async function storeAction(action,id,slot){if(storeBusy)return;storeBusy=true;renderStore();try{storeState=await api('store/'+action,{id,slot});applyEquipment();await loadProgress();$('#storeFeedback').textContent=action==='buy'?'Purchased. Equip your new item from inventory.':'Equipment updated.'}catch(e){$('#storeFeedback').textContent=e.message}finally{storeBusy=false;renderStore()}}
 async function loadStore(){try{storeState=await api('store');applyEquipment();return true}catch(e){$('#progressStatus').textContent=e.message;return false}}
-$('#storeOpen').onclick=async()=>{if(storeBusy)return;if(document.pointerLockElement)document.exitPointerLock?.();keys.clear();drag=null;sprintHeld=false;storeBusy=true;try{if(!await loadStore())return;$('#storeFeedback').textContent='';$('#storeDialog').showModal()}finally{storeBusy=false;if(storeState)renderStore()}};
+$('#storeOpen').onclick=async()=>{if(storeBusy)return;if(document.pointerLockElement)document.exitPointerLock?.();keys.clear();drag=null;sprintHeld=false;storeBusy=true;try{if(!await loadStore())return;$('#storeFeedback').textContent='';$('#storeDialog').showModal()}finally{storeBusy=false;if(storeState){renderStore();void generateStorePreviews()}}};
 $('#storeClose').onclick=()=>$('#storeDialog').close();
 $('#storeDialog').addEventListener('close',()=>{keys.clear();drag=null});
 
