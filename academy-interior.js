@@ -27,7 +27,7 @@ export function makeAcademy(scene){
  const door=new T.Group();door.position.set(1.1,.03,.16);g.add(door);
  box(g,frame,.075,2.43,.15,-.115,1.215,.04);box(g,frame,.075,2.43,.15,1.115,1.215,.04);box(g,frame,1.3,.075,.15,.5,2.45,.04);
  let frost=new T.MeshStandardMaterial({map:texture('glass'),roughness:.42,metalness:.08,envMapIntensity:.45});
- box(door,frame,1.2,2.34,.07,-.6,1.17,0);box(door,frost,.96,1.92,.083,-.6,1.23,.006);box(door,black,.04,.76,.065,-1.03,1.04,.11);box(door,black,.1,.045,.13,-1.03,1.39,.065);box(door,black,.1,.045,.13,-1.03,.69,.065);box(door,black,.24,.07,.09,-.35,2.22,.065);
+ box(door,frame,1.2,2.34,.07,-.6,1.17,0);box(door,frost,.96,1.92,.083,-.6,1.23,.006);box(door,black,.04,.76,.065,-1.03,1.04,.11);box(door,black,.1,.045,.13,-1.03,1.39,.065);box(door,black,.1,.045,.13,-1.03,.69,.065);box(door,black,.24,.07,.09,-.35,2.22,.065);box(door,black,.04,.76,.065,-1.03,1.04,-.11);box(door,black,.1,.045,.13,-1.03,1.39,-.065);box(door,black,.1,.045,.13,-1.03,.69,-.065);
  const wallLamp=glow(0xffe6bc);
  for(let z of [3,7,9]){box(g,wallLamp,.08,.045,.27,2.7,.03,z);light(g,2.72,.1,z,2.8,1.2,z,5)}
  // Hall beyond the entrance: open double-height lounge, stair and mezzanine.
