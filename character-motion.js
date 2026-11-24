@@ -25,30 +25,31 @@ export function createHumanoidMotion(root){
  const parentQ=new T.Quaternion(),q=new T.Quaternion(),v=V(),rootQ=new T.Quaternion(),axis=V(1,0,0);
  function aim(b,childDir,target){b.parent.getWorldQuaternion(parentQ).invert();v.copy(target).applyQuaternion(rootQ).applyQuaternion(parentQ).normalize();q.setFromUnitVectors(childDir.clone().applyQuaternion(rest.get(b).q),v);b.quaternion.copy(q).multiply(rest.get(b).q);b.updateWorldMatrix(false,true)}
  function orient(b,angle){if(!b)return;b.parent.getWorldQuaternion(parentQ).invert();q.setFromAxisAngle(axis,angle);b.quaternion.copy(parentQ).multiply(rootQ).multiply(q).multiply(rest.get(b).world);b.updateWorldMatrix(false,true)}
- function update(dt,speed=0){
+ function update(dt,speed=0,pose={}){
+  const seated=clamp(pose.seated||0,0,1),air=clamp(pose.air||0,0,1),seatHeight=pose.seatHeight||.50;
   clock+=dt;if(waveTime>=0){waveTime+=dt;if(waveTime>1.9)waveTime=-1}if(clock>blinkAt+.19)blinkAt=clock+2.4+Math.random()*2.4;blink(clock<blinkAt?0:Math.sin(Math.PI*clamp((clock-blinkAt)/.19,0,1))*.96);gaitSpeed=T.MathUtils.damp(gaitSpeed,Math.max(0,speed),14,dt);let running=clamp((gaitSpeed-1.4)/1.15,0,1);blend=T.MathUtils.damp(blend,clamp(gaitSpeed/.65,0,1),12,dt);
   let stride=1.34+running*.54;phase=(phase+gaitSpeed*dt/stride)%1;
   root.updateWorldMatrix(true,true);root.getWorldQuaternion(rootQ);
   for(let b of bones){let r=rest.get(b);b.quaternion.copy(r.q);b.position.copy(r.p)}
   root.updateWorldMatrix(true,true);
   const bob=(.012*Math.cos(phase*Math.PI*4)-.028)*blend+.003*Math.sin(clock*2.2)*(1-blend);
-  const h=hp.clone().add(V(.018*Math.sin(phase*2*Math.PI)*blend,bob,0));hips.position.copy(hips.parent.worldToLocal(root.localToWorld(h)));hips.updateWorldMatrix(false,true);
+  const h=hp.clone().add(V(.018*Math.sin(phase*2*Math.PI)*blend,bob,0));h.y=T.MathUtils.lerp(h.y,seatHeight+.075,seated)-.045*air;h.z-=.035*seated;hips.position.copy(hips.parent.worldToLocal(root.localToWorld(h)));hips.updateWorldMatrix(false,true);
   if(chest){orient(chest,.025+running*.09+Math.sin(phase*2*Math.PI)*.026*blend);const twist=new T.Quaternion().setFromAxisAngle(V(0,1,0),Math.sin(phase*2*Math.PI)*.045*blend);chest.quaternion.premultiply(chest.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(rootQ).multiply(twist).multiply(rootQ.clone().invert()).multiply(chest.parent.getWorldQuaternion(new T.Quaternion())));chest.updateWorldMatrix(false,true)}
   if(head){orient(head,-.012+Math.sin(clock*1.4)*.012)}
   for(let i=0;i<legs.length;i++){
    let l=legs[i],t=(phase+i*.5)%1,stance=.62-running*.12,travel=stride*stance*.5;
    let z,y;if(t<stance){z=travel*(1-2*t/stance);y=0}else{let f=(t-stance)/(1-stance),smooth=f*f*(3-2*f);z=travel*(2*smooth-1);y=Math.sin(Math.PI*f)*(.085+running*.10)}
-   let ankle=l.ankle.clone().add(V(0,y*blend,z*blend)),hip=local(l.upper),delta=ankle.clone().sub(hip),dist=clamp(delta.length(),Math.abs(l.a-l.b)+.001,l.a+l.b-.001),dir=delta.normalize();
+   let ankle=l.ankle.clone().add(V(0,y*blend,z*blend));ankle.lerp(V(l.ankle.x,l.ankle.y,.32),seated);ankle.y+=.12*air;ankle.z+=.06*air;let hip=local(l.upper),delta=ankle.clone().sub(hip),dist=clamp(delta.length(),Math.abs(l.a-l.b)+.001,l.a+l.b-.001),dir=delta.normalize();
    let bend=V(0,0,1).addScaledVector(dir,-dir.z).normalize();if(bend.lengthSq()<.01)bend.set(0,1,0);
    let along=(l.a*l.a-l.b*l.b+dist*dist)/(2*dist),height=Math.sqrt(Math.max(0,l.a*l.a-along*along)),knee=hip.clone().addScaledVector(dir,along).addScaledVector(bend,height);
    ankle=hip.clone().addScaledVector(dir,dist);
    aim(l.upper,l.upperDir,knee.clone().sub(hip));aim(l.lower,l.lowerDir,ankle.clone().sub(knee));orient(l.foot,(t<stance?-.06*Math.sin(t/stance*Math.PI):.19*Math.sin((t-stance)/(1-stance)*Math.PI))*blend);
    // Arms hang at the sides, with a restrained opposing swing and relaxed elbows.
-   const swing=-Math.cos(t*2*Math.PI)*(.24+running*.19)*blend;
+   const swing=-Math.cos(t*2*Math.PI)*(.24+running*.19)*blend*(1-seated);
    const elbowFlex=.085+running*.33;
    const outward=.20+running*.035;
-   aim(l.arm,l.armDir,V(l.side*outward,-1,swing));
-   aim(l.elbow,l.elbowDir,V(l.side*.13,-1,swing+elbowFlex));
+   aim(l.arm,l.armDir,V(l.side*(outward+.10*air),-1,swing+.13*seated+.24*air));
+   aim(l.elbow,l.elbowDir,V(l.side*.13*(1-seated),-1+seated*.85,swing+elbowFlex+seated*.85+air*.35));
    // Keep the relaxed wrist aligned with its parent instead of forcing the bind-pose world rotation.
    l.hand.quaternion.copy(rest.get(l.hand).q);l.hand.updateWorldMatrix(false,true);
    // Keep the elbow and wrist outside the torso with a minimum lateral clearance.
@@ -57,7 +58,7 @@ export function createHumanoidMotion(root){
   }
   const smooth=x=>{x=clamp(x,0,1);return x*x*(3-2*x)};
   // Gesture layer overrides the right arm only, blending in and out of gait.
-  if(waveTime>=0&&!reach){let l=legs[1],weight=smooth(waveTime/.32)*smooth((1.9-waveTime)/.38),upper=l.arm.quaternion.clone(),lower=l.elbow.quaternion.clone();
+  if(waveTime>=0&&!reach&&!seated){let l=legs[1],weight=smooth(waveTime/.32)*smooth((1.9-waveTime)/.38),upper=l.arm.quaternion.clone(),lower=l.elbow.quaternion.clone();
    aim(l.arm,l.armDir,V(l.side*.78,.34,.36));aim(l.elbow,l.elbowDir,V(l.side*(.15+.45*Math.sin(waveTime*14)),1,.22));const goalUpper=l.arm.quaternion.clone(),goalLower=l.elbow.quaternion.clone();
    l.arm.quaternion.copy(upper).slerp(goalUpper,weight);l.elbow.quaternion.copy(lower).slerp(goalLower,weight);l.arm.updateWorldMatrix(false,true);
   }
@@ -78,7 +79,7 @@ export function royalFinish(root){
   m.needsUpdate=true;
  }});
  let chest=null;root.traverse(b=>{if(b.isBone&&norm(b.name)==='chest'&&!chest)chest=b});if(!chest)return;
- const cape=new T.Group();root.add(cape);let gold=new T.MeshStandardMaterial({color:0xe5bb61,metalness:.7,roughness:.3}),velvet=new T.MeshStandardMaterial({color:0x820e2e,roughness:.84,side:T.DoubleSide}),verts=[],idx=[];
+ const cape=new T.Group();cape.name='RoyalCape';root.add(cape);let gold=new T.MeshStandardMaterial({color:0xe5bb61,metalness:.7,roughness:.3}),velvet=new T.MeshStandardMaterial({color:0x820e2e,roughness:.84,side:T.DoubleSide}),verts=[],idx=[];
  const rows=16,cols=18;for(let y=0;y<=rows;y++){let t=y/rows,width=.17+.16*t;for(let x=0;x<=cols;x++){let a=x/cols*2-1;verts.push(a*width,1.25-.91*t,-.22-.19*t+.028*Math.cos(a*3*Math.PI)*t-.02*a*a);if(y&&x){let i=y*(cols+1)+x;idx.push(i-cols-2,i-1,i-cols-1,i-cols-1,i-1,i)}}}
  let geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(verts,3));geo.setIndex(idx);geo.computeVertexNormals();cape.add(new T.Mesh(geo,velvet));
  for(let side of [-1,1]){let pts=[];for(let y=0;y<=rows;y++){let t=y/rows;pts.push(new T.Vector3(side*(.17+.16*t),1.25-.91*t,-.22-.19*t+.028*Math.cos(3*Math.PI)*t-.02))}cape.add(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),20,.009,6,false),gold))}
