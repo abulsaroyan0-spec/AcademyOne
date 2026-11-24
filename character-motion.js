@@ -11,35 +11,41 @@ export function createHumanoidMotion(root){
  const local=b=>root.worldToLocal(b.getWorldPosition(V()));
  const rest=new Map(bones.map(b=>[b,{q:b.quaternion.clone(),p:b.position.clone(),world:root.getWorldQuaternion(new T.Quaternion()).invert().multiply(b.getWorldQuaternion(new T.Quaternion()))}]));
  const hp=local(hips);
- for(let l of legs){l.ankle=local(l.foot);l.a=local(l.upper).distanceTo(local(l.lower));l.b=local(l.lower).distanceTo(l.ankle);l.side=Math.sign(local(l.upper).x-hp.x)||1;l.upperDir=l.lower.position.clone().normalize();l.lowerDir=l.foot.position.clone().normalize();l.armDir=l.elbow.position.clone().normalize();l.elbowDir=l.hand.position.clone().normalize()}
+ for(let l of legs){l.ankle=local(l.foot);l.a=local(l.upper).distanceTo(local(l.lower));l.b=local(l.lower).distanceTo(l.ankle);l.side=Math.sign(local(l.arm).x-hp.x)||Math.sign(local(l.upper).x-hp.x)||1;l.upperDir=l.lower.position.clone().normalize();l.lowerDir=l.foot.position.clone().normalize();l.armDir=l.elbow.position.clone().normalize();l.elbowDir=l.hand.position.clone().normalize()}
  if(legs.some(l=>l.a<.05||l.b<.05))return null;
- let phase=0,blend=0,clock=0;
+ let phase=0,blend=0,clock=0,gaitSpeed=0;
  const parentQ=new T.Quaternion(),q=new T.Quaternion(),v=V(),rootQ=new T.Quaternion(),axis=V(1,0,0);
  function aim(b,childDir,target){b.parent.getWorldQuaternion(parentQ).invert();v.copy(target).applyQuaternion(rootQ).applyQuaternion(parentQ).normalize();q.setFromUnitVectors(childDir.clone().applyQuaternion(rest.get(b).q),v);b.quaternion.copy(q).multiply(rest.get(b).q);b.updateWorldMatrix(false,true)}
  function orient(b,angle){if(!b)return;b.parent.getWorldQuaternion(parentQ).invert();q.setFromAxisAngle(axis,angle);b.quaternion.copy(parentQ).multiply(rootQ).multiply(q).multiply(rest.get(b).world);b.updateWorldMatrix(false,true)}
  function update(dt,speed=0){
-  clock+=dt;let running=clamp((speed-1.4)/1.2,0,1);blend=T.MathUtils.damp(blend,clamp(speed/.6,0,1),11,dt);
-  let stride=.88+running*.48;phase=(phase+Math.max(0,speed)*dt/stride)%1;
+  clock+=dt;gaitSpeed=T.MathUtils.damp(gaitSpeed,Math.max(0,speed),14,dt);let running=clamp((gaitSpeed-1.4)/1.15,0,1);blend=T.MathUtils.damp(blend,clamp(gaitSpeed/.65,0,1),12,dt);
+  let stride=1.34+running*.54;phase=(phase+gaitSpeed*dt/stride)%1;
   root.updateWorldMatrix(true,true);root.getWorldQuaternion(rootQ);
   for(let b of bones){let r=rest.get(b);b.quaternion.copy(r.q);b.position.copy(r.p)}
   root.updateWorldMatrix(true,true);
-  const bob=(.015*Math.cos(phase*Math.PI*4)-.035)*blend+.004*Math.sin(clock*2.2)*(1-blend);
+  const bob=(.012*Math.cos(phase*Math.PI*4)-.028)*blend+.003*Math.sin(clock*2.2)*(1-blend);
   const h=hp.clone().add(V(.018*Math.sin(phase*2*Math.PI)*blend,bob,0));hips.position.copy(hips.parent.worldToLocal(root.localToWorld(h)));hips.updateWorldMatrix(false,true);
   if(chest){orient(chest,.025+running*.09+Math.sin(phase*2*Math.PI)*.018*blend)}
   if(head){orient(head,-.012+Math.sin(clock*1.4)*.012)}
   for(let i=0;i<legs.length;i++){
    let l=legs[i],t=(phase+i*.5)%1,stance=.62-running*.12,travel=stride*stance*.5;
-   let z,y;if(t<stance){z=travel*(1-2*t/stance);y=0}else{let f=(t-stance)/(1-stance),smooth=f*f*(3-2*f);z=travel*(2*smooth-1);y=Math.sin(Math.PI*f)*(.105+running*.095)}
+   let z,y;if(t<stance){z=travel*(1-2*t/stance);y=0}else{let f=(t-stance)/(1-stance),smooth=f*f*(3-2*f);z=travel*(2*smooth-1);y=Math.sin(Math.PI*f)*(.085+running*.10)}
    let ankle=l.ankle.clone().add(V(0,y*blend,z*blend)),hip=local(l.upper),delta=ankle.clone().sub(hip),dist=clamp(delta.length(),Math.abs(l.a-l.b)+.001,l.a+l.b-.001),dir=delta.normalize();
    let bend=V(0,0,1).addScaledVector(dir,-dir.z).normalize();if(bend.lengthSq()<.01)bend.set(0,1,0);
    let along=(l.a*l.a-l.b*l.b+dist*dist)/(2*dist),height=Math.sqrt(Math.max(0,l.a*l.a-along*along)),knee=hip.clone().addScaledVector(dir,along).addScaledVector(bend,height);
    ankle=hip.clone().addScaledVector(dir,dist);
    aim(l.upper,l.upperDir,knee.clone().sub(hip));aim(l.lower,l.lowerDir,ankle.clone().sub(knee));orient(l.foot,(t<stance?-.06*Math.sin(t/stance*Math.PI):.19*Math.sin((t-stance)/(1-stance)*Math.PI))*blend);
-   const swing=-Math.cos(t*2*Math.PI)*(.31+running*.22)*blend;
-   aim(l.arm,l.armDir,V(l.side*.12,-1,swing));aim(l.elbow,l.elbowDir,V(l.side*.10,-1,swing+.18+running*.35));orient(l.hand,0);
+   // Arms hang at the sides, with a restrained opposing swing and relaxed elbows.
+   const swing=-Math.cos(t*2*Math.PI)*(.13+running*.17)*blend;
+   const elbowFlex=.085+running*.33;
+   const outward=.065+running*.025;
+   aim(l.arm,l.armDir,V(l.side*outward,-1,swing));
+   aim(l.elbow,l.elbowDir,V(l.side*.025,-1,swing+elbowFlex));
+   // Keep the relaxed wrist aligned with its parent instead of forcing the bind-pose world rotation.
+   l.hand.quaternion.copy(rest.get(l.hand).q);l.hand.updateWorldMatrix(false,true);
   }
  }
- return {update};
+ update(0,0);return {update};
 }
 export function royalFinish(root){
  root.updateWorldMatrix(true,true);
