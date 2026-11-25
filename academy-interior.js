@@ -122,7 +122,7 @@ export function makeAcademy(scene){
   new T.Vector3(.78,0,-3.25),new T.Vector3(-.38,0,-3.75),new T.Vector3(-.52,0,-4.95),
   new T.Vector3(.28,0,-6.2),new T.Vector3(.97,0,-7.35),new T.Vector3(.91,0,-8.6),
   new T.Vector3(.14,0,-9.55),new T.Vector3(-.38,0,-9.75)
- ].map(p=>{p.x+=.85;return p}),false,'centripetal');
+ ].map(p=>{p.x+=2.35;return p}),false,'centripetal');
  const sofaFrame=mat(0x98630f,.92),seatMat=mat(0xd39a28,.94),backMat=mat(0xbf8620,.94),soil=mat(0x4c4636,.95),seamMat=mat(0xa87520,.95);
  // Sweep a rounded upholstered cross-section along the spine. Shared vertices give smooth curves.
  function sweep(material,offset,height,width,thickness,from=0,to=1){
@@ -200,7 +200,7 @@ export function makeAcademy(scene){
  // Close the high level beyond the mezzanine without blocking the ground floor.
  wall(office,white,18.2,2.55,.22,0,4.25,-13.64);
 
- const officeShift=-1.25;
+ const officeShift=-5.25,junctionShift=-1.25;
  function captureOfficePart(){return {mesh:office.children.length,coll:colliders.length,seat:seats.length}}
  function moveOfficePart(start,dx){for(const o of office.children.slice(start.mesh))o.position.x+=dx;for(const c of colliders.slice(start.coll))c.x+=dx;for(const a of seats.slice(start.seat)){a.x+=dx;for(const p of a.approaches)p.x+=dx}}
  const junctionStart=captureOfficePart();
@@ -209,7 +209,7 @@ export function makeAcademy(scene){
  const way=document.createElement('canvas');way.width=1536;way.height=360;const wc=way.getContext('2d');wc.fillStyle='#ad1456';wc.fillRect(0,0,1536,360);wc.fillStyle='#fff';wc.font='bold 82px Arial';wc.textBaseline='middle';['↙ ADA LOVELACE','← DAVID BLACKWELL','← GRACE HOPPER'].forEach((t,i)=>wc.fillText(t,35,68+i*108));wc.fillRect(864,24,5,312);wc.textAlign='right';wc.fillText('KITCHEN →',1495,120);wc.fillText('TECH SUPPORT ↑',1495,228);const wm=new T.CanvasTexture(way);wm.colorSpace=T.SRGBColorSpace;mesh(office,new T.PlaneGeometry(2.5,.58),new T.MeshBasicMaterial({map:wm,toneMapped:false}),0,2.35,-11.34);
  box(office,deskWhite,.87,.80,.40,0,.40,-11.10);for(let x of [-.22,.22]){box(office,black,.21,.012,.12,x,.805,-11.09);label(office,x<0?'PAPER':'PLASTIC',x,.57,-10.895,.29,.085,'#c7c7bc')}coll(0,-11.10,.87,.40);
  box(office,white,.075,1.15,1.32,.61,1.62,-11.75);box(office,officeGray,.025,1.04,1.22,.657,1.62,-11.75);box(office,frame,.14,.045,1.25,.65,1.06,-11.75);
- moveOfficePart(junctionStart,officeShift);
+ moveOfficePart(junctionStart,junctionShift);
  // Small desk under the stairs, a white door and water dispenser.
  // Vintage hardware display beneath staircase; no seat or active computer.
  const display=new T.Group();display.position.set(-5.37,0,-5.18);display.rotation.y=Math.PI/2;office.add(display);
@@ -221,14 +221,14 @@ export function makeAcademy(scene){
  box(display,oldPlastic,.54,.44,.47,.06,.45,-.02);box(display,black,.40,.31,.025,.06,.47,.225);
  box(display,oldPlastic,.52,.12,.25,.60,.16,.03);for(let j=0;j<4;j++)box(display,black,.39,.018,.013,.60,.13+j*.026,.16);
  coll(-5.37,-5.18,.84,2.10);box(office,black,.14,2.72,.14,-4.90,1.36,-6.50);coll(-4.90,-6.50,.14,.14);
- box(office,white,.20,2.72,2.65,-6.315,1.36,-7.75);coll(-6.315,-7.75,.20,2.65);
+ box(office,white,.20,2.72,4.55,-6.315,1.36,-8.70);coll(-6.315,-8.70,.20,4.55);
  const ada=new T.Group();ada.position.set(-6.196,0,-7.48);ada.rotation.y=Math.PI/2;office.add(ada);box(ada,white,1.02,2.18,.055,0,1.09,0);for(const x of [-.53,.53])box(ada,frame,.035,2.24,.06,x,1.12,.008);box(ada,frame,1.09,.035,.06,0,2.23,.008);box(ada,black,.14,.035,.08,.31,1.02,.065);label(ada,'Ada Lovelace',-.89,1.62,.045,.61,.16,'#8d753a');
  
  const mainOfficeStart=captureOfficePart();
  // The two office fronts are parallel, with the open circulation route at either end.
  const beige=mat(0xc6c1aa,.83);
- const cabinet=(x,w)=>{box(office,officeGray,w,1.08,.52,x,.54,-13.65);box(office,oak,w+.08,.065,.62,x,1.11,-13.65);for(let q=x-w/2+.03;q<x+w/2;q+=.73){box(office,oak,.035,1.06,.54,q,.54,-13.65);box(office,oak,.58,.045,.23,q+.31,.35+(Math.round(q*3)%3+3)%3*.21,-13.34)}coll(x,-13.65,w+.08,.62)};
- cabinet(-.10,4.35);
+ const cabinet=(x,w)=>{box(office,officeGray,w,1.12,.54,x,.56,-13.72);box(office,oak,w+.08,.075,.66,x,1.17,-13.72);for(let q=x-w/2+.03;q<x+w/2;q+=.73){box(office,oak,.035,1.06,.54,q,.54,-13.65);box(office,oak,.58,.045,.23,q+.31,.35+(Math.round(q*3)%3+3)%3*.21,-13.34)}coll(x,-13.72,w+.08,.66)};
+ cabinet(-.10,4.35);cabinet(3.485,2.82);
  box(office,beige,.47,.36,.40,-1.65,1.33,-13.65);box(office,screen,.35,.24,.025,-1.65,1.35,-13.43);
  const frosted=new T.MeshStandardMaterial({color:0xb7d5d1,transparent:true,opacity:.58,roughness:.6,depthWrite:false});
  // Glass wall separates the existing office from the adjacent library office on the right.
@@ -281,7 +281,7 @@ export function makeAcademy(scene){
  moveOfficePart(mainOfficeStart,officeShift);
  // Green plants in slim dark metal stands.
  const greenLeaves=mat(0x537b42,.88);
- for(let [x,z] of [[7.9,-22.3],[6.5,-22.8],[-3.8,-23.0]]){cylinder(office,black,.23,.34,x,.57,z);for(let dx of [-.16,.16])for(let dz of [-.16,.16])box(office,black,.025,.52,.025,x+dx,.26,z+dz);for(let i=0;i<13;i++){let leaf=mesh(office,new T.SphereGeometry(1,7,5),greenLeaves,x+(rng()-.5)*.45,.88+rng()*.38,z+(rng()-.5)*.45);leaf.scale.set(.07,.23,.04);leaf.rotation.z=(rng()-.5)*1.5}coll(x,z,.49,.49)}
+ for(let [x,z] of [[7.9+officeShift,-22.3],[6.5+officeShift,-22.8],[-3.8,-23.0]]){cylinder(office,black,.23,.34,x,.57,z);for(let dx of [-.16,.16])for(let dz of [-.16,.16])box(office,black,.025,.52,.025,x+dx,.26,z+dz);for(let i=0;i<13;i++){let leaf=mesh(office,new T.SphereGeometry(1,7,5),greenLeaves,x+(rng()-.5)*.45,.88+rng()*.38,z+(rng()-.5)*.45);leaf.scale.set(.07,.23,.04);leaf.rotation.z=(rng()-.5)*1.5}coll(x,z,.49,.49)}
 
  // First-floor extension reconstructed from the November 25 reference sequence.
  const olive=mat(0x555b41,.96),acoustic=mat(0xb2ada5,.97),green=mat(0x419d59,.85),yellow=mat(0xc6b52d,.85),blind=mat(0x777b7d,.96),windowBlue=mat(0x708fa5,.38,.12),whiteBoard=mat(0xf2f2ee,.45),bookMats=[0x627789,0x9a624f,0xc2b8a4,0x59684e,0x494e65].map(c=>mat(c));
@@ -293,7 +293,7 @@ export function makeAcademy(scene){
  // Adjacent office is on the right of the old one, not on the opposite side of the hall.
  const adjacentStart=captureOfficePart();
  // Dark office flooring, wooden display counter at front and a narrow entry beside it.
- box(office,officeGray,5.70,.014,8.1,5.77,.008,-17.7);box(office,officeGray,5.3,.014,8.1,.1,.008,-17.7);
+ box(office,officeGray,5.70,.014,9.6,5.77,.008,-18.45);box(office,officeGray,5.3,.014,9.6,.1,.008,-18.45);
  box(office,oak,2.70,.075,.66,6.12,1.17,-13.72);
  box(office,officeGray,2.60,1.12,.54,6.12,.56,-13.72);
  for(const x of [4.82,6.1,7.42])box(office,oak,.05,1.10,.60,x,.56,-13.72);
@@ -313,7 +313,7 @@ export function makeAcademy(scene){
  const libraryStart=captureOfficePart();
  // Slim black structural poles between the library office and the window aisle.
  for(const z of [-14.55,-20.80]){box(office,black,.07,2.72,.07,7.53,1.36,z);coll(7.53,z,.07,.07)}
- partition(-2.55,-16.8,.14,5.5,white,2.72);
+ partition(-2.55,-17.65,.14,3.8,white,2.72);
  // Library along the outer edge of the adjacent workspace.
  for(const z of [-16.25,-18.35,-20.45]){
   box(office,oak,.055,2.28,1.86,8.68,1.14,z);box(office,oak,.55,.06,1.86,8.24,2.26,z);
@@ -329,7 +329,9 @@ export function makeAcademy(scene){
  for(const z of [-22.68,-21.22])for(const x of [8.10,8.50])box(office,black,.035,2.12,.035,x,1.06,z);
  coll(8.30,-21.95,.42,1.48);
  // Extra library workstation; open approach from the shared circulation aisle.
- desk(5.8,-21.5,1.55,.70);chair(5.8,-20.62,Math.PI,workstation(5.8,-21.5,Math.PI));
+ desk(5.75,-22.15,1.55,.70);chair(5.75,-21.27,Math.PI,workstation(5.75,-22.15,Math.PI));
+ // A: wall directly behind the shelving, from front to rear. B: rear wall and blue accent at the independent workstation.
+ partition(8.91,-18.42,.18,10.24,white,2.72);partition(5.88,-23.45,6.06,.18,white,2.72);box(office,blue,.055,2.55,.88,7.10,1.275,-23.33);
  moveOfficePart(libraryStart,officeShift);
  // Window-side workstations and the plant-lined path behind both offices.
  for(const z of [-15.6,-18.0,-20.4]){
@@ -346,7 +348,7 @@ export function makeAcademy(scene){
  desk(8.0,-28.45,.72,10.0);
  for(const z of [-25.0,-27.3,-29.6,-31.9])chair(7.02,z,Math.PI/2,workstation(8.0,z,Math.PI/2));
  for(const [x,z] of [[7.9,-22.9],[5.0,-23.0]]){cylinder(office,black,.24,.40,x,.20,z);for(let i=0;i<12;i++){const leaf=mesh(office,new T.SphereGeometry(1,7,5),greenLeaves,x+(rng()-.5)*.45,.45+rng()*.7,z+(rng()-.5)*.45);leaf.scale.set(.06,.26,.04);leaf.rotation.z=(rng()-.5)*2}coll(x,z,.49,.49)}
- partition(-.25,-22.65,4.6,.17,white,2.73);
+ partition(-5.55,-23.45,5.35,.18,white,2.73);
  box(office,green,.12,2.7,.18,2.10,1.35,-22.55);
  // Open study hall: white communal benches and two double-sided computer islands.
  for(const z of [-24.5,-27.4]){
@@ -402,8 +404,8 @@ export function makeAcademy(scene){
  const rubber=mat(0x363738,.98),paper=mat(0xe7e4dc,.92),magenta=mat(0xb52061,.7),silver=mat(0x9b9d9d,.42,.45);
  box(office,rubber,.65,.012,.72,5.75,.009,-10.15);
  // The library office has a black perimeter frame and low-profile gray carpet.
- for(const x of [3.0,8.60])box(office,black,.028,.016,8.10,x+officeShift,.017,-17.7);
- for(const z of [-13.65,-21.75])box(office,black,5.60,.016,.028,5.8+officeShift,.017,z);
+ for(const x of [3.0,8.60])box(office,black,.028,.016,9.60,x+officeShift,.017,-18.45);
+ for(const z of [-13.65,-23.25])box(office,black,5.60,.016,.028,5.8+officeShift,.017,z);
  for(const z of [-16.25,-18.35,-20.45])for(let k=0;k<3;k++)box(office,paper,.25,.035,.28,8.10+officeShift,.59+k*.037,z+.48);
  // Laptop, notebooks, mouse pads and small magenta reserved desk signs.
  function laptop(x,z,angle){const q=new T.Group();q.position.set(x,.787,z);q.rotation.y=angle;office.add(q);box(q,silver,.32,.018,.23,0,.012,0);const lid=box(q,silver,.32,.20,.016,0,.105,-.105);lid.rotation.x=-.18;const scr=box(q,screen,.29,.17,.006,0,.105,-.094);scr.rotation.x=-.18;box(q,black,.27,.006,.13,0,.024,.018)}
@@ -426,22 +428,22 @@ export function makeAcademy(scene){
  // X: redundant utility door removed.
  // F: short wall with built-in bag cabinet; C remains clear.
  const bagWallX=-8.05,bagWallZ=-10.85;
- box(office,white,1.86,2.72,.16,bagWallX,1.36,bagWallZ);coll(bagWallX,bagWallZ,1.86,.16);
- const cubby=new T.Group();cubby.position.set(bagWallX,0,bagWallZ+.32);office.add(cubby);
+ box(office,white,2.80,2.72,.16,-7.615,1.36,bagWallZ);coll(-7.615,bagWallZ,2.80,.16);
+ const cubby=new T.Group();cubby.position.set(-5.965,0,-10.02);cubby.rotation.y=Math.PI/2;office.add(cubby);
  const bagWood=mat(0xb58c63,.86),bagBack=mat(0x77736b,.92);
  box(cubby,bagBack,1.68,1.64,.055,0,.86,-.24);
  for(const x of [-.84,-.28,.28,.84])box(cubby,bagWood,.045,1.68,.47,x,.86,0);
  for(const y of [.025,.57,1.12,1.69])box(cubby,bagWood,1.72,.045,.49,0,y,0);
  const bagMats=[mat(0x343b44,.94),mat(0x63564a,.94),mat(0x354f57,.94),mat(0x7a353b,.94)];
  for(const [x,y,k] of [[-.56,.24,0],[.56,.24,1],[0,.79,2],[-.56,1.34,3]]){box(cubby,bagMats[k],.29,.39,.25,x,y+.08,.045);box(cubby,bagMats[k],.23,.13,.07,x,y-.02,.196);box(cubby,black,.11,.045,.045,x,y+.30,.045)}
- coll(bagWallX,bagWallZ+.32,1.72,.49);
+ coll(-5.965,-10.02,.49,1.72);
  // Visible cable-tray supports and recessed ceiling spots; keep the walking floor unobstructed.
  for(const z of [-15,-18,-21,-24,-27,-30,-33,-35]){
   box(office,black,.48,.055,.07,-7.60,2.69,z);
   for(const x of [-7.80,-7.40])box(office,black,.02,.16,.02,x,2.77,z);
   cylinder(office,warm,.105,.021,4.1,2.79,z);
  }
- for(const z of [-16.9,-20.0,-26.0,-31.8]){box(office,black,.055,2.69,.055,-3.15,1.345,z);coll(-3.15,z,.055,.055)}
+ for(const z of [-26.0,-31.8]){box(office,black,.055,2.69,.055,-3.15,1.345,z);coll(-3.15,z,.055,.055)}
  // Extra classroom row, wall-mounted light strips, and teaching screen details.
  for(const x of [-5.8,-1.8,2.2]){box(office,warm,2.2,.035,.075,x,2.57,-42.85)}
  // Keep front row on classroom side of entrance partition instead of blocking the hallway.
