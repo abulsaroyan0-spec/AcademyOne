@@ -178,7 +178,15 @@ export function makeAcademy(scene){
  for(let x=-2.8;x<3;x+=.65){box(office,oak,.032,1.10,.56,x,.56,-13.6);for(let y of [.35,.79])box(office,black,.11,.025,.045,x+.28,y,-13.30)}coll(0,-13.6,6.22,.67);
  const beige=mat(0xc6c1aa,.83);for(let x of [-2.65,2.65]){box(office,beige,.47,.36,.40,x,1.40,-13.6);box(office,screen,.35,.24,.025,x,1.42,-13.38);box(office,beige,.40,.04,.42,x,1.21,-13.6)}
  const frosted=new T.MeshStandardMaterial({color:0xb7d5d1,transparent:true,opacity:.58,roughness:.6,depthWrite:false});
- for(let z of [-15.5,-17.3,-19.1]){box(office,glass,.035,2.54,1.76,-2.85,1.35,z);box(office,frosted,.043,.48,1.75,-2.85,1.50,z);box(office,black,.065,2.68,.065,-2.85,1.34,z-.9);box(office,black,.065,.065,1.8,-2.85,2.66,z)}box(office,black,.065,2.68,.065,-2.85,1.34,-14.6);coll(-2.85,-17.3,.09,5.4);
+ // Glass wall separates the existing office from the adjacent library office on the right.
+ for(let z of [-15.5,-17.3,-19.1,-20.9]){
+  box(office,glass,.045,2.58,1.77,2.85,1.34,z);
+  box(office,frosted,.052,.72,1.76,2.85,1.28,z);
+  box(office,black,.065,2.68,.065,2.85,1.34,z-.9);
+  box(office,black,.065,.065,1.8,2.85,2.66,z);
+  box(office,black,.065,.065,1.8,2.85,.045,z);
+ }
+ box(office,black,.065,2.68,.065,2.85,1.34,-14.6);coll(2.85,-18.2,.09,7.2);
  // Shared desk islands with monitors, keyboards and mesh-backed swivel chairs.
  function chair(x,z,angle,computer){
   let c=new T.Group();c.position.set(x,0,z);c.rotation.y=angle+Math.PI;office.add(c);
@@ -219,7 +227,7 @@ export function makeAcademy(scene){
  for(let z of [-15.7,-21.5]){let l=new T.PointLight(0xfff1dd,14,10,1.55);l.position.set(1.5,2.58,z);office.add(l)}
  // Green plants in slim dark metal stands.
  const greenLeaves=mat(0x537b42,.88);
- for(let [x,z] of [[6.6,-14.2],[6.5,-22.8],[.2,-23.0]]){cylinder(office,black,.23,.34,x,.57,z);for(let dx of [-.16,.16])for(let dz of [-.16,.16])box(office,black,.025,.52,.025,x+dx,.26,z+dz);for(let i=0;i<13;i++){let leaf=mesh(office,new T.SphereGeometry(1,7,5),greenLeaves,x+(rng()-.5)*.45,.88+rng()*.38,z+(rng()-.5)*.45);leaf.scale.set(.07,.23,.04);leaf.rotation.z=(rng()-.5)*1.5}coll(x,z,.49,.49)}
+ for(let [x,z] of [[7.9,-22.3],[6.5,-22.8],[-3.8,-23.0]]){cylinder(office,black,.23,.34,x,.57,z);for(let dx of [-.16,.16])for(let dz of [-.16,.16])box(office,black,.025,.52,.025,x+dx,.26,z+dz);for(let i=0;i<13;i++){let leaf=mesh(office,new T.SphereGeometry(1,7,5),greenLeaves,x+(rng()-.5)*.45,.88+rng()*.38,z+(rng()-.5)*.45);leaf.scale.set(.07,.23,.04);leaf.rotation.z=(rng()-.5)*1.5}coll(x,z,.49,.49)}
 
  // First-floor extension reconstructed from the November 25 reference sequence.
  const olive=mat(0x555b41,.96),acoustic=mat(0xb2ada5,.97),green=mat(0x419d59,.85),yellow=mat(0xc6b52d,.85),blind=mat(0x777b7d,.96),windowBlue=mat(0x708fa5,.38,.12),whiteBoard=mat(0xf2f2ee,.45),bookMats=[0x627789,0x9a624f,0xc2b8a4,0x59684e,0x494e65].map(c=>mat(c));
@@ -227,13 +235,29 @@ export function makeAcademy(scene){
  const desk=(x,z,w,d,m=deskWhite)=>{box(office,m,w,.065,d,x,.75,z);for(const dx of [-w/2+.09,w/2-.09])for(const dz of [-d/2+.08,d/2-.08])box(office,black,.05,.72,.05,x+dx,.36,z+dz);coll(x,z,w,d)};
  function dispenser(x,z,face=0){const q=new T.Group();q.position.set(x,0,z);q.rotation.y=face;office.add(q);box(q,deskWhite,.39,1.03,.37,0,.515,0);box(q,black,.26,.24,.025,0,.69,.191);box(q,deskWhite,.22,.055,.11,0,.53,.24);for(const dx of [-.06,.06])box(q,steel,.025,.08,.035,dx,.74,.22);cylinder(q,deskWhite,.055,.38,.23,.81,0);coll(x,z,.48,.42)}
  // End wall of the academy-sign study strip; dispenser sits flush against its outside face.
- partition(7.05,-10.34,3.75,.15,officeGray,2.65);box(office,warm,3.69,.025,.045,7.05,2.60,-10.43);dispenser(5.38,-10.65,Math.PI);
- // Preserve the original glass partition and create the adjacent office on its other side.
- surface(office,'tile',4.15,7.2,-5.0,.008,-18.0);
- desk(-5.0,-17.9,1.42,4.65);
- for(const z of [-16.5,-18.0,-19.5]){chair(-6.14,z,Math.PI/2,workstation(-5.28,z,-Math.PI/2));chair(-3.87,z,-Math.PI/2,workstation(-4.72,z,Math.PI/2))}
- // Rear wall of original office, with side passages retained.
- partition(-4.65,-21.55,4.0,.14,white,2.72);
+ partition(7.30,-10.43,3.30,.15,officeGray,2.65);box(office,warm,3.24,.025,.045,7.30,2.60,-10.34);dispenser(5.75,-10.70,Math.PI);
+ // Adjacent office is on the right of the old one, not on the opposite side of the hall.
+ // Dark office flooring, wooden display counter at front and a narrow entry beside it.
+ box(office,officeGray,5.70,.014,8.1,5.77,.008,-17.7);
+ box(office,oak,2.70,.075,.66,6.12,1.17,-13.72);
+ box(office,officeGray,2.60,1.12,.54,6.12,.56,-13.72);
+ for(const x of [4.82,6.1,7.42])box(office,oak,.05,1.10,.60,x,.56,-13.72);
+ for(const [x,y] of [[5.1,.32],[5.9,.58],[6.8,.83]])box(office,oak,.56,.045,.24,x,y,-13.34);
+ coll(6.12,-13.72,2.70,.66);
+ box(office,beige,.48,.36,.40,6.7,1.40,-13.72);box(office,screen,.35,.24,.025,6.7,1.42,-13.50);
+ desk(5.05,-17.65,1.40,4.8);
+ box(office,officeGray,.045,.30,4.66,5.05,.94,-17.65);
+ for(const z of [-16.15,-17.65,-19.15]){
+  chair(3.94,z,Math.PI/2,workstation(4.77,z,-Math.PI/2));
+  chair(6.17,z,-Math.PI/2,workstation(5.33,z,Math.PI/2));
+ }
+ // Original office ends at the white wall; circulation remains open around both ends.
+ partition(-.05,-22.10,4.35,.16,white,2.72);
+ // Physical wall ends the study strip and hides the office from the lounge except its entrance.
+ partition(8.15,-12.72,1.60,.15,white,2.72);
+ // Slim black structural poles between the library office and the window aisle.
+ for(const z of [-14.55,-20.80]){box(office,black,.07,2.72,.07,7.53,1.36,z);coll(7.53,z,.07,.07)}
+ partition(-2.72,-18.25,.14,7.15,white,2.72);
  // Library along the outer edge of the adjacent workspace.
  for(const z of [-16.25,-18.35,-20.45]){
   box(office,oak,.48,2.28,1.86,8.52,1.14,z);
@@ -248,6 +272,12 @@ export function makeAcademy(scene){
  // Extra library workstation; open approach from the shared circulation aisle.
  desk(5.8,-21.5,1.55,.70);chair(5.8,-20.62,Math.PI,workstation(5.8,-21.5,Math.PI));
  // Window-side workstations and the plant-lined path behind both offices.
+ for(const z of [-15.6,-18.0,-20.4]){
+  box(office,windowBlue,.045,2.43,2.30,8.985,1.34,z);
+  box(office,blind,.045,1.85,2.26,8.94,1.63,z);
+  box(office,black,.055,2.5,.055,8.90,1.35,z-1.15);
+ }
+ // Separate the white-table room from the older office but retain both sides of the circulation loop.
  for(const z of [-23.6,-26.1,-28.6,-31.1,-33.6]){
   box(office,windowBlue,.06,2.42,2.32,8.98,1.35,z);box(office,blind,.045,1.95,2.27,8.92,1.63,z);
   for(const zz of [-1.17,1.17])box(office,black,.085,2.5,.045,8.87,1.35,z+zz);
