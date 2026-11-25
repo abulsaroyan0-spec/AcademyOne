@@ -63,7 +63,7 @@ export function makeAcademy(scene){
  const wingFloor=mesh(lobby,new T.PlaneGeometry(9.0,8),marble,-9.90,.002,14);wingFloor.rotation.x=-Math.PI/2;
  box(lobby,lobbyWall,.20,4.4,8,-14.50,2.2,14);box(lobby,lobbyWall,9.0,4.4,.20,-9.90,2.2,10);box(lobby,lobbyWall,9.0,4.4,.20,-9.90,2.2,18);box(lobby,anthracite,9.0,.15,8,-9.90,4.45,14);
  // Remove the original left boundary to join the lounge to the reception.
- function loungeSofa(x,z,face){const q=new T.Group();q.position.set(x,0,z);q.rotation.y=face;lobby.add(q);box(q,cream,2.45,.34,.75,0,.22,0);box(q,cream,2.45,.14,.80,0,.46,0);box(q,cream,2.45,.62,.16,0,.70,-.35);for(const dx of [-1.13,1.13])box(q,cream,.18,.38,.78,dx,.61,0);const rotated=Math.abs(Math.sin(face))>.5;coll(x,z,rotated?.80:2.45,rotated?2.45:.80);for(const dx of [-.65,0,.65]){const sx=x+Math.cos(face)*dx,sz=z-Math.sin(face)*dx;seats.push({kind:'lobby sofa',x:sx,z:sz,height:.53,yaw:face,approaches:[{x:sx+Math.sin(face)*.85,z:sz+Math.cos(face)*.85}]})}}
+ function loungeSofa(x,z,face){const q=new T.Group();q.position.set(x,0,z);q.rotation.y=face;lobby.add(q);box(q,cream,2.45,.34,.75,0,.22,0);box(q,cream,2.45,.14,.80,0,.46,0);box(q,cream,2.45,.62,.16,0,.70,-.35);for(const dx of [-1.13,1.13])box(q,cream,.18,.38,.78,dx,.61,0);const rotated=Math.abs(Math.sin(face))>.5;coll(x,z,rotated?.80:2.45,rotated?2.45:.80);for(const dx of [-.65,0,.65]){const fx=Math.sin(face),fz=Math.cos(face),sx=x+Math.cos(face)*dx+fx*.24,sz=z-Math.sin(face)*dx+fz*.24;seats.push({kind:'lobby sofa',x:sx,z:sz,height:.53,yaw:face,approaches:[{x:sx+fx*.70,z:sz+fz*.70}]})}}
  loungeSofa(-13.2,14,Math.PI/2);loungeSofa(-10.5,11.0,0);loungeSofa(-10.5,17.0,Math.PI);loungeSofa(-7.8,14,-Math.PI/2);
  box(lobby,marble,.95,.07,.95,-10.5,.66,14);for(const dx of [-.38,.38])for(const dz of [-.38,.38])box(lobby,steel,.045,.63,.045,-10.5+dx,.315,14+dz);
  const chessLight=mat(0xd9c4a0),chessDark=mat(0x41352a);for(let i=0;i<8;i++)for(let j=0;j<8;j++)box(lobby,(i+j)%2?chessDark:chessLight,.085,.012,.085,-10.5+(i-3.5)*.085,.702,14+(j-3.5)*.085);
@@ -139,7 +139,7 @@ export function makeAcademy(scene){
   leaves.instanceMatrix.needsUpdate=true;g.add(leaves);
  }
  // Seat anchors follow the exact sofa curve, facing away from its planted center.
- for(let i=1;i<=10;i++){let t=.07+i*.078,p=spine.getPointAt(t),d=spine.getTangentAt(t);for(let side of [-1,1]){let nx=-d.z*side,nz=d.x*side;seats.push({kind:'sofa',x:p.x+nx*.76,z:p.z+nz*.76,height:.57,yaw:Math.atan2(nx,nz),approaches:[{x:p.x+nx*1.40,z:p.z+nz*1.40},{x:p.x+nx*1.60,z:p.z+nz*1.60}]})}}
+ for(let i=1;i<=10;i++){let t=.07+i*.078,p=spine.getPointAt(t),d=spine.getTangentAt(t);for(let side of [-1,1]){let nx=-d.z*side,nz=d.x*side;seats.push({kind:'sofa',x:p.x+nx*.82,z:p.z+nz*.82,height:.57,yaw:Math.atan2(nx,nz),approaches:[{x:p.x+nx*1.40,z:p.z+nz*1.40},{x:p.x+nx*1.60,z:p.z+nz*1.60}]})}}
  // Local circular collision samples preserve the open walkways on both sides.
  for(let i=0;i<=42;i++){let p=spine.getPointAt(i/42),edge=Math.min(i,42-i);colliders.push({x:p.x,z:p.z,r:Math.min(.86,.66+edge*.08)})}
  const study=new T.Group();study.position.x=1.35;g.add(study);
@@ -342,7 +342,7 @@ export function makeAcademy(scene){
   box(office,olive,.13,.68,2.18,-8.77,.77,z);box(office,acoustic,.12,1.15,2.18,-8.79,1.68,z);
   for(const zz of [-1.10,1.10]){box(office,olive,1.13,2.15,.11,-8.28,1.17,z+zz);box(office,acoustic,.86,1.18,.055,-8.19,1.67,z+zz)}
   box(office,olive,1.10,.12,2.28,-8.28,2.27,z);coll(-8.30,z,1.12,2.28);
-  for(const zz of [-.55,.55])seats.push({kind:'alcove sofa',x:-8.13,z:z+zz,height:.50,yaw:Math.PI/2,approaches:[{x:-7.23,z:z+zz}]});
+  for(const zz of [-.55,.55])seats.push({kind:'alcove sofa',x:-7.99,z:z+zz,height:.50,yaw:Math.PI/2,approaches:[{x:-7.23,z:z+zz}]});
  }
  // Green geometric divider at the return passage, with clear route back to the first pillar.
  partition(-3.65,-23.05,.22,1.6,white,2.72);
