@@ -46,42 +46,40 @@ export function makeAcademy(scene){
  const marbleMap=new T.CanvasTexture(marbleCanvas);marbleMap.colorSpace=T.SRGBColorSpace;marbleMap.wrapS=marbleMap.wrapT=T.RepeatWrapping;marbleMap.repeat.set(2.7,2);marbleMap.anisotropy=8;const marble=new T.MeshStandardMaterial({map:marbleMap,roughness:.24,metalness:.14,envMapIntensity:.8});
  const lf=mesh(lobby,new T.PlaneGeometry(10.8,8),marble,0,.002,14);lf.rotation.x=-Math.PI/2;
  const lobbyWall=mat(0x454541,.75),mirror=mat(0x737873,.16,.80),gold=mat(0x9d8748,.23,.72),matBlack=mat(0x181918,.95);
- box(lobby,lobbyWall,.20,4.4,8,-5.5,2.2,14);box(lobby,lobbyWall,.20,4.4,8,5.5,2.2,14);box(lobby,anthracite,10.9,.15,8,0,4.45,14);
- // Reception stands in front of the entry, with the corridor opening beside it.
- for(const [x,w] of [[-3.65,3.65],[3.63,3.65]])box(lobby,lobbyWall,w,4.4,.20,x,2.2,10);
- for(let x of [-4.28,4.28])box(lobby,lobbyWall,2.65,4.4,.20,x,2.2,18);
- box(lobby,marble,4.35,1.04,.82,-2.72,.52,11.25);box(lobby,goldTrim,4.43,.06,.88,-2.72,1.07,11.25);box(lobby,black,4.24,.70,.03,-2.72,.55,11.68);
- box(lobby,warm,4.25,.018,.022,-2.72,1.00,11.70);for(const x of [-4.80,-2.72,-.64])box(lobby,goldTrim,.025,.91,.026,x,.55,11.70);coll(-2.72,11.25,4.43,.88);
- box(lobby,steel,.40,.28,.07,-2.90,1.25,11.10);box(lobby,steel,.06,.12,.12,-2.90,1.13,11.10);
- for(const x of [-3.50,-3.30,-3.11])cylinder(lobby,cream,.055,.16,x,1.17,11.30);
- // Tall gold reflective strip and dark panels behind the counter, not a freestanding sign.
- box(lobby,gold,1.05,4.10,.075,-2.78,2.20,10.15);
- for(let i=0;i<12;i++)box(lobby,mirror,.92,.016,.025,-2.78,.36+i*.31,10.20);
- for(const x of [-4.85,-.60])box(lobby,warm,.025,3.98,.03,x,2.16,10.22);
- // The organic luminous ceiling contours flow across the reception and waiting area.
- for(let k=0;k<32;k++){let pts=[];for(let i=0;i<=48;i++){let z=10.12+i*7.72/48,x=-5.14+k*.331+.19*Math.sin(z*1.7+k*.30)+.12*Math.sin(z*3.0+k*.15);pts.push(new T.Vector3(x,4.30,z))}mesh(lobby,new T.TubeGeometry(new T.CatmullRomCurve3(pts),72,.012,5,false),warm)}
- for(const x of [-5.34,5.34])for(const z of [10.35,13.9,17.65])box(lobby,warm,.022,4.12,.025,x,2.11,z);
- // Waiting nook at the left side, facing the reception; separate seating rather than a second desk.
- box(lobby,cream,2.35,.14,.75,-4.18,.45,14.6);box(lobby,cream,2.35,.34,.65,-4.18,.22,14.65);box(lobby,cream,2.35,.61,.16,-4.18,.69,14.94);
- for(const x of [-5.23,-3.13])box(lobby,cream,.18,.37,.75,x,.60,14.6);coll(-4.18,14.6,2.35,.75);
- for(const x of [-4.77,-4.18,-3.60])seats.push({kind:'lobby sofa',x,z:14.42,height:.52,yaw:Math.PI,approaches:[{x,z:13.80},{x:-2.75,z:14.5}]});
- box(lobby,marble,1.22,.40,.58,-4.03,.20,13.30);coll(-4.03,13.30,1.22,.58);
- for(const z of [16.30,12.10]){cylinder(lobby,steel,.24,.42,-5.02,.21,z);for(let i=0;i<13;i++){const leaf=mesh(lobby,new T.SphereGeometry(1,7,5),mat(0x53694a,.9),-5.02+(rng()-.5)*.42,.50+rng()*.8,z+(rng()-.5)*.42);leaf.scale.set(.055,.24,.04);leaf.rotation.z=(rng()-.5)*1.7}coll(-5.02,z,.48,.48)}
- // Right-hand elevator and stairwell are visible beside the reception.
- const elevator=mat(0x777a76,.24,.65);
- box(lobby,mirror,.09,3.35,2.12,5.28,1.68,12.2);box(lobby,elevator,.055,2.45,1.65,5.20,1.23,12.20);box(lobby,black,.07,2.45,.022,5.16,1.23,12.2);
- for(const z of [11.36,13.04])box(lobby,goldTrim,.075,2.60,.055,5.13,1.30,z);box(lobby,goldTrim,.075,.065,1.74,5.13,2.58,12.2);box(lobby,steel,.065,.21,.10,5.12,1.10,13.22);
- // Upper stairs are scenery in the entrance video, separate from the academy's playable internal stair.
- for(let i=0;i<10;i++){const h=(i+1)*.20;box(lobby,stone,2.05,h,.28,3.95,h/2,16.55-i*.28);box(lobby,warm,2.02,.012,.025,3.95,h+.004,16.67-i*.28)}
- for(const x of [2.89,5.03]){for(let i=0;i<5;i++)box(lobby,steel,.038,.87,.038,x,.45+i*.42,16.55-i*.56);const p=new T.Vector3(x,.90,16.65),q=new T.Vector3(x,2.94,13.86),d=q.clone().sub(p);const rail=cylinder(lobby,steel,.032,d.length(),0,0,0);rail.position.copy(p).add(q).multiplyScalar(.5);rail.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),d.normalize())}
- coll(3.95,15.28,2.15,2.95);
+ box(lobby,lobbyWall,.20,4.4,8,5.5,2.2,14);box(lobby,anthracite,10.9,.15,8,0,4.45,14);
+ // Entrance axis: stairs -> reception straight ahead; lounge extends left, academy corridor exits right.
+ for(const x of [-4.28,4.28])box(lobby,lobbyWall,2.65,4.4,.20,x,2.2,18);
+ box(lobby,lobbyWall,8.20,4.4,.20,-1.40,2.2,10);
+ box(lobby,lobbyWall,1.0,4.4,.20,5.0,2.2,10);
+ const counter=marble.clone();counter.color.setHex(0x494947);
+ box(lobby,counter,3.25,1.04,.83,0,.52,11.1);box(lobby,goldTrim,3.32,.035,.88,0,1.055,11.1);
+ box(lobby,goldTrim,3.25,.025,.025,0,.07,11.53);
+ for(const x of [-1.61,1.61])box(lobby,goldTrim,.025,.98,.025,x,.55,11.53);
+ coll(0,11.1,3.32,.88);
+ box(lobby,steel,.43,.30,.05,-.40,1.22,11.0);box(lobby,steel,.05,.14,.12,-.40,1.10,11.0);
+ box(lobby,gold,1.05,4.15,.055,0,2.20,10.15);
+ for(const x of [-.54,.54])box(lobby,warm,.022,4.13,.025,x,2.20,10.20);
+ // Deep left waiting area, with sofas and a chess table.
+ const wingFloor=mesh(lobby,new T.PlaneGeometry(5.65,8),marble,-8.20,.003,14);wingFloor.rotation.x=-Math.PI/2;
+ box(lobby,lobbyWall,.20,4.4,8,-11.02,2.2,14);box(lobby,lobbyWall,5.65,4.4,.20,-8.20,2.2,10);box(lobby,lobbyWall,5.65,4.4,.20,-8.20,2.2,18);box(lobby,anthracite,5.65,.15,8,-8.20,4.45,14);
+ // Remove the original left boundary to join the lounge to the reception.
+ function loungeSofa(x,z,face){const q=new T.Group();q.position.set(x,0,z);q.rotation.y=face;lobby.add(q);box(q,cream,2.45,.34,.75,0,.22,0);box(q,cream,2.45,.14,.80,0,.46,0);box(q,cream,2.45,.62,.16,0,.70,-.35);for(const dx of [-1.13,1.13])box(q,cream,.18,.38,.78,dx,.61,0);const rotated=Math.abs(Math.sin(face))>.5;coll(x,z,rotated?.80:2.45,rotated?2.45:.80);for(const dx of [-.65,0,.65]){const sx=x+Math.cos(face)*dx,sz=z-Math.sin(face)*dx;seats.push({kind:'lobby sofa',x:sx,z:sz,height:.53,yaw:face,approaches:[{x:sx+Math.sin(face)*.85,z:sz+Math.cos(face)*.85}]})}}
+ loungeSofa(-9.95,14.0,Math.PI/2);loungeSofa(-7.25,11.0,0);loungeSofa(-7.25,17.0,Math.PI);
+ box(lobby,marble,.95,.07,.95,-8.15,.66,14);for(const dx of [-.38,.38])for(const dz of [-.38,.38])box(lobby,steel,.045,.63,.045,-8.15+dx,.315,14+dz);
+ const chessLight=mat(0xd9c4a0),chessDark=mat(0x41352a);for(let i=0;i<8;i++)for(let j=0;j<8;j++)box(lobby,(i+j)%2?chessDark:chessLight,.085,.012,.085,-8.15+(i-3.5)*.085,.702,14+(j-3.5)*.085);
+ for(let i=0;i<8;i++)for(const j of [0,1,6,7]){const m=j<2?chessLight:chessDark;const x=-8.15+(i-3.5)*.085,z=14+(j-3.5)*.085;cylinder(lobby,m,.025,.018,x,.72,z);cylinder(lobby,m,.013,j===1||j===6?.045:.070,x,.751,z,.023)}
+ coll(-8.15,14,.95,.95);
+ for(let k=0;k<48;k++){let pts=[];for(let i=0;i<=32;i++){let z=10.12+i*7.72/32,x=-10.8+k*.337+.19*Math.sin(z*1.7+k*.30);pts.push(new T.Vector3(x,4.30,z))}mesh(lobby,new T.TubeGeometry(new T.CatmullRomCurve3(pts),48,.012,5,false),warm)}
+ const elevator=mat(0x777a76,.24,.65);box(lobby,elevator,.055,2.45,1.65,5.20,1.23,14.9);box(lobby,black,.07,2.45,.022,5.16,1.23,14.9);
+ // Right exit turns into the academy corridor at the lobby boundary.
+ surface(lobby,'floor',5.1,2.9,2.55,.003,9.15);box(lobby,lobbyWall,5.2,4.4,.18,2.55,2.2,7.75);box(lobby,anthracite,5.2,.15,2.9,2.55,4.45,9.15);
  const entryMat=box(lobby,matBlack,2.5,.014,1.5,0,.012,17.1);
  for(const z of [12,16]){const l=new T.PointLight(0xfff1dc,13,12,1.5);l.position.set(0,3.95,z);lobby.add(l)}
  const outdoorLight=new T.PointLight(0xffdfb2,25,18,1.55);outdoorLight.position.set(0,3.7,26);plaza.add(outdoorLight);
 
  // Entrance reconstructed from the supplied front-facing photograph. Dimensions are estimates.
  surface(g,'floor',3.5,10,0,0,5);
- wall(g,concrete,.25,4.9,10,-1.88,2.45,5);wall(g,concrete,.25,4.9,6.55,1.88,2.45,6.725);wall(g,concrete,3.7,.22,10,0,5,5);surface(g,'floor',7.25,3.10,5.40,.003,1.80);wall(g,concrete,7.25,.22,3.1,5.40,5,1.80);wall(g,concrete,7.25,4.9,.22,5.40,2.45,3.46);wall(g,concrete,7.25,4.9,.22,5.40,2.45,.15);wall(g,concrete,.22,4.9,3.3,9.10,2.45,1.80);
+ wall(g,concrete,.25,4.9,5.9,-1.88,2.45,5.1);wall(g,concrete,.25,4.9,4.10,1.88,2.45,5.50);wall(g,concrete,3.7,.22,10,0,5,5);surface(g,'floor',7.25,3.10,5.40,.003,1.80);wall(g,concrete,7.25,.22,3.1,5.40,5,1.80);wall(g,concrete,7.25,4.9,.22,5.40,2.45,3.46);wall(g,concrete,7.25,4.9,.22,5.40,2.45,.15);wall(g,concrete,.22,4.9,3.3,9.10,2.45,1.80);
  wall(g,concrete,2.72,4.9,.28,-1.46,2.45,0);wall(g,concrete,1.72,4.9,.28,1.96,2.45,0);wall(g,concrete,1.2,2.45,.28,.5,3.675,0);
  wall(g,concrete,.46,4.9,.32,1.43,2.45,.21);box(g,warm,.018,4.78,.019,1.68,2.39,.382);
  box(g,black,5.7,.075,.07,0,.04,.19);
@@ -96,7 +94,7 @@ export function makeAcademy(scene){
  const duct=cylinder(g,black,.19,8.0,0,4.5,5);duct.rotation.x=Math.PI/2;
  // One dark access door in the first corridor, and the WC doors along the perpendicular corridor.
  function corridorLeaf(x,z,angle,sign,isFrost=false){const d=new T.Group();d.position.set(x,0,z);d.rotation.y=angle;g.add(d);box(d,frame,1.04,2.36,.08,0,1.18,0);box(d,isFrost?frost:mat(0x273c3a,.35,.20),.90,2.20,.042,0,1.16,.049);box(d,steel,.035,.39,.09,-.33,1.06,.106);box(d,black,.22,.06,.09,.22,2.28,.10);if(sign)label(d,sign,.74,1.62,.07,.25,.16,'#303330')}
- corridorLeaf(-1.73,6.25,Math.PI/2,'');
+ surface(g,'floor',5.6,2.7,-4.6,.003,1.80);wall(g,concrete,5.6,4.9,.22,-4.6,2.45,.35);wall(g,concrete,5.6,4.9,.22,-4.6,2.45,3.25);wall(g,concrete,.22,4.9,2.9,-7.4,2.45,1.8);wall(g,concrete,5.6,.22,2.9,-4.6,5,1.8);wall(g,concrete,.25,4.9,1.8,-1.88,2.45,9.1);
  corridorLeaf(4.15,3.32,Math.PI,'WC');corridorLeaf(6.00,3.32,Math.PI,'WC');
  // Glazed blue end of the side corridor.
  box(g,frame,.07,2.45,2.44,8.96,1.23,1.8);
@@ -114,6 +112,7 @@ export function makeAcademy(scene){
  surface(g,'tile',18.0,46.0,0,0,-23.0);wall(g,white,.22,5.6,16.0,-9.12,2.8,-8.0);wall(g,dark,.22,5.6,16.0,9.12,2.8,-8.0);wall(g,white,18.2,.2,16.2,0,5.65,-8.0);wall(g,white,6.18,5.6,.28,-5.91,2.8,0);wall(g,white,6.18,5.6,.28,5.91,2.8,0);wall(g,white,5.64,.70,.28,0,5.25,0);
  for(let z of [-2,-5,-8,-11,-14]){box(g,white,18.0,.38,.23,0,5.25,z);box(g,black,12.6,.11,.17,.2,5.02,z);box(g,warm,11.4,.042,.09,.2,4.82,z);for(let x of [-3.1,3.4]){box(g,black,.035,.48,.035,x,5.12,z)}}
  for(let x of [-3.1,2.6]){let duct=cylinder(g,black,.24,12.5,x,5.0,-6.8);duct.rotation.x=Math.PI/2;for(let z of [-3,-8,-12]){let elbow=cylinder(g,black,.25,2.2,x,5.0,z);elbow.rotation.z=Math.PI/2}}
+ box(g,white,.18,2.95,7.1,-6.315,1.475,-5.30);coll(-6.315,-5.30,.18,7.1);box(g,black,.025,.10,7.1,-6.211,.05,-5.30);
  // Rear mezzanine and the left-hand stairs.
  box(g,black,17.95,.22,7.2,0,2.85,-12.2);box(g,white,17.95,.16,.25,0,2.66,-8.61);
  for(let i=0;i<12;i++){let x=-8.85+i*(17.7/11);if(i!==2)box(g,frame,.045,.98,.045,x,3.45,-8.52);if(i<11&&i!==1&&i!==2)box(g,glass,17.7/11-.045,.87,.035,x+17.7/22,3.4,-8.52)}box(g,frame,1.65,.065,.06,-8.03,3.97,-8.52);box(g,frame,12.9,.065,.06,2.42,3.97,-8.52);
@@ -498,7 +497,7 @@ export function makeAcademy(scene){
 }
 export function doorNearby(state,x,z){return Math.abs(x-.5)<1.6&&Math.abs(z)<1.7}
 export function advanceDoor(state,dt){state.angle=T.MathUtils.damp(state.angle,state.open?Math.PI*.53:0,7,dt);state.door.rotation.y=-state.angle;state.plazaAngle=T.MathUtils.damp(state.plazaAngle,state.plazaOpen?Math.PI*.53:0,7,dt);state.plazaDoor.rotation.y=-state.plazaAngle}
-export function academyWalkable(state,x,z,r=.27){const stair=Math.abs(x+5.45)<.775-r&&z>=-8.65&&z<=-1.95;if(state.level===1){if(stair||Math.abs(x+5.45)<.775-r&&z>=-8.98&&z< -8.65)return true;if(z> -8.65+r||z< -15.8+r||Math.abs(x)>8.86-r)return false;return !state.upperColliders.some(c=>Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r);}if(stair)return true;if(Math.abs(x+5.45)<.775+r&&z>=-8.65&&z<=-1.99)return false;if(z>34.65-r||z< -45.45+r)return false;const ax=Math.abs(x);if(Math.abs(z-23)<.24+r&&(x<r||x>1-r||state.plazaAngle<1.2))return false;if(Math.abs(z-18)<.24+r&&ax>1.20-r)return false;if(z>23.24){if(ax>10.7-r)return false}else if(z>17.76){if(ax>2.8-r)return false}else if(z>10.24){if(ax>5.35-r)return false}else if(z>.22){const sideHall=x>=1.45&&x<8.96-r&&z>.26+r&&z<3.35-r;if(ax>1.75-r&&!sideHall)return false}else if(ax>8.97-r)return false;if(Math.abs(z-10)<.24+r&&ax>1.75-r)return false;if(Math.abs(z)<.29+r){if(x<-.1+r||x>1.1-r||state.angle<1.2)return false}return !state.colliders.some(c=>c.r!==undefined?Math.hypot(x-c.x,z-c.z)<c.r+r:Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r)}
+export function academyWalkable(state,x,z,r=.27){const stair=Math.abs(x+5.45)<.775-r&&z>=-8.65&&z<=-1.95;if(state.level===1){if(stair||Math.abs(x+5.45)<.775-r&&z>=-8.98&&z< -8.65)return true;if(z> -8.65+r||z< -15.8+r||Math.abs(x)>8.86-r)return false;return !state.upperColliders.some(c=>Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r);}if(stair)return true;if(Math.abs(x+5.45)<.775+r&&z>=-8.65&&z<=-1.99)return false;if(z>34.65-r||z< -45.45+r)return false;const ax=Math.abs(x);if(Math.abs(z-23)<.24+r&&(x<r||x>1-r||state.plazaAngle<1.2))return false;if(Math.abs(z-18)<.24+r&&ax>1.20-r)return false;if(z>23.24){if(ax>10.7-r)return false}else if(z>17.76){if(ax>2.8-r)return false}else if(z>10.24){if(x< -10.92+r||x>5.35-r)return false}else if(z>.22){const sideHall=x>=1.45&&x<8.96-r&&z>.26+r&&z<3.35-r;const leftHall=x<=-1.45&&x> -7.29+r&&z>.46+r&&z<3.14-r;const lobbyLink=x>=0&&x<5.05-r&&z>7.86+r;if(ax>1.75-r&&!sideHall&&!leftHall&&!lobbyLink)return false}else if(ax>8.97-r)return false;if(Math.abs(z-10)<.24+r&&(x<2.70+r||x>4.50-r))return false;if(Math.abs(z)<.29+r){if(x<-.1+r||x>1.1-r||state.angle<1.2)return false}return !state.colliders.some(c=>c.r!==undefined?Math.hypot(x-c.x,z-c.z)<c.r+r:Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r)}
 
 // Choose reachable seat approaches only; never walk through a different obstacle to reach one.
 export function nearestAcademySeat(state,x,z,maxDistance=1.55){let best=null;for(const seat of (state.level===1?state.upperSeats:state.seats)||[]){for(const a of seat.approaches){let distance=Math.hypot(x-a.x,z-a.z);if(distance>maxDistance||best&&distance>=best.distance||!academyWalkable(state,a.x,a.z))continue;let clear=true;for(let i=1;i<=12;i++){let t=i/12;if(!academyWalkable(state,x+(a.x-x)*t,z+(a.z-z)*t)){clear=false;break}}if(clear)best={seat,approach:a,distance}}}return best}
