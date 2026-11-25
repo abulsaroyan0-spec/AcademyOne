@@ -342,6 +342,44 @@ export function makeAcademy(scene){
  }
  for(const z of [-24,-30,-35,-41]){const l=new T.PointLight(0xfff2e3,9,10,1.5);l.position.set(0,2.64,z);office.add(l)}
 
+ // Additional details visible in the walkthrough: floor finishes, desktop accessories, ceiling services and the return corridor.
+ const rubber=mat(0x363738,.98),paper=mat(0xe7e4dc,.92),magenta=mat(0xb52061,.7),silver=mat(0x9b9d9d,.42,.45);
+ box(office,rubber,.65,.012,.72,5.75,.009,-10.15);
+ // The library office has a black perimeter frame and low-profile gray carpet.
+ for(const x of [3.0,8.60])box(office,black,.028,.016,8.10,x,.017,-17.7);
+ for(const z of [-13.65,-21.75])box(office,black,5.60,.016,.028,5.8,.017,z);
+ for(const z of [-16.25,-18.35,-20.45])for(let k=0;k<3;k++)box(office,paper,.25,.035,.28,8.10,.59+k*.037,z+.48);
+ // Laptop, notebooks, mouse pads and small magenta reserved desk signs.
+ function laptop(x,z,angle){const q=new T.Group();q.position.set(x,.787,z);q.rotation.y=angle;office.add(q);box(q,silver,.32,.018,.23,0,.012,0);const lid=box(q,silver,.32,.20,.016,0,.105,-.105);lid.rotation.x=-.18;const scr=box(q,screen,.29,.17,.006,0,.105,-.094);scr.rotation.x=-.18;box(q,black,.27,.006,.13,0,.024,.018)}
+ laptop(5.47,-19.12,Math.PI/2);laptop(4.57,-16.12,-Math.PI/2);
+ for(const z of [-24.5,-27.4]){for(const x of [-1.4,1.25]){box(office,paper,.22,.012,.30,x,.79,z+.06);const tag=box(office,magenta,.22,.07,.05,x+.38,.825,z-.18);tag.rotation.x=.24}}
+ for(const z of [-30.6,-33.35])for(const x of [-1.2,1.4]){box(office,paper,.21,.012,.29,x+.24,.79,z+.27);cylinder(office,deskWhite,.035,.08,x-.20,.82,z+.28)}
+ // White drawer cabinet and plants beside the rear window; green window pier leads to classroom.
+ box(office,deskWhite,.60,.67,.48,8.25,.335,-23.45);
+ for(const y of [.19,.39,.59]){box(office,silver,.14,.025,.035,7.94,y,-23.45);box(office,officeGray,.012,.012,.44,7.94,y-.09,-23.45)}
+ coll(8.25,-23.45,.60,.48);
+ // Classroom approach: standalone teacher workstation and yellow doorway reveal.
+ desk(7.3,-35.0,1.20,.65);chair(7.3,-34.15,Math.PI,workstation(7.3,-35.0,Math.PI));
+ box(office,yellow,.12,2.68,1.05,8.86,1.34,-36.95);
+ box(office,black,.035,2.34,.065,7.77,1.17,-37.05);
+ // A narrow return passage has a coat rack, closed utility door and cable trays.
+ for(const x of [-8.55,-7.92])box(office,black,.038,1.88,.038,x,.94,-22.1);
+ box(office,black,.72,.038,.038,-8.24,1.88,-22.1);
+ for(let k=0;k<3;k++){box(office,black,.025,.18,.06,-8.46+k*.22,1.73,-22.08)}
+ coll(-8.24,-22.1,.72,.15);
+ const utility=new T.Group();utility.position.set(-8.96,0,-16.0);utility.rotation.y=Math.PI/2;office.add(utility);
+ box(utility,deskWhite,.90,2.10,.05,0,1.05,0);box(utility,black,.12,.035,.07,.31,1.03,.04);label(utility,'',0,2.16,.03,.22,.08,'#b7a13c');
+ // Visible cable-tray supports and recessed ceiling spots; keep the walking floor unobstructed.
+ for(const z of [-15,-18,-21,-24,-27,-30,-33,-35]){
+  box(office,black,.48,.055,.07,-7.60,2.69,z);
+  for(const x of [-7.80,-7.40])box(office,black,.02,.16,.02,x,2.77,z);
+  cylinder(office,warm,.105,.021,4.1,2.79,z);
+ }
+ for(const z of [-16.9,-20.0,-26.0,-31.8]){box(office,black,.055,2.69,.055,-3.15,1.345,z);coll(-3.15,z,.055,.055)}
+ // Extra classroom row, wall-mounted light strips, and teaching screen details.
+ for(const x of [-5.8,-1.8,2.2]){box(office,warm,2.2,.035,.075,x,2.57,-42.85)}
+ // Keep front row on classroom side of entrance partition instead of blocking the hallway.
+ // The first two rows remain the usable classroom rows; no additional collision across the entrance.
  // Translate interaction and collision anchors by the same offset as the office geometry.
  for(const c of colliders.slice(officeColliderStart))c.z+=office.position.z;
  for(const seat of seats.slice(officeSeatStart)){seat.z+=office.position.z;for(const pt of seat.approaches)pt.z+=office.position.z}
