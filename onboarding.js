@@ -92,7 +92,7 @@ function toggleAcademyDoor(){if(seatAction||airborne||lightGesture||doorGesture|
  if(academy[key]&&Math.abs(pos.z-z0)<.55)return;
  if(!motion){academy[key]=!academy[key];return}
  const localHandle=new THREE.Vector3(outer?-.83:-1.03,outer?1.15:1.04,.11*side),handle=door.localToWorld(localHandle.clone());
- const candidates=academy[key]?Array.from({length:16},(_,i)=>{let a=i*Math.PI/8;return new THREE.Vector3(handle.x+.55*Math.cos(a),0,handle.z+.55*Math.sin(a))}):[new THREE.Vector3(outer?.30:.13,0,z0+side*.66),new THREE.Vector3(outer?.55:.36,0,z0+side*.66)];let goal=null,best=Infinity;
+ const candidates=academy[key]?Array.from({length:16},(_,i)=>{let a=i*Math.PI/8;return new THREE.Vector3(handle.x+.55*Math.cos(a),0,handle.z+.55*Math.sin(a))}):[new THREE.Vector3(outer?.30:3.98,0,z0+side*.66),new THREE.Vector3(outer?.55:4.21,0,z0+side*.66)];let goal=null,best=Infinity;
  for(let pt of candidates){if(Math.sign(pt.z-z0)!==side||!academyWalkable(academy,pt.x,pt.z))continue;const d=Math.hypot(pt.x-pos.x,pt.z-pos.z);if(d<best){goal=pt;best=d}}
  if(!goal)return;doorGesture={time:0,approach:0,goal,side,fired:false,door,key,localHandle};moveX=moveZ=moveSpeed=0;
 }
