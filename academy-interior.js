@@ -81,7 +81,7 @@ const approvedLayout=(function(){
  S('Picsart Academy',830,2.04,672,M(210),1.22,-Math.PI/2,'charcoal');B(830,565,831,779,1.29,.025,'warm');
  for(let z of [595,645,695,745])light(X(704),Z(z),5.1,'rect');
  // Main workspace + extended left wing, traced from visible outline. No detached floor labels.
- R(492,203,937,558,'Workspace / offices');R(44,218,215,458,'White classroom');R(215,214,382,458,'Wood classroom');R(44,458,492,558,'Left corridor');R(382,203,492,448,'Workspace connection');R(215,448,382,458,'Glass classroom edge');
+ R(492,203,937,558,'Workspace / offices');R(44,218,215,458,'White classroom');R(215,214,382,458,'Wood classroom');R(44,458,492,558,'Left corridor');R(382,203,492,458,'Workspace connection');R(215,448,382,458,'Glass classroom edge');
  // Exterior walls (windows on rear line); front left wall from x34 to x574.
  W(44,218,44,558);W(44,218,215,218);W(215,214,382,214);W(382,214,382,203);W(382,203,937,203);
  W(937,203,937,558);W(833,558,937,558);W(34,558,574,558);
