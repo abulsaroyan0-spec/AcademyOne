@@ -50,15 +50,19 @@ const approvedLayout=(function(){
  R(682,790,726,956,'Entrance corridor','dark',3.4);W(682,790,682,956,3.4,'concrete');W(726,790,726,956,3.4,'concrete');W(682,956,726,956,3.4,'concrete');
  for(let z=815;z<950;z+=25){for(let x of [684,724]){B(x-1,z-2,x+1,z+2,.06,.07,'warm');light(X(x),Z(z),.3,'wall')}}
  R(574,558,833,790,'Main lounge','tile',5.6);W(574,558,574,790,5.6);W(833,558,833,790,5.6,'charcoal');W(574,790,690,790,5.6);W(718,790,833,790,5.6);door(X(704),Z(790),0,'Picsart Academy','glass');
- // Stair footprint from x577..615 and y615..771.
- for(let i=0;i<16;i++){let z=771-(i+.5)*9.75;B(577,z-4.875,615,z+4.875,(i+1)*.19-.08,.16,'black')}
- items.push({type:'stairrail',x:X(616),z:Z(771)});solids.push({x:X(596),z:Z(693),w:M(38),d:M(156)});
+ // Wider lower landing, original upper connection retained.
+ const stairFront=749,stairEnd=615,stairLeft=577,stairRight=623,step=(stairFront-stairEnd)/16;
+ B(576,749,648,788,.008,.016,'charcoal');
+ for(let i=0;i<16;i++){let z=stairFront-(i+.5)*step;B(stairLeft,z-step/2,stairRight,z+step/2,(i+1)*2.96/16-.08,.16,'black')}
+ items.push({type:'stairrail',x:X(stairRight+1),z:Z(stairFront),run:M(stairFront-stairEnd)});
+ solids.push({x:X((stairLeft+stairRight)/2),z:Z((stairFront+stairEnd)/2),w:M(stairRight-stairLeft),d:M(stairFront-stairEnd)});
  // Vintage technology and Ada behind stairs, visible in original video, not represented separately in plan.
  // G: restore open vintage computer display beneath the stairs, away from Ada's door.
  items.push({type:'vintage',x:X(598),z:Z(652),rot:Math.PI/2});solids.push({x:X(598),z:Z(652),w:.84,d:2.10});
  B(615,625,618,628,1.38,2.76,'black',true);
  door(X(575),Z(589),Math.PI/2,'Ada Lovelace');
- S('WHERE TO GO|CLASSROOMS',575,1.65,757,.70,.82,Math.PI/2);
+ items.push({type:'directory',x:X(576.6),y:1.62,z:Z(768)});
+ for(const [p,h] of [[746,1.85],[715,2.58],[684,3.25],[653,3.95],[622,4.60]])items.push({type:'stairSconce',x:X(577.5),y:h,z:Z(p)});
  // S-shaped sofa exactly follows the corrected picture.
  const points=[[700,615],[712,627],[715,642],[710,657],[702,678],[695,699],[694,719],[698,734],[708,747]].map(([x,z])=>[X(x),Z(z)]);
  items.push({type:'sofa',points});
@@ -132,8 +136,12 @@ const approvedLayout=(function(){
 
 })();
 
-export const STAIR_X=ACADEMY_DOOR_X+(596-704)/21.2,STAIR_TOP=(615-790)/21.2,STAIR_BOTTOM=(771-790)/21.2;
-const STAIR_HALF=19/21.2,UPPER_DX=STAIR_X+5.45,UPPER_DZ=STAIR_TOP+8.65;
+export const STAIR_X=ACADEMY_DOOR_X+(596-704)/21.2,STAIR_TOP=(615-790)/21.2,STAIR_BOTTOM=(749-790)/21.2;
+const STAIR_LEFT=STAIR_X-19/21.2,STAIR_RIGHT=STAIR_X+27/21.2;
+function stairRightAt(z){return STAIR_X+1.0+(STAIR_RIGHT-STAIR_X-1.0)*Math.max(0,Math.min(1,(z-STAIR_TOP)/1.0))}
+export function onAcademyStairs(x,z,r=0){return z>=STAIR_TOP-.40&&z<=STAIR_BOTTOM+.45&&x>=STAIR_LEFT+r&&x<=stairRightAt(z)-r}
+export function academyStairLevel(x,z,level){if(!onAcademyStairs(x,z,.12))return level;if(z<=STAIR_TOP+.12)return 1;if(z>=STAIR_BOTTOM-.08)return 0;return level}
+
 // Static scene batching: preserve transforms and materials; never batch moving doors,
 // interactive displays, transparent glass or independently switchable fixtures.
 function batchGround(root,materials,doors,extraMaterials){
@@ -216,7 +224,28 @@ for(const a of data.items){if(a.type==='floor'&&a.z>0||a.type==='door'&&a.z===0|
  if(a.type==='bags'){let g=group(x,z,rot);cube(0,.98,-.21,1.1,1.96,.055,'charcoal',g);for(let j=0;j<4;j++){cube(0,.12+j*.48,0,1.12,.045,.43,'charcoal',g);cube(.04,.32+j*.48,.025,.33,.34,.25,j%2?'black':'blue',g);cube(.04,.27+j*.48,.17,.25,.10,.07,'black',g)}}
  if(a.type==='window'){let g=group(x,z,rot);cube(0,1.5,0,w,2.9,.045,windowMaterial,g);for(let xx of [-w/2,w/2,0])cube(xx,1.5,.05,.045,2.9,.07,'black',g);cube(0,.13,.05,w,.06,.07,'black',g);cube(0,1.25,.07,w,.055,.065,'black',g);cube(0,1.9,.10,w-.08,1.95,.035,blindMaterial,g)}
  if(a.type==='plant'){let g=group(x,z);cylinder(0,.24,0,.20,.30,'black',g);for(let i=0;i<14;i++){let q=new T.Mesh(new T.SphereGeometry(1,7,5),materials.olive);q.position.set((rand()-.5)*.45,.65+rand()*.38,(rand()-.5)*.45);q.scale.set(.06,.23,.035);q.rotation.z=(rand()-.5)*2;g.add(q)}}
- if(a.type==='stairrail'){const p0=new T.Vector3(x,1,z),p1=new T.Vector3(x,3.95,z-6),v=p1.clone().sub(p0);let o=new T.Mesh(new T.CylinderGeometry(.027,.027,v.length(),12),materials.black);o.position.copy(p0).add(p1).multiplyScalar(.5);o.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),v.normalize());scene.add(o);for(let i=0;i<9;i++){let q=i/8;cube(x,.50+q*2.9,z-q*6,.045,1,.045,'black');if(i<8)cube(x,.48+q*2.9,z-q*6-.36,.03,.76,.72,'glass')}}
+ if(a.type==='stairrail'){
+  const run=a.run||6.3,rise=2.96,n=10;
+  const p0=new T.Vector3(x,1,z),p1=new T.Vector3(x,1+rise,z-run),v=p1.clone().sub(p0);
+  let o=new T.Mesh(new T.CylinderGeometry(.035,.035,v.length(),12),materials.black);o.position.copy(p0).add(p1).multiplyScalar(.5);o.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),v.normalize());scene.add(o);
+  for(let i=0;i<=n;i++){let t=i/n;cube(x,.50+t*rise,z-t*run,.055,1,.055,'black');if(i<n){let q=(i+.5)/n;let pane=cube(x,.50+q*rise,z-q*run,.035,.76,run/n,'glass');pane.rotation.x=Math.atan2(rise,run)}}
+ }
+ if(a.type==='directory'){
+  const g=group(x,z,Math.PI/2);cube(0,y,0,.78,1.04,.055,'black',g);
+  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=700;const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#b82e60';ctx.fillRect(0,0,512,700);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 51px Arial';ctx.fillText('WHERE TO GO',256,80);
+  const rows=[['STUDENT ZONE','1 FLOOR'],['CLASSROOMS','1 FLOOR'],['ADMINISTRATION','2 FLOOR'],['FOR INTERVIEWS','2 FLOOR'],['EDUCATION DEPT.','2 FLOOR'],['MEETING ROOMS','2 FLOOR'],['CLASSROOMS','2 FLOOR']];
+  rows.forEach(([l,r],i)=>{const py=156+i*77;if(i===2){ctx.strokeStyle='#ffffffa0';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(24,py-40);ctx.lineTo(488,py-40);ctx.stroke()}ctx.fillStyle='#fff';ctx.font='bold 22px Arial';ctx.textAlign='left';ctx.fillText('◆ '+l,25,py);ctx.textAlign='right';ctx.font='21px Arial';ctx.fillText(r,484,py)});
+  const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;const panel=new T.Mesh(new T.PlaneGeometry(.70,.96),new T.MeshBasicMaterial({map}));panel.position.set(0,y,.031);g.add(panel);
+ }
+ if(a.type==='stairSconce'){
+  const g=group(x,z,Math.PI/2);cube(0,y,.035,.15,.20,.12,'black',g);cube(0,y+.103,.036,.12,.012,.075,'warm',g);cube(0,y-.103,.036,.12,.012,.075,'warm',g);
+  const canvas=document.createElement('canvas');canvas.width=128;canvas.height=256;const ctx=canvas.getContext('2d');
+  const fade=ctx.createLinearGradient(0,128,0,0);fade.addColorStop(0,'rgba(255,213,151,.42)');fade.addColorStop(1,'rgba(255,213,151,0)');ctx.fillStyle=fade;ctx.beginPath();ctx.moveTo(58,125);ctx.lineTo(70,125);ctx.lineTo(128,0);ctx.lineTo(0,0);ctx.closePath();ctx.fill();
+  const down=ctx.createLinearGradient(0,128,0,256);down.addColorStop(0,'rgba(255,213,151,.40)');down.addColorStop(1,'rgba(255,213,151,0)');ctx.fillStyle=down;ctx.beginPath();ctx.moveTo(58,131);ctx.lineTo(70,131);ctx.lineTo(128,256);ctx.lineTo(0,256);ctx.closePath();ctx.fill();
+  const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;const wash=new T.Mesh(new T.PlaneGeometry(1.05,1.75),new T.MeshBasicMaterial({map,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1}));wash.position.set(0,y,-.015);g.add(wash);
+  const l=new T.PointLight(0xffd4a1,5,3.6,1.8);l.position.set(.30,y,0);g.add(l);
+ }
  if(a.type==='sofa'){
   const spine=new T.CatmullRomCurve3(a.points.map(p=>new T.Vector3(p[0],0,p[1])),false,'centripetal');
   const sofaFrame=mat(0x98630f,.92),seatMat=mat(0xd39a28,.94),backMat=mat(0xbf8620,.94),soil=mat(0x4c4636,.95),seamMat=mat(0xa87520,.95);
@@ -469,7 +498,7 @@ function hitsCollider(list,x,z,r){
 }
 const collisionIndices=new WeakMap();
 export function academyWalkable(state,x,z,r=.27){
- const stair=Math.abs(x-STAIR_X)<STAIR_HALF-r&&z>=STAIR_TOP-.30&&z<=STAIR_BOTTOM+.20;
+ const stair=onAcademyStairs(x,z,r);
  if(state.level===1){
   if(stair)return true;
   if(![[0,0],[-r,0],[r,0],[0,-r],[0,r]].every(([dx,dz])=>state.upperAreas.some(a=>x+dx>=a.x0&&x+dx<=a.x1&&z+dz>=a.z0&&z+dz<=a.z1)))return false;
@@ -477,7 +506,7 @@ export function academyWalkable(state,x,z,r=.27){
   return !hitsCollider(state.upperColliders,x,z,r);
  }
  if(stair)return true;
- if(Math.abs(x-STAIR_X)<STAIR_HALF+r&&z>=STAIR_TOP&&z<=STAIR_BOTTOM)return false;
+ if(x>STAIR_LEFT-r&&x<STAIR_RIGHT+r&&z>=STAIR_TOP&&z<=STAIR_BOTTOM)return false;
  if(z>34.65-r||z< -45.45+r)return false;
  const ex=x-ENTRANCE_OFFSET,ax=Math.abs(ex),inside=(l,h,f,n)=>ex>=l+r&&ex<=h-r&&z>=f+r&&z<=n-r;
  if(z>23.24){if(ax>10.7-r)return false}
@@ -498,5 +527,5 @@ export function nearestAcademySeat(state,x,z,maxDistance=1.55){let best=null;for
 export function nearbyLightSwitch(state,x,z,max=1.30){if(state.level===1)return null;let found=null,d=max;for(const c of state.circuits||[]){const n=Math.hypot(x-c.approachX,z-c.z);if(n<d&&academyWalkable(state,c.approachX,c.z)){let clear=true;for(let k=1;k<=10;k++){const t=k/10;if(!academyWalkable(state,x+(c.approachX-x)*t,z+(c.z-z)*t)){clear=false;break}}if(clear){d=n;found=c}}}return found}
 export function setLightCircuit(c,on){c.on=!!on;for(const a of c.lights)a.light.intensity=a.intensity*(c.on?1:0);for(const a of c.fixtures)a.material.color.copy(a.color).multiplyScalar(c.on?1:.035);c.rocker.rotation.x=c.on?-.15:.15;c.indicator.material.color.setHex(c.on?0x77e6b2:0x682e27)}
 
-export function academyGround(x,z,level=0){if(Math.abs(x-STAIR_X)<STAIR_HALF+.03&&z>=STAIR_TOP-.30&&z<=STAIR_BOTTOM+.20)return z<STAIR_TOP+.32?2.96:Math.max(0,Math.min(2.96,(Math.floor((STAIR_BOTTOM-z)/((STAIR_BOTTOM-STAIR_TOP)/16))+1)*.19));if(level===1)return 2.96;if(z>=22.28)return -1.8;if(z<=18.68)return 0;return -1.8+.18*Math.min(10,Math.max(1,Math.floor((22.28-z)/.36)+1))}
+export function academyGround(x,z,level=0){if(onAcademyStairs(x,z,-.03)){if(z>=STAIR_BOTTOM)return 0;if(z<=STAIR_TOP)return 2.96;const step=(STAIR_BOTTOM-STAIR_TOP)/16;return Math.min(2.96,Math.max(0,(Math.floor((STAIR_BOTTOM-z)/step)+1)*2.96/16))}if(level===1)return 2.96;if(z>=22.28)return -1.8;if(z<=18.68)return 0;return -1.8+.18*Math.min(10,Math.max(1,Math.floor((22.28-z)/.36)+1))}
 export function plazaDoorNearby(state,x,z){return Math.abs(x-(.5+ENTRANCE_OFFSET))<1.65&&Math.abs(z-23)<1.65}
