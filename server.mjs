@@ -17,6 +17,7 @@ const art=JSON.parse(readFileSync(new URL('./campus-source.json',import.meta.url
 const campus=await sharp(Buffer.from(art.original,'base64')).composite([{input:Buffer.from(art.patch,'base64'),left:art.left,top:art.top}]).webp({quality:91}).toBuffer();
 
 const onboardingHtml=readFileSync(new URL('./onboarding.html',import.meta.url));
+const academyRebuildPreviewHtml=readFileSync(new URL('./academy-rebuild-preview.html',import.meta.url));
 const onboardingJs=readFileSync(new URL('./onboarding.js',import.meta.url));
 const academyJs=readFileSync(new URL('./academy-interior.js',import.meta.url));
 const motionJs=readFileSync(new URL('./character-motion.js',import.meta.url));
@@ -132,6 +133,7 @@ function progressView(p,day){const xp=p?.xp||0,level=1+Math.floor(xp/100),previo
 async function readProgress(id,day){const p=await one('SELECT *,last_day::text AS last_day_text FROM player_progress WHERE account_id=$1',[id]);return progressView(p,day)}
 
 const server=http.createServer(async(req,res)=>{res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Frame-Options','DENY');try{const path=new URL(req.url,'http://localhost').pathname;
+if(req.method==='GET'&&path==='/academy-rebuild-preview'){res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");return sendBytes(res,academyRebuildPreviewHtml,'text/html; charset=utf-8')}
 if(req.method==='GET'&&path==='/onboarding'){res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");return sendBytes(res,onboardingHtml,'text/html; charset=utf-8')}
 if(req.method==='GET'&&path==='/onboarding.js')return sendBytes(res,onboardingJs,'text/javascript; charset=utf-8');
 if(req.method==='GET'&&path==='/academy-interior.js')return sendBytes(res,academyJs,'text/javascript; charset=utf-8');
