@@ -244,7 +244,7 @@ for(const a of data.items){if(a.type==='floor'&&a.z>0||a.type==='door'&&a.z===0|
   const fade=ctx.createLinearGradient(0,128,0,0);fade.addColorStop(0,'rgba(255,213,151,.42)');fade.addColorStop(1,'rgba(255,213,151,0)');ctx.fillStyle=fade;ctx.beginPath();ctx.moveTo(58,125);ctx.lineTo(70,125);ctx.lineTo(128,0);ctx.lineTo(0,0);ctx.closePath();ctx.fill();
   const down=ctx.createLinearGradient(0,128,0,256);down.addColorStop(0,'rgba(255,213,151,.40)');down.addColorStop(1,'rgba(255,213,151,0)');ctx.fillStyle=down;ctx.beginPath();ctx.moveTo(58,131);ctx.lineTo(70,131);ctx.lineTo(128,256);ctx.lineTo(0,256);ctx.closePath();ctx.fill();
   const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;const wash=new T.Mesh(new T.PlaneGeometry(1.05,1.75),new T.MeshBasicMaterial({map,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1}));wash.position.set(0,y,-.015);g.add(wash);
-  const l=new T.PointLight(0xffd4a1,5,3.6,1.8);l.position.set(.30,y,0);g.add(l);
+  const l=new T.PointLight(0xffd4a1,5,3.6,1.8);l.position.set(0,y,.30);g.add(l);
  }
  if(a.type==='sofa'){
   const spine=new T.CatmullRomCurve3(a.points.map(p=>new T.Vector3(p[0],0,p[1])),false,'centripetal');
