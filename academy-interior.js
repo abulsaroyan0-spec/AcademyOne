@@ -54,23 +54,39 @@ const approvedLayout=(function(){
  for(let i=0;i<16;i++){let z=771-(i+.5)*9.75;B(577,z-4.875,615,z+4.875,(i+1)*.19-.08,.16,'black')}
  items.push({type:'stairrail',x:X(616),z:Z(771)});solids.push({x:X(596),z:Z(693),w:M(38),d:M(156)});
  // Vintage technology and Ada behind stairs, visible in original video, not represented separately in plan.
- B(577,572,596,612,.46,.92,'marble',true);B(580,580,590,590,.28,.44,'old');B(581,594,592,604,.46,.43,'old');B(595,573,598,576,1.36,2.72,'black',true);
+ // G: restore open vintage computer display beneath the stairs, away from Ada's door.
+ items.push({type:'vintage',x:X(598),z:Z(652),rot:Math.PI/2});solids.push({x:X(598),z:Z(652),w:.84,d:2.10});
+ B(615,625,618,628,1.38,2.76,'black',true);
  door(X(575),Z(589),Math.PI/2,'Ada Lovelace');
  S('WHERE TO GO|CLASSROOMS',575,1.65,757,.70,.82,Math.PI/2);
  // S-shaped sofa exactly follows the corrected picture.
  const points=[[700,615],[712,627],[715,642],[710,657],[702,678],[695,699],[694,719],[698,734],[708,747]].map(([x,z])=>[X(x),Z(z)]);
- items.push({type:'sofa',points});for(let i=0;i<points.length-1;i++){let [x,z]=points[i],[a,b]=points[i+1];for(let j=0;j<4;j++){let f=j/4;solids.push({x:x+(a-x)*f,z:z+(b-z)*f,w:1.72,d:1.72})}}
- B(772,615,826,779,.025,.045,'charcoal');
- for(let z of [648,700,752]){D(791,z-21,808,z+21,'charcoal');for(let x of [783,818]){B(x-5,z-21,x+5,z+21,.46,.10,'wood',true);B(x-4,z-20,x+4,z+20,.22,.39,'wood')}}
- S('Picsart Academy',831,3.5,697,M(154),.9,-Math.PI/2,'charcoal');
+ items.push({type:'sofa',points});
+ // A: solid end wall of study strip. B: fourth study table and two timber benches.
+ W(772,558,833,558,2.9,'ivory');
+ B(772,565,826,779,.0425,.085,'charcoal');B(772,565,773,779,.085,.025,'warm');
+ for(let z of [591,643,695,747]){
+  B(791,z-21,808,z+21,.84,.075,'charcoal',true);
+  for(let x of [792,807])for(let zz of [-18,18])B(x-.45,z+zz-.45,x+.45,z+zz+.45,.425,.79,'black');
+  B(778,z-21,779,z+21,.35,.49,'wood');
+  for(let x of [783,818]){B(x-4.2,z-20.6,x+4.2,z+20.6,.51,.065,'wood',true,{studyBench:true,face:x<799?Math.PI/2:-Math.PI/2});for(let zz of [-17,17]){B(x-.5,z+zz-.5,x+.5,z+zz+.5,.28,.47,'black');B(x-3.3,z+zz-.5,x+3.3,z+zz+.5,.10,.045,'black')}}
+ }
+ // C: water dispenser. D: wayfinding column with recycling unit.
+ const water=(x,z,rot=0)=>{items.push({type:'water',x:X(x),z:Z(z),rot});solids.push({x:X(x),z:Z(z),w:.49,d:.45})};
+ water(760,570,0);
+ B(652,553,668,569,1.48,2.96,'ivory',true);
+ S('← ADA LOVELACE|TECH SUPPORT →',660,2.38,570,1.65,.38);
+ B(652,570,668,577,.41,.82,'white',true);for(let x of [656,664])B(x-2,571,x+2,575,.825,.015,'black');
+ B(831,565,833,779,2.04,1.48,'charcoal');
+ S('Picsart Academy',830,2.04,672,M(210),1.22,-Math.PI/2,'charcoal');B(830,565,831,779,1.29,.025,'warm');
  for(let z of [595,645,695,745])light(X(704),Z(z),5.1,'rect');
  // Main workspace + extended left wing, traced from visible outline. No detached floor labels.
- R(492,203,937,558,'Workspace / offices');R(44,218,215,448,'White classroom');R(215,214,382,458,'Wood classroom');R(44,448,492,558,'Left corridor');R(382,203,492,448,'Workspace connection');R(215,448,382,458,'Glass classroom edge');
+ R(492,203,937,558,'Workspace / offices');R(44,218,215,458,'White classroom');R(215,214,382,458,'Wood classroom');R(44,458,492,558,'Left corridor');R(382,203,492,448,'Workspace connection');R(215,448,382,458,'Glass classroom edge');
  // Exterior walls (windows on rear line); front left wall from x34 to x574.
  W(44,218,44,558);W(44,218,215,218);W(215,214,382,214);W(382,214,382,203);W(382,203,937,203);
  W(937,203,937,558);W(833,558,937,558);W(34,558,574,558);
  // White classroom opens into lower corridor at marked green doorway.
- W(44,448,170,448);W(199,448,215,448);door(X(184.5),Z(448),0,'White classroom','glass');
+ W(44,458,170,458);W(199,458,215,458);door(X(184.5),Z(458),0,'White classroom','glass');
  W(215,214,215,458);W(382,245,382,458);door(X(382),Z(229.5),Math.PI/2,'Wood classroom','glass');G(215,458,382,458);
  // Blinds and classroom desks exactly at the pictured positions, with chairs facing the tables.
  for(let x of [78,132,186])win(X(x),Z(219),M(50));
@@ -80,17 +96,23 @@ const approvedLayout=(function(){
  for(let z of [267,299,333])for(let x of [261,341]){D(x-24,z-7,x+24,z+7,'wood');for(let dx of [-11,11])C(x+dx,z-17,0)}
  B(45,249,48,310,1.6,1.1,'white');B(217,224,220,281,1.6,1.1,'white');
  // Bottom corridor desk and green seating alcoves in a horizontal row as drawn.
- D(259,533,390,548);for(let x of [272,301,333,364])C(x,515,0);
- S('HACK THE LIMITS',324,1.8,556,M(132),.42,Math.PI,'ivory');
- for(let x of [457,506,555]){B(x-22,527,x+22,549,.25,.50,'olive',true);B(x-22,544,x+22,549,.76,.55,'olive');B(x-22,548,x+22,552,1.36,2.72,'ivory',true)}
+ D(247,533,415,548);for(let x of [266,301,337,374,402])C(x,515,0);
+ S('HACK THE LIMITS',331,1.8,556,M(165),.42,Math.PI,'ivory');
+ // L: individual upholstered alcoves and full-height gray dividers.
+ for(let x of [457,506,555]){B(x-22,527,x+22,549,.25,.50,'olive',true);B(x-22,544,x+22,549,.76,.55,'olive');B(x-22,548,x+22,552,1.36,2.72,'ivory',true);B(x-22,527,x+22,549,2.71,.12,'charcoal');B(x-22,549,x+22,552,1.61,1.15,'acoustic')}
+ for(let x of [432,481.5,530.5,580])B(x-1.2,526,x+1.2,552,1.36,2.72,'acoustic',true);
  B(480,550,558,555,.54,1.08,'white',true);
  // Central tables: two wide horizontal and two vertical white communal sets.
- for(let z of [376,417]){D(438,z-17,529,z+17);for(let x of [437,490,542]){if(x===437&&z===376)continue;C(x,z+13,x===542?-Math.PI/2:Math.PI)}}
- for(let [x,z] of [[490,361],[490,385],[490,408],[542,361],[542,385],[542,408],[542,429]])C(x,z,Math.PI/2);
+ // K: two independent tables, exactly 2 m between tabletop edges, no embedded chairs.
+ for(let z of [353,425.4]){D(438,z-15,529,z+15);for(let x of [451,483.5,516]){C(x,z-29,0);C(x,z+29,Math.PI)}}
+ // I and J: water station and single workstation at the window, left of long desk.
+ water(400,225,0);D(433,213,481,229);C(457,244,Math.PI);P(457,219,Math.PI);
  for(let x of [569,604]){D(x-9,353,x+9,438);for(let dx of [-13,13])B(x+dx-2,349,x+dx+2,442,.47,.085,'white',true)}
  // Rear independent workstations and four seats at the long desk.
  D(514,211,686,227);for(let x of [548,595,631,667]){C(x,245,Math.PI);P(x,220,Math.PI)}
  D(876,223,915,235);C(896,255,Math.PI);P(896,228,Math.PI);
+ // P: director's workstation, independent desk with monitor and plants.
+ D(760,212,820,231);C(790,249,Math.PI);P(790,220,Math.PI);plant(X(749),Z(218));plant(X(831),Z(220));
  // Office 1 / Office 2: carpet and counter follow the actual corrected shapes, even though
  // carpet rectangles are slightly offset relative to the desks in the source.
  B(725,335,809,516,.012,.024,'charcoal');B(809,335,927,516,.012,.024,'charcoal');
@@ -101,6 +123,9 @@ const approvedLayout=(function(){
  for(let x of [692,781]){D(x-13,327,x+13,444);B(x-1,329,x+1,442,.95,.32,'charcoal');for(let z of [341,372,402,429])for(let side of [-1,1]){C(x+side*23,z,-side*Math.PI/2);P(x+side*7,z,-side*Math.PI/2)}}
  // Right-hand library along the drawn outer edge, separate desk remains at rear.
  W(933,307,933,463);for(let z of [325,363,401,443])shelf(X(927),Z(z),M(36),M(11),Math.PI/2,z===443);
+ // R/S: labeled closed doors to non-modelled service rooms; H: full height clothing cupboards.
+ door(X(935),Z(487),-Math.PI/2,'Kitchen');door(X(935),Z(533),-Math.PI/2,'Staff only');
+ for(let x of [851,873,895,917]){items.push({type:'locker',x:X(x),z:Z(550),rot:Math.PI});solids.push({x:X(x),z:Z(550),w:1.0,d:.55})}
  for(let x of [95,165,265,335,421,515,610,700,800,895])for(let z of [265,365,525]){if((x<215&&z===525)||(x>=215&&x<382&&z===525)||x>=382||z!==525)light(X(x),Z(z))}
  // User plan coordinates are the layout authority; use reachable standing positions rather than old checkpoints.
  return {items,solids,areas,names,checkpoints:[CP('Entrance',704,890),CP('Lobby',650,740),CP('Ada',635,589),CP('Workspace',630,510),CP('Left corridor',230,495),CP('White classroom',128,440),CP('Wood classroom',300,235),CP('Window aisle',720,270),CP('Office 1',712,460),CP('Office 2',850,460)]};
@@ -163,20 +188,20 @@ function createLightBudget(root,scene){
 }
 function buildApprovedGround(parent,colliders,seats){
  const scene=new T.Group();scene.position.x=ACADEMY_DOOR_X;parent.add(scene);const data=approvedLayout;
- const palette={ivory:0xe0dcd2,white:0xf3f3ed,black:0x252528,charcoal:0x414143,concrete:0x77716b,wood:0xb77d47,olive:0x666e48,acoustic:0xc8c1b7,green:0x6eb954,blue:0x4286b1,yellow:0xd5b52a,old:0xc8c3af,marble:0xc4c1b7,warm:0xffebc6,pink:0xad2059,glass:0x98b6b8,frost:0xb7d0cd};
+ const palette={ivory:0xe0dcd2,white:0xf3f3ed,black:0x252528,charcoal:0x414143,acoustic:0xb2ada5,concrete:0x77716b,wood:0xb77d47,olive:0x666e48,green:0x6eb954,blue:0x4286b1,yellow:0xd5b52a,old:0xc8c3af,marble:0xc4c1b7,warm:0xffebc6,pink:0xad2059,glass:0x98b6b8,frost:0xb7d0cd};
 const materials={};for(const [k,c] of Object.entries(palette))materials[k]=k==='warm'?new T.MeshBasicMaterial({color:c}):new T.MeshStandardMaterial({color:c,roughness:k==='wood'?.68:.84,transparent:k==='glass'||k==='frost',opacity:k==='glass'?.24:k==='frost'?.66:1,depthWrite:k!=='glass'&&k!=='frost'});
 function cube(x,y,z,w,h,d,c,parent=scene){const o=new T.Mesh(new T.BoxGeometry(w,h,d),typeof c==='string'?materials[c]:c);o.position.set(x,y,z);parent.add(o);return o}
 function group(x,z,rot=0){const g=new T.Group();g.position.set(x,0,z);g.rotation.y=rot;scene.add(g);return g}
 const roof=[],doors=[],computers=[],staticDoorLeaves=[];const bookMaterials=[0x8b7a6a,0x7d8e9e,0xa89b7b,0x526d65,0x9b6058].map(c=>new T.MeshStandardMaterial({color:c}));const windowMaterial=new T.MeshStandardMaterial({color:0x84a5bf,roughness:.28,emissive:0x36516c,emissiveIntensity:.25}),blindMaterial=new T.MeshStandardMaterial({color:0x777a7d,roughness:1});let rng=123;const rand=()=>((rng=(Math.imul(rng,1664525)+1013904223)>>>0)/4294967296);
 function tile(kind){const c=document.createElement('canvas');c.width=c.height=256;const ctx=c.getContext('2d');ctx.fillStyle=kind==='dark'?'#353230':'#c9c4bb';ctx.fillRect(0,0,256,256);for(let i=0;i<3500;i++){ctx.fillStyle=rand()>.5?'#ffffff09':'#0000000a';ctx.fillRect(rand()*256,rand()*256,rand()*16+1,1)}ctx.strokeStyle=kind==='dark'?'#8b8172':'#aaa69f';ctx.lineWidth=1.5;ctx.strokeRect(1,1,254,254);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.wrapS=t.wrapT=T.RepeatWrapping;t.anisotropy=8;return t}
-function plaque(t,w,h,c){const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=256;let ctx=canvas.getContext('2d');ctx.fillStyle='#'+palette[c].toString(16).padStart(6,'0');ctx.fillRect(0,0,1024,256);ctx.fillStyle=c==='ivory'?'#292929':'white';ctx.font='bold '+(t.includes('|')?62:100)+'px Arial';ctx.textAlign='center';ctx.textBaseline='middle';const lines=t.split('|');lines.forEach((l,i)=>ctx.fillText(l,512,128+(i-(lines.length-1)/2)*86,980));const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;return new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({map,side:T.DoubleSide}))}
+function plaque(t,w,h,c){const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=256;let ctx=canvas.getContext('2d');ctx.fillStyle='#'+palette[c].toString(16).padStart(6,'0');ctx.fillRect(0,0,1024,256);if(t==='Picsart Academy'){ctx.shadowColor='#efffff';ctx.shadowBlur=18;}ctx.fillStyle=c==='ivory'?'#292929':'white';ctx.font='bold '+(t.includes('|')?62:100)+'px Arial';ctx.textAlign='center';ctx.textBaseline='middle';const lines=t.split('|');lines.forEach((l,i)=>ctx.fillText(l,512,128+(i-(lines.length-1)/2)*86,980));const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;return new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({map,side:T.DoubleSide,toneMapped:t!=='Picsart Academy'}))}
 function cylinder(x,y,z,r,h,c,g=scene){let o=new T.Mesh(new T.CylinderGeometry(r,r,h,12),materials[c]);o.position.set(x,y,z);g.add(o);return o}
 for(const a of data.items){if(a.type==='floor'&&a.z>0||a.type==='door'&&a.z===0||a.type==='box'&&a.z>0||a.type==='light'&&a.z>0)continue;const {x,y,z,w,h,d,c,rot=0}=a;
  if(a.type==='floor'){const map=tile(a.kind);map.repeat.set(w/.8,d/.8);const o=new T.Mesh(new T.PlaneGeometry(w,d),new T.MeshStandardMaterial({map,roughness:.66}));o.rotation.x=-Math.PI/2;o.position.set(x,0,z);scene.add(o)}
  if(a.type==='box'){const o=cube(x,y,z,w,h,d,c);if(a.ceiling)roof.push(o)}
  if(a.type==='sign'){let o=plaque(a.t,w,h,a.c);o.position.set(x,y,z);o.rotation.y=rot;scene.add(o)}
  if(a.type==='light'){const o=cube(x,y,z,a.kind==='rect'?2.3:.16,.035,a.kind==='rect'?1.1:.16,'warm');roof.push(o);if(a.kind!=='wall'){const p=new T.PointLight(0xffebd2,a.kind==='rect'?11:5,6,1.8);p.position.set(x,y-.13,z);scene.add(p)}}
- if(a.type==='door'){let g=group(x,z,rot);for(let xx of [-.63,.63])cube(xx,1.18,0,.09,2.36,.14,'black',g);cube(0,2.35,0,1.35,.09,.14,'black',g);let leaf=new T.Group();leaf.position.x=.58;g.add(leaf);cube(-.58,1.13,0,1.14,2.26,.055,a.color==='glass'?'frost':'white',leaf);if(a.color==='glass'){for(let xx of [-1.12,-.04])cube(xx,1.13,.02,.08,2.26,.085,'black',leaf);for(let yy of [.06,2.2])cube(-.58,yy,.02,1.14,.12,.085,'black',leaf)}cube(-1.01,1.05,.06,.09,.32,.06,'black',leaf);if(a.t){let p=plaque(a.t,1.1,.19,a.t==='Ada Lovelace'?'wood':'pink');p.position.set(0,2.53,.095);g.add(p)}staticDoorLeaves.push({leaf});if(a.t!=='Ada Lovelace')doors.push({x:x+ACADEMY_DOOR_X,z,rot,leaf,open:false,angle:0})}
+ if(a.type==='door'){let g=group(x,z,rot);for(let xx of [-.63,.63])cube(xx,1.18,0,.09,2.36,.14,'black',g);cube(0,2.35,0,1.35,.09,.14,'black',g);let leaf=new T.Group();leaf.position.x=.58;g.add(leaf);cube(-.58,1.13,0,1.14,2.26,.055,a.color==='glass'?'frost':'white',leaf);if(a.color==='glass'){for(let xx of [-1.12,-.04])cube(xx,1.13,.02,.08,2.26,.085,'black',leaf);for(let yy of [.06,2.2])cube(-.58,yy,.02,1.14,.12,.085,'black',leaf)}cube(-1.01,1.05,.06,.09,.32,.06,'black',leaf);if(a.t){let p=plaque(a.t,1.1,.19,a.t==='Ada Lovelace'?'wood':'pink');p.position.set(0,2.53,.095);g.add(p)}staticDoorLeaves.push({leaf});if(!['Ada Lovelace','Kitchen','Staff only'].includes(a.t))doors.push({x:x+ACADEMY_DOOR_X,z,rot,leaf,open:false,angle:0})}
  if(a.type==='desk'){let g=group(x,z,rot);cube(0,.75,0,w,.065,d,a.col,g);for(let xx of [-w/2+.06,w/2-.06])for(let zz of [-d/2+.06,d/2-.06])cube(xx,.35,zz,.045,.70,.045,'black',g)}
  if(a.type==='chair'){let g=group(x,z,rot);cube(0,.47,0,.49,.10,.46,'charcoal',g);cube(0,.77,-.22,.46,.48,.055,'charcoal',g);for(let xx of [-.25,.25]){cube(xx,.62,-.03,.04,.24,.045,'black',g);cube(xx,.73,.03,.04,.05,.33,'black',g)}cylinder(0,.24,0,.04,.42,'black',g);for(let i=0;i<5;i++){let ang=i*Math.PI*2/5;let b=cube(Math.sin(ang)*.10,.06,Math.cos(ang)*.10,.035,.035,.26,'black',g);b.rotation.y=ang;cylinder(Math.sin(ang)*.23,.035,Math.cos(ang)*.23,.035,.06,'black',g)}}
  if(a.type==='pc'){let g=group(x,z,rot);const display=new T.MeshStandardMaterial({color:0x20272c,roughness:.48});cube(0,1.09,-.16,.51,.30,.055,display,g);computers.push({x,z,rot,display,on:false});cube(0,.90,-.16,.04,.18,.05,'black',g);cube(0,.795,-.16,.25,.025,.15,'black',g);cube(0,.79,.10,.32,.025,.12,'black',g)}
@@ -185,15 +210,34 @@ for(const a of data.items){if(a.type==='floor'&&a.z>0||a.type==='door'&&a.z===0|
  if(a.type==='window'){let g=group(x,z,rot);cube(0,1.5,0,w,2.9,.045,windowMaterial,g);for(let xx of [-w/2,w/2,0])cube(xx,1.5,.05,.045,2.9,.07,'black',g);cube(0,.13,.05,w,.06,.07,'black',g);cube(0,1.25,.07,w,.055,.065,'black',g);cube(0,1.9,.10,w-.08,1.95,.035,blindMaterial,g)}
  if(a.type==='plant'){let g=group(x,z);cylinder(0,.24,0,.20,.30,'black',g);for(let i=0;i<14;i++){let q=new T.Mesh(new T.SphereGeometry(1,7,5),materials.olive);q.position.set((rand()-.5)*.45,.65+rand()*.38,(rand()-.5)*.45);q.scale.set(.06,.23,.035);q.rotation.z=(rand()-.5)*2;g.add(q)}}
  if(a.type==='stairrail'){const p0=new T.Vector3(x,1,z),p1=new T.Vector3(x,3.95,z-6),v=p1.clone().sub(p0);let o=new T.Mesh(new T.CylinderGeometry(.027,.027,v.length(),12),materials.black);o.position.copy(p0).add(p1).multiplyScalar(.5);o.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),v.normalize());scene.add(o);for(let i=0;i<9;i++){let q=i/8;cube(x,.50+q*2.9,z-q*6,.045,1,.045,'black');if(i<8)cube(x,.48+q*2.9,z-q*6-.36,.03,.76,.72,'glass')}}
- if(a.type==='sofa'){const curve=new T.CatmullRomCurve3(a.points.map(p=>new T.Vector3(p[0],0,p[1])));const gold=new T.MeshStandardMaterial({color:0xd6a02b,roughness:.92});function sweep(off,cy,rx,ry,mat){let v=[],ix=[];for(let i=0;i<=100;i++){let p=curve.getPointAt(i/100),d=curve.getTangentAt(i/100),nx=-d.z,nz=d.x;for(let j=0;j<16;j++){let t=j*Math.PI/8,dx=off+rx*Math.cos(t);v.push(p.x+nx*dx,cy+ry*Math.sin(t),p.z+nz*dx)}if(i)for(let j=0;j<16;j++){let a=(i-1)*16+j,b=(i-1)*16+(j+1)%16,c=i*16+j,d=i*16+(j+1)%16;ix.push(a,b,c,b,d,c)}}for(let j=1;j<15;j++)ix.push(0,j+1,j,1600,1600+j,1600+j+1);const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(v,3));geo.setIndex(ix);geo.computeVertexNormals();scene.add(new T.Mesh(geo,mat))}sweep(0,.23,.93,.21,gold);for(let side of [-1,1]){sweep(side*.57,.44,.39,.13,gold);sweep(side*.22,.73,.18,.33,gold)}sweep(0,.91,.27,.08,materials.charcoal);for(let i=0;i<160;i++){let p=curve.getPointAt(rand()),o=new T.Mesh(new T.SphereGeometry(1,6,4),materials.olive);o.position.set(p.x+(rand()-.5)*.30,1.03+rand()*.22,p.z+(rand()-.5)*.30);o.scale.set(.035,.17,.025);o.rotation.z=(rand()-.5)*1.8;scene.add(o)}}
+ if(a.type==='sofa'){
+  const spine=new T.CatmullRomCurve3(a.points.map(p=>new T.Vector3(p[0],0,p[1])),false,'centripetal');
+  const sofaFrame=mat(0x98630f,.92),seatMat=mat(0xd39a28,.94),backMat=mat(0xbf8620,.94),soil=mat(0x4c4636,.95),seamMat=mat(0xa87520,.95);
+  function sweep(material,offset,height,width,thickness){
+   const steps=88,sides=12,verts=[],indices=[];
+   for(let i=0;i<=steps;i++){const t=i/steps,p=spine.getPointAt(t),d=spine.getTangentAt(t),nx=-d.z,nz=d.x,cap=Math.min(1,.7+Math.min(i,steps-i)*.15);for(let k=0;k<sides;k++){let a=2*Math.PI*k/sides,v=offset+Math.cos(a)*width*.5*cap;verts.push(p.x+nx*v,height+Math.sin(a)*thickness*.5,p.z+nz*v)}if(i)for(let k=0;k<sides;k++){let a=(i-1)*sides+k,b=(i-1)*sides+(k+1)%sides,c=i*sides+k,d2=i*sides+(k+1)%sides;indices.push(a,c,b,b,c,d2)}}
+   for(let k=1;k<sides-1;k++){indices.push(0,k,k+1);let b=steps*sides;indices.push(b,b+k+1,b+k)}
+   const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(verts,3));geo.setIndex(indices);geo.computeVertexNormals();scene.add(new T.Mesh(geo,material));
+  }
+  sweep(sofaFrame,0,.21,1.84,.40);for(let side of [-1,1]){sweep(seatMat,side*.57,.45,.72,.24);sweep(backMat,side*.24,.76,.22,.64)}sweep(soil,0,.91,.30,.12);
+  for(const t of [0,1]){const p=spine.getPointAt(t),d=spine.getTangentAt(t),q=mesh(scene,new T.SphereGeometry(1,24,12),seatMat,p.x,.45,p.z);q.scale.set(.77,.12,.26);q.rotation.y=Math.atan2(-d.z,d.x)+Math.PI/2;const back=mesh(scene,new T.SphereGeometry(1,20,12),backMat,p.x,.76,p.z);back.scale.set(.27,.32,.13);back.rotation.copy(q.rotation)}
+  for(let i=1;i<13;i++){let t=i/13,p=spine.getPointAt(t),d=spine.getTangentAt(t);for(let side of [-1,1]){let m=cube(p.x-d.z*side*.57,.565,p.z+d.x*side*.57,.016,.009,.56,seamMat);m.rotation.y=Math.atan2(d.x,d.z)}}
+  for(let color of [0x8a9b75,0xa0ae85,0x657f56]){let leaves=new T.InstancedMesh(new T.SphereGeometry(1,6,4),mat(color,.94),100),obj=new T.Object3D();for(let i=0;i<100;i++){let t=rand(),p=spine.getPointAt(t),d=spine.getTangentAt(t),off=(rand()-.5)*.38;obj.position.set(p.x-d.z*off,1.03+rand()*.23,p.z+d.x*off);obj.scale.set(.026+rand()*.035,.15+rand()*.18,.028+rand()*.018);obj.rotation.set((rand()-.5)*1.7,rand()*6.28,(rand()-.5)*1.6);obj.updateMatrix();leaves.setMatrixAt(i,obj.matrix)}leaves.instanceMatrix.needsUpdate=true;leaves.computeBoundingSphere();scene.add(leaves)}
+  for(let i=0;i<=42;i++){let p=spine.getPointAt(i/42),edge=Math.min(i,42-i);colliders.push({x:p.x+ACADEMY_DOOR_X,z:p.z,r:Math.min(.86,.66+edge*.08)})}
+ }
+ if(a.type==='vintage'){let g=group(x,z,rot);cube(0,.455,.35,2.05,.91,.12,'marble',g);for(let xx of [-.97,.97]){cube(xx,.455,0,.12,.91,.80,'marble',g);cube(xx,.945,0,.19,.07,.84,'marble',g)}cube(0,.945,.35,2.10,.07,.19,'marble',g);cube(0,.035,.36,2.05,.065,.13,'black',g);
+  cube(-.64,.34,.02,.43,.57,.44,'acoustic',g);for(let j=0;j<5;j++)cube(-.64,.43+j*.035,.247,.28,.018,.012,'black',g);cube(.06,.45,-.02,.54,.44,.47,'old',g);cube(.06,.47,.225,.40,.31,.025,'black',g);cube(.60,.16,.03,.52,.12,.25,'old',g);for(let j=0;j<4;j++)cube(.60,.13+j*.026,.16,.39,.018,.013,'black',g)}
+ if(a.type==='water'){let g=group(x,z,rot);cube(0,.515,0,.39,1.03,.37,'white',g);cube(0,.69,.191,.26,.24,.025,'black',g);cube(0,.53,.24,.22,.055,.11,'white',g);for(let dx of [-.06,.06])cube(dx,.74,.22,.025,.08,.035,'acoustic',g);cylinder(.23,.81,0,.055,.38,'white',g);cube(0,1.12,0,.22,.18,.22,'blue',g)}
+ if(a.type==='locker'){let g=group(x,z,rot);cube(0,1.13,0,1.0,2.26,.55,'wood',g);for(let dx of [-.25,.25]){cube(dx,1.13,.285,.475,2.20,.04,'acoustic',g);cube(dx+.16,1.16,.32,.025,.22,.045,'black',g);for(let j=0;j<3;j++)cube(dx,1.94+j*.045,.313,.25,.013,.015,'charcoal',g)}}
+
 }
 
  const addSeat=(kind,x,z,yaw,height,computer=null,reach=.72)=>{const dx=Math.sin(yaw),dz=Math.cos(yaw);seats.push({kind,x:x+ACADEMY_DOOR_X,z,height,yaw,computer,approaches:[{x:x+ACADEMY_DOOR_X+dz*reach,z:z-dx*reach},{x:x+ACADEMY_DOOR_X-dz*reach,z:z+dx*reach},{x:x+ACADEMY_DOOR_X-dx*reach,z:z-dz*reach},{x:x+ACADEMY_DOOR_X+dx*reach,z:z+dz*reach}]})};
  for(const a of data.items){
   if(a.type==='chair'){const face=a.rot||0,fx=Math.sin(face),fz=Math.cos(face);let pc=computers.filter(p=>Math.hypot(p.x-a.x,p.z-a.z)<1.55&&(p.x-a.x)*fx+(p.z-a.z)*fz>.15).sort((p,q)=>Math.hypot(p.x-a.x,p.z-a.z)-Math.hypot(q.x-a.x,q.z-a.z))[0];addSeat('chair',a.x,a.z,face,.52,pc||null)}
-  if(a.type==='sofa'){const curve=new T.CatmullRomCurve3(a.points.map(p=>new T.Vector3(p[0],0,p[1])));for(let i=1;i<=7;i++){let p=curve.getPointAt(i/8),d=curve.getTangentAt(i/8);for(let side of [-1,1]){let nx=-d.z*side,nz=d.x*side;addSeat('sofa',p.x+nx*.84,p.z+nz*.84,Math.atan2(nx,nz),.53,null,.77)}}}
+  if(a.type==='sofa'){const curve=new T.CatmullRomCurve3(a.points.map(p=>new T.Vector3(p[0],0,p[1])),false,'centripetal');for(let i=1;i<=10;i++){let p=curve.getPointAt(.07+i*.078),d=curve.getTangentAt(.07+i*.078);for(let side of [-1,1]){let nx=-d.z*side,nz=d.x*side;addSeat('sofa',p.x+nx*.82,p.z+nz*.82,Math.atan2(nx,nz),.57,null,.78)}}}
   if(a.type==='box'&&a.c==='olive'&&a.h===.50)for(let dx of [-.42,.42])addSeat('alcove sofa',a.x+dx,a.z-.16,Math.PI,.51,null,.8);
-  if(a.type==='box'&&a.c==='wood'&&a.h===.10&&a.z<0&&a.z>STAIR_TOP)addSeat('study bench',a.x,a.z,a.x>(808-704)/21.2?-Math.PI/2:Math.PI/2,.51);
+  if(a.studyBench)for(let dz of [-.48,.48])addSeat('study bench',a.x,a.z+dz,a.face,.455,null,.76);
   if(a.type==='box'&&a.c==='white'&&a.h===.085&&a.z<STAIR_TOP)for(let dz of [-1,0,1])addSeat('study bench',a.x,a.z+dz,a.x<0?Math.PI/2:-Math.PI/2,.52);
  }
  for(const c of data.solids)if(c.z<0)colliders.push({...c,x:c.x+ACADEMY_DOOR_X});
