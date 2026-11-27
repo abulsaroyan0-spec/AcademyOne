@@ -580,6 +580,88 @@ function buildKitchen(parent,colliders,seats){
  return {kitchenRoot:root,kitchenBatchStats:batchGround(root,materials,[],[]),areas:[{x0:KITCHEN_X-.15,x1:KITCHEN_X+KITCHEN_WIDTH,z0:KITCHEN_Z+KITCHEN_NORTH,z1:KITCHEN_Z+KITCHEN_SOUTH,title:'Kitchen'}]};
 }
 
+
+ // Additive reference-video detail pass. No changes to approved geometry or seats.
+ function addVideoDetails(parent,colliders,seats,areas){
+  const materials={black:mat(0x22272a,.82),grey:mat(0x777d80,.85),white:mat(0xf0eee5,.84),paper:mat(0xe7e2d6,.96),pink:mat(0xb52960,.86),blue:mat(0x375a79,.85),green:mat(0x669352,.91),leaf:mat(0x3f6941,.92),olive:mat(0x7d945e,.90),wood:mat(0x9a704b,.87),steel:mat(0x92999a,.36,.55),cream:mat(0xd0c7b3,.76),yellow:mat(0xd4b330,.8),warm:glow(0xffeed5)};
+  let count=0;const added=[];const root=new T.Group();root.name='Reference video details';parent.add(root);
+  const sub=(x,y,z,rot=0)=>{let g=new T.Group();g.position.set(x,y,z);g.rotation.y=rot;root.add(g);return g};
+  const b=(g,c,w,h,d,x=0,y=0,z=0)=>{count++;return box(g,materials[c],w,h,d,x,y,z)};
+  const cy=(g,c,r,h,x,y,z)=>{count++;return mesh(g,new T.CylinderGeometry(r,r,h,12),materials[c],x,y,z)};
+  const paper=(g,x,y,z,n=3)=>{for(let i=0;i<n;i++)b(g,'paper',.21,.009,.29,x+(i%2)*.008,y+.0045+i*.009,z)};
+  const book=(g,x,y,z,c='blue')=>{b(g,c,.18,.024,.24,x,y+.012,z);b(g,'paper',.166,.017,.228,x,y+.014,z+.002)};
+  const mouse=(g,x,y,z)=>{b(g,'black',.063,.028,.105,x,y+.014,z);b(g,'grey',.012,.004,.034,x,y+.03,z+.012)};
+  const cup=(g,x,y,z,c='white')=>{cy(g,c,.041,.09,x,y+.045,z);cy(g,'grey',.033,.005,x,y+.092,z);b(g,c,.025,.044,.019,x+.047,y+.045,z)};
+  const bag=(g,x,y,z,c='black')=>{b(g,c,.30,.36,.17,x,y+.18,z);b(g,c,.27,.12,.21,x,y+.105,z+.025);b(g,'grey',.22,.012,.025,x,y+.17,z+.12);for(let dx of [-.09,.09])b(g,'black',.035,.23,.026,x+dx,y+.18,z-.095);b(g,'black',.11,.035,.04,x,y+.37,z)};
+  const planter=(g,x,y,z,r=.14,h=.40)=>{cy(g,'black',r,.20,x,y+.10,z);cy(g,'wood',r*.87,.015,x,y+.202,z);for(let i=0;i<9;i++){let a=i*2.399,rr=r*.78*(.45+(i%3)*.25);b(g,'leaf',.012,h*.68,.012,x+Math.cos(a)*rr*.35,y+.20+h*.34,z+Math.sin(a)*rr*.35);let o=mesh(g,new T.SphereGeometry(1,6,4),materials[i%3?'green':'olive'],x+Math.cos(a)*rr,y+.20+h*(.55+(i%4)*.12),z+Math.sin(a)*rr);o.scale.set(.055,.13,.032);o.rotation.z=Math.cos(a)*.95;o.rotation.x=Math.sin(a)*.85;count++}};
+  const floorProp=(x,z,w,d,as,build)=>{
+   if(!as.some(a=>x-w/2>=a.x0+.12&&x+w/2<=a.x1-.12&&z-d/2>=a.z0+.12&&z+d/2<=a.z1-.12))return false;
+   if(colliders.some(c=>Math.abs(c.x-x)<(c.r??c.w/2)+w/2+.40&&Math.abs(c.z-z)<(c.r??c.d/2)+d/2+.40))return false;
+   if(seats.some(s=>Math.hypot(s.x-x,s.z-z)<.90||s.approaches.some(a=>Math.hypot(a.x-x,a.z-z)<.72)))return false;
+   const c={x,z,w,d};colliders.push(c);added.push(c);build(sub(x,0,z));return true;
+  };
+  const ground=(x,z,y=0,rot=0)=>sub(ACADEMY_DOOR_X+(x-704)/21.2,y,(z-790)/21.2,rot);
+  const world=(x,z)=>[ACADEMY_DOOR_X+(x-704)/21.2,(z-790)/21.2];
+  // Video 3938/3963: workstations, folders, mouse and desktop accessories.
+  for(const [layout,ox,oy,oz,upper] of [[approvedLayout,ACADEMY_DOOR_X,0,0,false],[upperLayout,STAIR_X,2.96,STAIR_TOP,true]]){
+   const desks=layout.items.filter(a=>a.type==='desk'),pcs=layout.items.filter(a=>a.type==='pc');
+   for(const [i,a] of pcs.entries()){
+    const table=desks.find(d=>Math.abs(a.x-d.x)<d.w/2+.05&&Math.abs(a.z-d.z)<d.d/2+.05);if(!table)continue;
+    const angle=(a.rot||0)+(upper?Math.PI:0);
+    let g=sub(a.x+ox,oy,a.z+oz,angle);
+    const mx=a.x+Math.cos(angle)*.23+Math.sin(angle)*.10,mz=a.z-Math.sin(angle)*.23+Math.cos(angle)*.10;
+    if(Math.abs(mx-table.x)<table.w/2-.04&&Math.abs(mz-table.z)<table.d/2-.04){mouse(g,.23,.783,.10)}
+    const dx=Math.cos(angle)*.36,dz=-Math.sin(angle)*.36;
+    if(!upper&&i%3===0&&Math.abs(a.x+dx-table.x)<table.w/2-.10&&Math.abs(a.z+dz-table.z)<table.d/2-.10){b(g,'black',.14,.31,.25,.36,.938,-.07);b(g,'grey',.08,.018,.009,.36,1.04,.059)}
+   }
+   if(!upper)for(const [i,d] of desks.entries()){
+    if(d.z>0||d.w<.35||d.d<.35||pcs.some(a=>Math.abs(a.x-d.x)<d.w/2+.12&&Math.abs(a.z-d.z)<d.d/2+.12))continue;
+    let g=sub(d.x+ox,oy,d.z+oz,d.rot||0);
+    if(i%3===0){paper(g,0,.783,0,2);b(g,'black',.12,.012,.013,.10,.808,.09)}
+    if(i%3===1&&d.w>.70){book(g,-d.w*.25,.783,0);b(g,'pink',.18,.066,.045,d.w*.24,.816,0)}
+   }
+  }
+  // Library: add folder spines and paper stacks to existing shelving and cabinet.
+  for(const a of approvedLayout.items.filter(a=>a.type==='shelf')){
+   let g=sub(a.x+ACADEMY_DOOR_X,0,a.z,a.rot||0);
+   for(let j=0;j<5;j++){let y=.245+j*.44;for(let k=0;k<3;k++)b(g,k%2?'white':'grey',.025,.065,.006,-a.w/2+.11+k*.10,y+.085,.125)}
+  }
+  {let g=ground(755,483);paper(g,-.18,1.178,0,4);book(g,.16,1.178,0,'blue')}
+  // Backpack shelves near green alcoves and tall plant stands by windows.
+  for(const [px,pz] of [[420,545],[425,543],[425,552],[417,550],[427,521]]){
+   const [x,z]=world(px,pz);
+   if(floorProp(x,z,.42,.46,areas,g=>{for(let dx of [-.19,.19])b(g,'grey',.035,1.85,.045,dx,.925,-.20);for(let j=0;j<4;j++){let y=.12+j*.43;b(g,'grey',.42,.045,.43,0,y,0);bag(g,0,y+.025,0,j===1?'blue':'black')}}))break;
+  }
+  for(const [px,pz] of [[724,255],[848,274],[611,274],[475,250]]){
+   const [x,z]=world(px,pz);
+   floorProp(x,z,.47,.47,areas,g=>{for(let xx of [-.20,.20])for(let zz of [-.20,.20])b(g,'black',.026,.88,.026,xx,.44,zz);b(g,'black',.44,.035,.44,0,.86,0);b(g,'black',.44,.035,.44,0,.12,0);planter(g,0,.88,0,.17,.54);planter(g,0,.14,0,.13,.30)});
+  }
+  for(const a of approvedLayout.items.filter(a=>a.type==='plant')){let g=sub(a.x+ACADEMY_DOOR_X,0,a.z);for(let i=0;i<4;i++)b(g,'leaf',.012,.38,.012,Math.cos(i*1.57)*.07,.44,Math.sin(i*1.57)*.07)}
+  // Ground-floor overhead frames, cable trays, AC cassettes and projectors.
+  for(const [px,pz,w,d] of [[692,387,1.50,3.65],[781,387,1.50,3.65],[483,389,2.5,1.25],[131,300,3.7,1.65],[300,285,3.9,1.65]]){
+   let g=ground(px,pz);
+   for(let side of [-1,1]){b(g,'black',.055,.095,d,side*w/2,2.66,0);b(g,'warm',.023,.018,d-.06,side*w/2,2.602,0);b(g,'black',w,.095,.055,0,2.66,side*d/2);b(g,'warm',w-.06,.018,.023,0,2.602,side*d/2);for(let dx of [-w/2,w/2])b(g,'steel',.016,.14,.016,dx,2.78,side*d/2)}
+  }
+  for(const [px,pz,d] of [[425,508,2.0],[600,300,3.8],[905,292,3.8],[330,414,2.5]]){
+   let g=ground(px,pz);b(g,'black',.26,.15,d,0,2.71,0);for(let i=0;i<Math.floor(d/.22);i++){let z=-d/2+.12+i*.22;b(g,'grey',.04,.035,.028,-.12,2.69,z);b(g,'grey',.04,.035,.028,.12,2.69,z)}
+  }
+  for(const [px,pz] of [[128,272],[300,257]]){
+   let g=ground(px,pz);b(g,'white',.82,.11,.82,0,2.79,0);b(g,'grey',.63,.025,.63,0,2.72,0);for(let i=0;i<7;i++)b(g,'white',.59,.024,.026,0,2.70,(i-3)*.085);
+   b(g,'steel',.028,.24,.028,0,2.75,.95);b(g,'white',.30,.10,.23,0,2.59,.95);b(g,'black',.075,.045,.012,0,2.59,1.073);
+  }
+  // Entry footage: plants beside lounge, reception papers and cup.
+  for(const [x,z] of [[-13.85,10.65],[-13.85,17.38]])floorProp(x+ENTRANCE_OFFSET,z,.42,.42,[{x0:-14.4+ENTRANCE_OFFSET,x1:5.35+ENTRANCE_OFFSET,z0:10.24,z1:17.76}],g=>planter(g,0,0,0,.19,.82));
+  {let g=sub(-.30+ENTRANCE_OFFSET,1.074,11.1);paper(g,-.75,0,0,4);cup(g,.89,0,0)}
+  // Ada footage: chalk, eraser, small electrical sockets on long desk rows.
+  {let g=sub(ADA_FRONT_X-1.5,0,ADA_RIGHT_Z+6,Math.PI/2);
+   b(g,'white',.085,.012,.013,-1.1,.574,1.05);b(g,'grey',.12,.035,.05,-.68,.57,1.05);
+   for(let row=0;row<7;row++){let z=-2.7-row*1.75,base=adaLayout.height(z);for(let x of [-3,0,3]){b(g,'grey',.09,.012,.055,x,base+.799,z+.20);for(let dx of [-.022,.022])b(g,'black',.012,.003,.015,x+dx,base+.806,z+.20)}}
+  }
+  // Kitchen footage: cutting board, tissues, additional small table accessories.
+  {let g=sub(KITCHEN_X,0,KITCHEN_Z);b(g,'wood',.19,.018,.26,6.83,.988,-2.35);b(g,'cream',.17,.028,.11,6.84,1.006,-2.35);for(let z of [-2.026,-3.706,-5.386]){b(g,'white',.10,.08,.10,1.65,.822,z);b(g,'paper',.055,.025,.055,1.65,.874,z)}}
+  return {root,stats:batchGround(root,materials,[],[]),count,added};
+ }
+
 export function makeAcademy(scene){
  scene.background=new T.Color(0x171513);scene.fog=new T.Fog(0x25221e,29,65);const g=new T.Group();scene.add(g);
  const concrete=new T.MeshStandardMaterial({map:texture('wall'),roughness:.93}),black=mat(0x222222,.46,.25),frame=mat(0x343632,.45,.55),white=mat(0xd9d1c1,.84),wood=mat(0x895637,.6),mustard=mat(0xb17a1a,.94),cushion=mat(0xc08a24,.95),glass=new T.MeshStandardMaterial({color:0xa9b9b3,transparent:true,opacity:.19,roughness:.16,metalness:.12,depthWrite:false}),warm=glow(0xfff1d5),dark=mat(0x302c29,.88),colliders=[],seats=[];
@@ -686,8 +768,9 @@ export function makeAcademy(scene){
  const v=new T.Vector3();g.updateMatrixWorld(true);for(const c of circuits){c.on=true;c.lights=[];c.fixtures=[];g.traverse(o=>{for(let p=o;p;p=p.parent)if(p===upstairs.upperRoot)return;if(o.isLight&&c.test({position:o.getWorldPosition(v)}))c.lights.push({light:o,intensity:o.intensity});if(o.isMesh&&[warm,wallLamp,approved.fixtures].includes(o.material)&&c.test({position:o.getWorldPosition(v)})){o.material=o.material.clone();c.fixtures.push({material:o.material,color:o.material.color.clone()})}});
   let sw=new T.Group();sw.position.set(c.x,c.y,c.z);sw.rotation.y=c.face;g.add(sw);box(sw,white,.135,.19,.035,0,0,0);c.rocker=box(sw,black,.075,.11,.038,0,0,.025);c.indicator=box(sw,new T.MeshBasicMaterial({color:0x77e6b2}),.023,.015,.009,0,.062,.049);c.handle=sw;c.approachX=c.x+(c.face>0?.40:-.40);
  }
+ const videoDetails=addVideoDetails(g,colliders,seats,approved.areas);
  const lightBudget=createLightBudget(g,scene);
- return {upperColliders,upperSeats,level:0,door,plazaDoor,plazaOpen:false,plazaAngle:0,colliders,seats,circuits,open:false,angle:0,lightBudget,...approved,...upstairs,...ada,kitchenRoot:kitchen.kitchenRoot,kitchenBatchStats:kitchen.kitchenBatchStats};
+ return {upperColliders,upperSeats,level:0,door,plazaDoor,plazaOpen:false,plazaAngle:0,colliders,seats,circuits,open:false,angle:0,lightBudget,videoDetailStats:{count:videoDetails.count,batch:videoDetails.stats},...approved,...upstairs,...ada,kitchenRoot:kitchen.kitchenRoot,kitchenBatchStats:kitchen.kitchenBatchStats};
 }
 export function doorNearby(state,x,z){return Math.abs(x-ACADEMY_DOOR_X)<1.6&&Math.abs(z)<1.7}
 export function advanceDoor(state,dt){state.angle=T.MathUtils.damp(state.angle,state.open?Math.PI*.53:0,7,dt);state.door.rotation.y=-state.angle;state.plazaAngle=T.MathUtils.damp(state.plazaAngle,state.plazaOpen?Math.PI*.53:0,7,dt);state.plazaDoor.rotation.y=-state.plazaAngle;for(const d of [...(state.interiorDoors||[]),...(state.upperDoors||[])]){d.angle=T.MathUtils.damp(d.angle,d.open?1.5:0,7,dt);d.leaf.rotation.y=-d.angle}}
