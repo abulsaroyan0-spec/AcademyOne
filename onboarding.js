@@ -92,52 +92,64 @@ function onScroll(){if(active!=='journey')return;let el=$('#journey'),max=Math.m
  let campusNpc=null;
  function createCampusNpc(world,academyState){
   const root=new THREE.Group();root.name='Campus roaming NPC';world.add(root);
-  const material=(color)=>new THREE.MeshStandardMaterial({color,roughness:.89});
-  const skin=material(0xc78d70),hair=material(0x171512),beard=material(0x46352d),shirt=material(0x701c2e),shirtDark=material(0x521420),tee=material(0xe9e0d1),pants=material(0x25272b),shoe=material(0x63282d),sole=material(0x9c7950),white=material(0xf0e5da),iris=material(0x392821),black=material(0x171414),lip=material(0x9c5c53),metal=material(0x9a9b99);
-  const sphere=new THREE.SphereGeometry(1,16,12),boxGeo=new THREE.BoxGeometry(1,1,1);
-  function shape(p,mat,x,y,z,w,h,d,box=false){let m=new THREE.Mesh(box?boxGeo:sphere,mat);m.position.set(x,y,z);m.scale.set(w,h,d);p.add(m);return m}
-  function group(p,x,y,z){let g=new THREE.Group();g.position.set(x,y,z);p.add(g);return g}
-  const body=group(root,0,0,0),hips=group(body,0,.86,0);
-  shape(body,pants,0,.86,0,.235,.16,.148);shape(body,shirt,0,1.19,0,.30,.365,.175);
-  shape(body,shirt,0,1.00,0,.255,.13,.155);shape(body,shirtDark,0,.91,.005,.245,.045,.15);
-  shape(body,tee,0,1.43,.142,.106,.113,.021);
-  for(let side of [-1,1]){let c=shape(body,shirtDark,side*.105,1.45,.118,.07,.085,.048);c.rotation.z=side*.45}
-  shape(body,metal,0,1.13,.174,.008,.245,.006,true);
-  shape(body,metal,0,1.35,.180,.014,.025,.008,true);
-  const head=group(body,0,1.58,0);
-  shape(head,skin,0,-.045,0,.095,.095,.093);
-  shape(head,skin,0,.115,.015,.146,.191,.129);
-  shape(head,skin,0,.048,.055,.126,.107,.104);
-  for(let side of [-1,1]){
-   shape(head,skin,side*.143,.108,0,.027,.054,.033);
-   shape(head,lip,side*.149,.109,.018,.012,.031,.013);
-   shape(head,skin,side*.071,.105,.108,.064,.072,.032);
-   shape(head,white,side*.054,.137,.126,.038,.019,.018);
-   shape(head,iris,side*.054,.136,.143,.015,.015,.006);
-   shape(head,black,side*.054,.136,.148,.007,.009,.003);
-   let brow=shape(head,hair,side*.054,.170,.130,.043,.011,.011);brow.rotation.z=side*-.11;
-   shape(head,beard,side*.103,.031,.073,.035,.075,.045);
-   shape(head,beard,side*.127,.090,.023,.018,.060,.028);
+
+  // Continuous anatomical surfaces and weighted joints, no photo assets.
+  const mat=(color)=>new THREE.MeshStandardMaterial({color,roughness:.88});
+  const skin=mat(0xc18c73),hair=mat(0x191613),shirt=mat(0x711f31),dark=mat(0x511521),tee=mat(0xe9e2d7),pants=mat(0x26292d),shoe=mat(0x59282c),sole=mat(0xa18360),white=mat(0xe2dbd2),iris=mat(0x4b3024),lip=mat(0x956254),metal=mat(0x969696);
+  const sphere=new THREE.SphereGeometry(1,20,14);
+  function group(p,x,y,z){const g=new THREE.Group();g.position.set(x,y,z);p.add(g);return g}
+  function ell(p,m,x,y,z,w,h,d){const o=new THREE.Mesh(sphere,m);o.position.set(x,y,z);o.scale.set(w,h,d);p.add(o);return o}
+  function geo(rings,n=32,modify=null,colour=null){
+   const v=[],ix=[],rgb=[];for(let i=0;i<rings.length;i++){const [y,w,d,z=0,x=0]=rings[i];for(let k=0;k<n;k++){let a=k/n*2*Math.PI,p=[x+Math.sin(a)*w,y,z+Math.cos(a)*d];if(modify)p=modify(p,a,i);v.push(...p);if(colour){let c=colour(p,a);rgb.push(c.r,c.g,c.b)}}}
+   for(let i=0;i<rings.length-1;i++)for(let k=0;k<n;k++){let a=i*n+k,b=i*n+(k+1)%n,c=a+n,d=b+n;ix.push(a,b,c,b,d,c)}
+   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));if(colour)g.setAttribute('color',new THREE.Float32BufferAttribute(rgb,3));g.setIndex(ix);g.computeVertexNormals();g.computeBoundingSphere();return g
   }
-  shape(head,skin,0,.108,.145,.025,.051,.032);
-  shape(head,skin,0,.077,.166,.035,.022,.033);
-  shape(head,beard,0,.041,.142,.046,.010,.015);
-  shape(head,lip,0,.022,.145,.048,.008,.009);
-  shape(head,beard,0,-.012,.093,.094,.040,.054);
-  shape(head,skin,0,.016,.115,.055,.016,.026);
-  shape(head,hair,0,.246,-.013,.149,.089,.136);
-  shape(head,hair,0,.16,-.084,.141,.125,.075);
-  for(let side of [-1,1])shape(head,hair,side*.123,.189,-.018,.033,.081,.099);
-  let fringe=shape(head,hair,-.023,.227,.093,.128,.045,.059);fringe.rotation.z=.12;
+  function loft(p,m,r,n=32,mod=null,col=null){let o=new THREE.Mesh(geo(r,n,mod,col),m);p.add(o);return o}
+  function line(p,m,pts,r=.003){const o=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map(a=>new THREE.Vector3(...a))),12,r,5,false),m);p.add(o);return o}
+  function limb(p,m,r,joint){
+   const g=geo(r,24),ix=[],wt=[],v=g.attributes.position;for(let k=0;k<v.count;k++){let t=THREE.MathUtils.smoothstep(-v.getY(k),-joint-.09,-joint+.09);ix.push(0,1,0,0);wt.push(1-t,t,0,0)}
+   g.setAttribute('skinIndex',new THREE.Uint16BufferAttribute(ix,4));g.setAttribute('skinWeight',new THREE.Float32BufferAttribute(wt,4));
+   const o=new THREE.SkinnedMesh(g,m),a=new THREE.Bone(),b=new THREE.Bone();b.position.y=joint;a.add(b);o.add(a);p.add(o);root.updateMatrixWorld(true);o.bind(new THREE.Skeleton([a,b]));o.frustumCulled=false;return {a,b}
+  }
+  const body=group(root,0,0,0),hips=group(body,0,.83,0);
+  loft(body,pants,[[.72,.006,.006],[.77,.198,.114],[.86,.207,.137],[.96,.192,.128],[.97,.005,.005]]);
+  loft(body,shirt,[[.89,.005,.005],[.895,.207,.129],[.93,.219,.144],[1.02,.226,.158],[1.16,.239,.159],[1.29,.247,.144],[1.40,.248,.121],[1.445,.185,.106],[1.475,.103,.088],[1.48,.004,.004]],40);
+  loft(body,dark,[[.887,.207,.130],[.91,.219,.142],[.929,.218,.141]]);
+  const patch=(p,m,v,idx)=>{let g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v.flat(),3));g.setIndex(idx);g.computeVertexNormals();let o=new THREE.Mesh(g,m);p.add(o)};
+  tee.side=THREE.DoubleSide;dark.side=THREE.DoubleSide;
+  patch(body,tee,[[-.078,1.457,.101],[.078,1.457,.101],[-.044,1.37,.147],[.044,1.37,.147],[0,1.335,.16]],[0,2,1,1,2,3,2,4,3]);
+  for(let side of [-1,1])patch(body,dark,[[side*.075,1.479,.095],[side*.115,1.45,.11],[side*.055,1.36,.153],[side*.032,1.412,.136]],[0,2,1,0,3,2]);
+  line(body,metal,[[0,.94,.151],[0,1.08,.165],[0,1.23,.159],[0,1.33,.161]],.0023);
+  for(let side of [-1,1])line(body,dark,[[side*.135,1.025,.131],[side*.177,1.08,.108],[side*.194,1.13,.088]],.002);
+  loft(body,skin,[[1.43,.072,.064],[1.49,.068,.069],[1.54,.075,.073],[1.57,.085,.073]]);
+  const head=group(body,0,1.49,0),rings=[[-.005,.003,.003,.015],[.005,.055,.059,.024],[.024,.083,.077,.017],[.047,.101,.092,.009],[.071,.113,.104,.004],[.099,.121,.111,.001],[.125,.123,.114,-.004],[.147,.122,.117,-.006],[.169,.119,.119,-.008],[.195,.115,.117,-.010],[.219,.105,.109,-.010],[.243,.079,.081,-.012],[.259,.04,.041,-.012],[.264,.002,.002,-.012]];
+  const g=(x,s)=>Math.exp(-x*x/(s*s));
+  const mod=(p,a)=>{let [x,y,z]=p,f=Math.pow(Math.max(0,Math.cos(a)),2);z+=f*(.027*g(x,.022)*g(y-.115,.058)+.025*g(x,.030)*g(y-.083,.020)+.012*g(x,.044)*g(y-.040,.023)-.012*g(Math.abs(x)-.05,.027)*g(y-.137,.023));return [x,y,z]};
+  const base=new THREE.Color(0xc18c73),stubble=new THREE.Color(0x49362e),cheek=new THREE.Color(0xb97061),facemat=mat(0xffffff);facemat.vertexColors=true;
+  const colour=([x,y,z],a)=>{let c=base.clone().lerp(cheek,.15*g(Math.abs(x)-.075,.033)*g(y-.09,.026)*Math.max(0,Math.cos(a))),jaw=.047+Math.abs(x)*.35,amount=y<jaw&&Math.cos(a)>-.65?THREE.MathUtils.smoothstep(jaw-y,0,.025)*.83:0;if(Math.abs(x)<.05&&Math.abs(y-.060)<.009&&Math.cos(a)>.8)amount=Math.max(amount,.35);return c.lerp(stubble,amount)};
+  const dense=[];for(let i=0;i<rings.length-1;i++)for(let k=0;k<4;k++)dense.push(rings[i].map((v,j)=>v+(rings[i+1][j]-v)*k/4));dense.push(rings.at(-1));loft(head,facemat,dense,64,mod,colour);
+  function front(x,y){let i=0;while(i<rings.length-2&&rings[i+1][0]<y)i++;let a=rings[i],b=rings[i+1],t=THREE.MathUtils.clamp((y-a[0])/(b[0]-a[0]),0,1),rx=a[1]+(b[1]-a[1])*t,rz=a[2]+(b[2]-a[2])*t,cz=a[3]+(b[3]-a[3])*t,ang=Math.asin(THREE.MathUtils.clamp(x/rx,-.99,.99));return mod([x,y,cz+Math.cos(ang)*rz],ang)[2]}
+  for(let side of [-1,1]){
+   ell(head,skin,side*.121,.116,-.003,.017,.037,.024);ell(head,lip,side*.132,.115,.006,.006,.020,.010);
+   const x=side*.048,y=.137,z=front(x,y);ell(head,white,x,y,z+.001,.025,.0095,.006);ell(head,iris,x,y,z+.007,.0085,.0087,.0028);ell(head,hair,x,y,z+.009,.0038,.0045,.0018);
+   line(head,skin,[[x-.025,y,front(x-.025,y)+.002],[x-.012,y+.010,front(x-.012,y+.010)+.006],[x+.012,y+.010,front(x+.012,y+.010)+.006],[x+.025,y,front(x+.025,y)+.002]],.0026);
+   line(head,hair,[[x-.029,y+.022,front(x-.029,y+.022)+.002],[x-.010,y+.029,front(x-.010,y+.029)+.003],[x+.012,y+.027,front(x+.012,y+.027)+.003],[x+.027,y+.020,front(x+.027,y+.020)+.002]],.004);
+   ell(head,hair,side*.019,.075,front(side*.019,.075)+.001,.006,.0025,.002);
+  }
+  line(head,lip,[[-.032,.047,front(-.032,.047)+.001],[0,.045,front(0,.045)+.002],[.032,.047,front(.032,.047)+.001]],.0021);
+  loft(head,hair,Array.from({length:21},(_,i)=>[i/20,1,1,0]),48,(p,a,i)=>{let t=i/20,fr=Math.max(0,Math.cos(a)),bk=Math.max(0,-Math.cos(a)),y=.105+.087*fr-.022*bk+.010*Math.sin(a)*fr,phi=t*Math.PI/2;return [Math.sin(a)*.129*Math.cos(phi)-.010*Math.sin(phi),y+(.282-y)*Math.sin(phi),-.009+Math.cos(a)*.126*Math.cos(phi)]});
   const arms=[],legs=[];
   for(let side of [-1,1]){
-   let a=group(body,side*.265,1.40,0);shape(a,shirt,side*.035,-.12,0,.086,.177,.088);
-   let elbow=group(a,side*.05,-.265,0);shape(elbow,shirt,0,-.104,0,.074,.136,.073);shape(elbow,shirtDark,0,-.225,0,.063,.034,.063);shape(elbow,skin,0,-.292,.008,.052,.086,.042);
-   if(side===-1){shape(elbow,metal,0,-.245,0,.066,.025,.064);shape(elbow,black,-.018,-.245,.056,.028,.025,.01)}
-   arms.push(a);
-   let leg=group(hips,side*.112,-.055,0);shape(leg,pants,0,-.17,0,.111,.209,.115);
-   let knee=group(leg,0,-.36,0);shape(knee,pants,0,-.155,0,.091,.195,.092);
-   let foot=group(knee,0,-.34,0);shape(foot,shoe,0,-.018,.05,.099,.069,.151);shape(foot,sole,0,-.066,.05,.101,.023,.154);legs.push({leg,knee,foot});
+   const shoulder=group(body,side*.221,1.405,0);
+   const arm=limb(shoulder,shirt,[[-.535,.050,.048,0,side*.055],[-.50,.054,.052,0,side*.056],[-.44,.061,.060,0,side*.060],[-.34,.065,.066,0,side*.061],[-.27,.071,.070,0,side*.053],[-.21,.077,.076,0,side*.04],[-.13,.086,.080,0,side*.028],[-.055,.084,.082,0,side*.010],[.016,.070,.065,0,-side*.008],[.047,.006,.006]],-.275);
+   const hand=group(arm.b,side*.055,-.26,0);
+   loft(hand,skin,[[-.145,.005,.005,.006],[-.13,.033,.020,.005],[-.09,.040,.027,0],[-.04,.039,.030,0],[0,.045,.039],[.02,.038,.035]],20);ell(hand,skin,-side*.031,-.067,.016,.014,.043,.015);
+   loft(hand,dark,[[-.011,.049,.048],[.014,.053,.052],[.024,.052,.051]],24);
+   if(side===-1){loft(hand,metal,[[-.024,.046,.038],[-.010,.046,.038]],24);ell(hand,hair,0,-.017,.040,.020,.014,.006)}
+   arms.push(arm.a);
+   const hip=group(hips,side*.103,0,0),leg=limb(hip,pants,[[-.735,.073,.066],[-.70,.077,.071],[-.62,.078,.078,-.003],[-.52,.087,.089,-.008],[-.43,.086,.083],[-.36,.087,.088,.008],[-.28,.102,.104,.006],[-.17,.112,.118],[-.06,.109,.120],[.035,.092,.107],[.075,.007,.008]],-.385);
+   const foot=group(leg.b,0,-.343,0);loft(foot,shoe,[[-.067,.076,.125,.052],[-.053,.084,.136,.052],[-.025,.083,.133,.050],[.006,.076,.113,.036],[.044,.068,.072,.005],[.057,.061,.066]],24);
+   loft(foot,sole,[[-.102,.003,.003,.052],[-.100,.074,.126,.052],[-.085,.085,.137,.052],[-.064,.084,.136,.052]],24);line(foot,hair,[[-.033,.019,.079],[.033,.019,.085],[-.033,.008,.103],[.033,.006,.109]],.0023);legs.push({leg:leg.a,knee:leg.b,foot});
   }
   const state={...academyState,level:0};
   const safe=(x,z)=>z<-.65&&z>-30&&x>-28&&x<12&&!onAcademyStairs(x,z,-.35)&&!inAdaHall(x,z)&&academyWalkable(state,x,z,.35);
@@ -170,8 +182,8 @@ function onScroll(){if(active!=='journey')return;let el=$('#journey'),max=Math.m
    }else if(!pause&&!route.length)plan();
    root.position.y=academyGround(root.position.x,root.position.z,0);
    if(walking)phase+=dt*7.5;
-   body.position.y=THREE.MathUtils.damp(body.position.y,walking?.018*Math.abs(Math.sin(phase)):0,12,dt);
-   for(let i=0;i<2;i++){let swing=walking?Math.sin(phase+i*Math.PI)*.43:0;legs[i].leg.rotation.x=THREE.MathUtils.damp(legs[i].leg.rotation.x,swing,12,dt);legs[i].knee.rotation.x=THREE.MathUtils.damp(legs[i].knee.rotation.x,walking?Math.max(0,-swing)*.75:0,12,dt);arms[i].rotation.x=THREE.MathUtils.damp(arms[i].rotation.x,-swing*.65,12,dt)}
+   body.position.y=THREE.MathUtils.damp(body.position.y,walking?.012*Math.abs(Math.sin(phase)):0,12,dt);
+   for(let i=0;i<2;i++){let swing=walking?Math.sin(phase+i*Math.PI)*.34:0;legs[i].leg.rotation.x=THREE.MathUtils.damp(legs[i].leg.rotation.x,swing,12,dt);legs[i].knee.rotation.x=THREE.MathUtils.damp(legs[i].knee.rotation.x,walking?Math.max(0,-swing)*.85:0,12,dt);arms[i].rotation.x=THREE.MathUtils.damp(arms[i].rotation.x,-swing*.65,12,dt)}
   }};
  }
 
