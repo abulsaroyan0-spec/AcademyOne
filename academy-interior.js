@@ -88,7 +88,7 @@ const approvedLayout=(function(){
  R(492,203,937,558,'Workspace / offices');R(44,218,215,458,'White classroom');R(215,214,382,458,'Wood classroom');R(44,458,492,558,'Left corridor');R(382,203,492,458,'Workspace connection');R(215,448,382,458,'Glass classroom edge');
  // Exterior walls (windows on rear line); front left wall from x34 to x574.
  W(44,218,44,558);W(44,218,215,218);W(215,214,382,214);W(382,214,382,203);W(382,203,937,203);
- W(937,203,937,558);W(833,558,937,558);W(34,558,574,558);
+ W(937,203,937,472.7);W(937,501.3,937,558);B(935.3,472.7,938.7,501.3,2.64,.52,'ivory');W(833,558,937,558);W(34,558,574,558);
  // White classroom opens into lower corridor at marked green doorway.
  W(44,458,170,458);W(199,458,215,458);door(X(184.5),Z(458),0,'White classroom','glass');
  W(215,214,215,458);W(382,245,382,458);door(X(382),Z(229.5),Math.PI/2,'Wood classroom','glass');G(215,458,382,458);
@@ -216,7 +216,7 @@ for(const a of data.items){if(a.type==='floor'&&a.z>0||a.type==='door'&&a.z===0|
  }
  if(a.type==='sign'){let o=plaque(a.t,w,h,a.c);o.position.set(x,y,z);o.rotation.y=rot;scene.add(o)}
  if(a.type==='light'){const o=cube(x,y,z,a.kind==='rect'?2.3:.16,.035,a.kind==='rect'?1.1:.16,'warm');roof.push(o);if(a.kind!=='wall'){const p=new T.PointLight(0xffebd2,a.kind==='rect'?11:5,6,1.8);p.position.set(x,y-.13,z);scene.add(p)}}
- if(a.type==='door'){let g=group(x,z,rot);for(let xx of [-.63,.63])cube(xx,1.18,0,.09,2.36,.14,'black',g);cube(0,2.35,0,1.35,.09,.14,'black',g);let leaf=new T.Group();leaf.position.x=.58;g.add(leaf);cube(-.58,1.13,0,1.14,2.26,.055,a.color==='glass'?'frost':'white',leaf);if(a.color==='glass'){for(let xx of [-1.12,-.04])cube(xx,1.13,.02,.08,2.26,.085,'black',leaf);for(let yy of [.06,2.2])cube(-.58,yy,.02,1.14,.12,.085,'black',leaf)}cube(-1.01,1.05,.06,.09,.32,.06,'black',leaf);if(a.t){let p=plaque(a.t,1.1,.19,a.t==='Ada Lovelace'?'wood':'pink');p.position.set(0,2.53,.095);g.add(p)}staticDoorLeaves.push({leaf});if(!['Kitchen','Staff only'].includes(a.t))doors.push({x:x+ACADEMY_DOOR_X,z,rot,leaf,open:false,angle:0})}
+ if(a.type==='door'){let g=group(x,z,rot);for(let xx of [-.63,.63])cube(xx,1.18,0,.09,2.36,.14,'black',g);cube(0,2.35,0,1.35,.09,.14,'black',g);let leaf=new T.Group();leaf.position.x=.58;g.add(leaf);cube(-.58,1.13,0,1.14,2.26,.055,a.color==='glass'?'frost':'white',leaf);if(a.color==='glass'){for(let xx of [-1.12,-.04])cube(xx,1.13,.02,.08,2.26,.085,'black',leaf);for(let yy of [.06,2.2])cube(-.58,yy,.02,1.14,.12,.085,'black',leaf)}cube(-1.01,1.05,.06,.09,.32,.06,'black',leaf);if(a.t){let p=plaque(a.t,1.1,.19,a.t==='Ada Lovelace'?'wood':'pink');p.position.set(0,2.53,.095);g.add(p)}staticDoorLeaves.push({leaf});if(a.t!=='Staff only')doors.push({x:x+ACADEMY_DOOR_X,z,rot,leaf,open:false,angle:0})}
  if(a.type==='desk'){let g=group(x,z,rot);cube(0,.75,0,w,.065,d,a.col,g);for(let xx of [-w/2+.06,w/2-.06])for(let zz of [-d/2+.06,d/2-.06])cube(xx,.35,zz,.045,.70,.045,'black',g)}
  if(a.type==='chair'){let g=group(x,z,rot);cube(0,.47,0,.49,.10,.46,'charcoal',g);cube(0,.77,-.22,.46,.48,.055,'charcoal',g);for(let xx of [-.25,.25]){cube(xx,.62,-.03,.04,.24,.045,'black',g);cube(xx,.73,.03,.04,.05,.33,'black',g)}cylinder(0,.24,0,.04,.42,'black',g);for(let i=0;i<5;i++){let ang=i*Math.PI*2/5;let b=cube(Math.sin(ang)*.10,.06,Math.cos(ang)*.10,.035,.035,.26,'black',g);b.rotation.y=ang;cylinder(Math.sin(ang)*.23,.035,Math.cos(ang)*.23,.035,.06,'black',g)}}
  if(a.type==='pc'){let g=group(x,z,rot);const display=new T.MeshStandardMaterial({color:0x20272c,roughness:.48});cube(0,1.09,-.16,.51,.30,.055,display,g);computers.push({x,z,rot,display,on:false});cube(0,.90,-.16,.04,.18,.05,'black',g);cube(0,.795,-.16,.25,.025,.15,'black',g);cube(0,.79,.10,.32,.025,.12,'black',g)}
@@ -483,6 +483,84 @@ for(const a of data.items){const {x,y,z,w,h,d,c,rot=0}=a;
  return {adaRoot:scene,adaBatchStats:batchGround(scene,materials,[],[])};
 }
 
+
+const KITCHEN_X=ACADEMY_DOOR_X+(937-704)/21.2,KITCHEN_Z=(487-790)/21.2;
+export function inKitchen(x,z){return x>=KITCHEN_X-.15&&x<=KITCHEN_X+9.6&&Math.abs(z-KITCHEN_Z)<=3.7}
+function kitchenLayout(){
+ const items=[],solids=[],seats=[];
+ const B=(x,y,z,w,h,d,c,block=false)=>{items.push({type:'box',x,y,z,w,h,d,c});if(block)solids.push({x:KITCHEN_X+x,z:KITCHEN_Z+z,w,d})};
+ const C=(x,y,z,r,h,c,r2=r)=>items.push({type:'cyl',x,y,z,r,h,c,r2});
+ const L=(x,y,z,color=0xfff2dd,intensity=7)=>items.push({type:'light',x,y,z,color,intensity});
+ const S=(x,z,yaw,height,approaches,kind='chair')=>seats.push({kind,x:KITCHEN_X+x,z:KITCHEN_Z+z,height,yaw,computer:null,approaches:approaches.map(([a,b])=>({x:KITCHEN_X+a,z:KITCHEN_Z+b}))});
+ B(4.8,-.08,0,9.6,.16,7.4,'ivory');B(4.8,2.86,0,9.6,.16,7.4,'ivory');
+ for(let z of [-3.7,3.7]){B(4.8,1.43,z,9.6,2.86,.15,'ivory',true);B(4.8,.05,z*.975,9.48,.10,.025,'charcoal')}
+ for(let z of [-2.17,2.17])B(0,1.43,z,.16,2.86,3.06,'ivory',true);B(0,2.62,0,.16,.48,1.28,'ivory');
+ B(9.57,.18,0,.17,.36,7.4,'ivory',true);B(9.57,2.70,0,.16,.32,7.4,'ivory');
+ for(let z of [-2.44,0,2.44]){B(9.57,1.50,z,.045,2.28,2.39,'window');B(9.55,1.07,z,.08,.075,2.39,'black')}
+ for(let z of [-3.65,-1.22,1.22,3.65])B(9.53,1.50,z,.10,2.30,.09,'black');
+ B(10.05,1.55,0,.08,2.70,7.4,'sky');for(let z of [-2.7,-.85,1.1,2.8]){B(10.0,1.37,z,.07,1.8,1.45,'building');B(9.94,1.48,z,.02,.82,.68,'blue')}
+ for(let x=.6;x<9.6;x+=.6)B(x,.002,0,.012,.004,7.25,'grout');for(let z=-3;z<3.65;z+=.6)B(4.8,.003,z,9.48,.004,.012,'grout');
+ // Counter, graphite drawers, double sink and accessories.
+ for(let x of [1.15,2,2.85,3.7,4.55,5.4,6.25,7.1]){B(x,.45,3.22,.84,.90,.72,'cabinet',true);let n=x<3||x>5.9?3:1;for(let j=0;j<n;j++){let h=.74/n,y=.13+(j+.5)*h;B(x,y,2.85,.80,h-.018,.035,'cabinet');B(x,y+h*.34,2.816,.50,.027,.035,'black')}}
+ B(2.5,.94,3.22,3.56,.075,.79,'counter');B(6.66,.94,3.22,1.72,.075,.79,'counter');
+ for(let z of [2.865,3.575])B(4.98,.94,z,1.40,.075,.08,'counter');
+ for(let x of [4.29,4.98,5.67])B(x,.94,3.22,.08,.075,.79,'counter');
+ for(let x of [4.63,5.32]){B(x,.925,3.22,.56,.045,.65,'steel');B(x,.949,3.22,.46,.009,.52,'sink');for(let side of [-1,1]){B(x+side*.25,.975,3.22,.035,.05,.60,'steel');B(x,.975,3.22+side*.30,.53,.05,.035,'steel')}C(x,.958,3.22,.045,.014,'steel')}
+ B(4.98,1.12,3.53,.036,.34,.036,'steel');B(4.98,1.29,3.39,.036,.036,.30,'steel');B(4.98,1.23,3.25,.036,.12,.036,'steel');
+ B(4.9,1.07,3.64,6.95,.20,.06,'counter');
+ for(let i=0;i<8;i++)B(5.86+i*.065,1.05,3.18,.018,.15,.44,'steel');for(let i=0;i<5;i++)B(5.94+i*.08,1.16,3.2,.025,.28,.28,'white');
+ C(4.15,1.09,3.48,.055,.23,'soap');C(4.15,1.23,3.48,.028,.05,'white');B(4.02,.994,2.94,.16,.04,.09,'yellow');
+ for(let y of [1.67,2.25]){B(4.05,y,3.40,6.35,.045,.44,'wood');for(let x of [1,3.05,5.15,7.17])B(x,(y+2.79)/2,3.16,.032,2.79-y,.032,'black');B(4.05,y-.036,3.16,6.35,.035,.03,'black')}
+ for(let i=0;i<25;i++){let x=1.12+i*.242,h=i>11&&i<18?.19:.10+(i%3)*.025,c=['white','ceramic','cream','charcoal','yellow'][i%5];C(x,1.70+h/2,3.39,.052,h,c,.064);if(i%3===0)B(x+.071,1.70+h*.55,3.39,.035,.068,.028,c)}
+ for(let i=0;i<11;i++)C(1.19+i*.51,2.35,3.39,.075,.14,['steel','white','yellow'][i%3]);
+ B(7.05,1.12,3.22,.66,.32,.44,'steel');B(7.05,1.13,2.991,.49,.23,.025,'black');B(7.05,1.13,2.975,.40,.17,.012,'darkGlass');B(7.325,1.11,2.973,.075,.18,.025,'charcoal');
+ B(8.18,.98,3.18,.99,1.96,.84,'steel',true);
+ for(let x of [7.94,8.43]){B(x,1.37,2.74,.47,1.17,.045,'steel');B(x,.39,2.74,.47,.74,.045,'steel')}
+ B(8.43,1.44,2.71,.40,1,.025,'darkGlass');B(7.94,1.42,2.71,.29,.46,.025,'black');B(7.94,1.30,2.69,.20,.055,.025,'steel');for(let x of [8.12,8.25])B(x,1.39,2.67,.027,.59,.04,'black');B(7.86,1.69,2.68,.18,.24,.009,'white');
+ C(1.05,1.10,3.23,.11,.24,'steel',.085);C(1.05,1.235,3.23,.071,.035,'black');B(1.18,1.11,3.23,.035,.19,.06,'black');
+ for(let x of [1.5,3.4,6.8]){B(x,1.22,3.60,.22,.09,.035,'white');for(let dx of [-.055,.055])B(x+dx,1.22,3.578,.045,.045,.008,'charcoal')}
+ // White high table, metal stools and three green booth bays.
+ B(4.8,1.04,.45,4.8,.065,1,'white',true);for(let x of [2.48,7.12])for(let z of [0,.9])B(x,.52,z,.055,1.04,.055,'black');for(let z of [0,.9])B(4.8,.12,z,4.65,.045,.045,'black');
+ function stool(x,z,yaw,high=true){let h=high?.76:.47;items.push({type:'stool',x,z,yaw,h,c:high?'white':'charcoal'});solids.push({x:KITCHEN_X+x,z:KITCHEN_Z+z,w:.46,d:.46});let dx=Math.sin(yaw),dz=Math.cos(yaw);S(x,z,yaw,h+.035,[[x-dx*.78,z-dz*.78],[x+dz*.68,z-dx*.68],[x-dz*.68,z+dx*.68]])}
+ for(let x of [2.9,3.85,4.8,5.75,6.7])stool(x,-.40,0);stool(7.60,.45,-Math.PI/2);
+ B(2.58,1.15,.45,.18,.17,.16,'white');
+ for(let x of [1.72,3.82,5.92]){
+  B(x,.012,-2.47,1.98,.024,2.18,'charcoal');B(x,.75,-2.48,.90,.065,1.58,'cream',true);for(let z of [-2.99,-1.98])B(x,.36,z,.10,.72,.10,'black');
+  for(let side of [-1,1]){let bx=x+side*.70;B(bx,.22,-2.49,.51,.44,1.78,'white',true);B(bx,.47,-2.49,.53,.11,1.78,'green');B(bx+side*.24,.78,-2.49,.13,.62,1.78,'green');for(let y of [1.30,1.95,2.55])B(bx+side*.27,y,-2.49,.10,.59,1.78,'acoustic');for(let z of [-2.18,-2.91])S(bx-side*.05,z,-side*Math.PI/2,.525,[[bx,-1.36],[bx-side*.3,-1.32]],'sofa')}
+  B(x,1.50,-3.59,1.98,2.65,.12,'darkPanel');B(x,.86,-2.98,.15,.15,.12,'white');C(x,2.72,-2.47,.07,.055,'black');B(x,2.48,-2.47,.015,.46,.015,'black');items.push({type:'pendant',x,y:2.23,z:-2.47});L(x,2.12,-2.47,0xffd49c,4.2)
+ }
+ for(let x of [.70,2.77,4.87,6.94])B(x,1.42,-2.48,.075,2.84,2.16,'green',true);
+ B(8.99,.78,-.6,.75,.07,4.65,'wood',true);for(let z of [-2.70,1.53])B(8.99,.38,z,.055,.76,.055,'black');for(let z of [-2.32,-1.20,-.08,1.05])stool(8.20,z,Math.PI/2,false);
+ // White open shelves, storage and waste bin.
+ B(8.43,1.18,-3.57,1.65,2.25,.045,'white');for(let x of [7.62,9.24])B(x,1.18,-3.29,.045,2.25,.60,'white',true);
+ for(let y of [.72,1.34,1.99])B(8.43,y,-3.29,1.58,.045,.54,'white');for(let j=0;j<8;j++)B(7.83+j*.16,1.48,-3.29,.11,.23,.18,['cream','blue','yellow','white'][j%4]);
+ B(7.9,.32,-3.25,.46,.64,.45,'cabinet',true);B(7.9,.65,-3.25,.49,.08,.48,'black');
+ for(let x of [1.28,5.03])B(x,1.40,-1.02,.07,2.8,.07,'black',true);
+ B(4.8,2.62,3.36,9.1,.27,.27,'charcoal');B(4.1,2.63,-3.35,7.8,.28,.29,'charcoal');
+ for(let x of [1.3,3.8,6.2,8.6]){B(x,2.72,1.82,.16,.035,.16,'warm');L(x,2.61,1.82)}
+ for(let z of [-.10,1]){B(4.8,2.61,z,4.9,.08,.075,'black');B(4.8,2.56,z,4.8,.025,.045,'warm')}
+ for(let x of [2.35,7.25]){B(x,2.61,.45,.075,.08,1.10,'black');B(x,2.56,.45,.045,.025,1.02,'warm')}
+ return {items,solids,seats};
+}
+function buildKitchen(parent,colliders,seats){
+ const root=new T.Group();root.name='Kitchen';root.position.set(KITCHEN_X,0,KITCHEN_Z);parent.add(root);
+ const palette={ivory:0xe5e0d6,white:0xf5f3ef,black:0x242526,charcoal:0x373a3c,cabinet:0x646d76,counter:0x202225,steel:0xa2abb0,sink:0x24292d,darkGlass:0x17242c,wood:0x96694b,green:0x385b55,acoustic:0xb8ada5,darkPanel:0x5e5955,grout:0xbab6af,window:0x8ab1ce,sky:0xaac8e0,building:0x9299a2,blue:0x407da6,cream:0xe5ddbf,ceramic:0xb79f86,yellow:0xe4bf38,soap:0x96b965,warm:0xffedce};
+ const materials=Object.fromEntries(Object.entries(palette).map(([k,c])=>[k,mat(c,k==='counter'?.23:k==='steel'?.3:.8,k==='steel'?.65:0)]));
+ materials.window=new T.MeshStandardMaterial({color:palette.window,transparent:true,opacity:.34,roughness:.24,depthWrite:false});materials.warm=glow(palette.warm);materials.sky=glow(palette.sky);
+ const B=(g,x,y,z,w,h,d,c)=>box(g,materials[c],w,h,d,x,y,z);
+ const C=(g,x,y,z,r,h,c,r2=r)=>mesh(g,new T.CylinderGeometry(r2,r,h,12),materials[c],x,y,z);
+ const data=kitchenLayout();
+ for(const a of data.items){
+  if(a.type==='box')B(root,a.x,a.y,a.z,a.w,a.h,a.d,a.c);
+  if(a.type==='cyl')C(root,a.x,a.y,a.z,a.r,a.h,a.c,a.r2);
+  if(a.type==='light'){const l=new T.PointLight(a.color,a.intensity,6,1.8);l.position.set(a.x,a.y,a.z);root.add(l)}
+  if(a.type==='pendant'){mesh(root,new T.SphereGeometry(.19,16,10,0,Math.PI*2,0,Math.PI*.72),new T.MeshStandardMaterial({color:0xe2b275,transparent:true,opacity:.54,side:T.DoubleSide,roughness:.25}),a.x,a.y,a.z);mesh(root,new T.SphereGeometry(.065,12,8),materials.warm,a.x,a.y-.065,a.z)}
+  if(a.type==='stool'){let g=new T.Group();g.position.set(a.x,0,a.z);g.rotation.y=a.yaw;root.add(g);let h=a.h;let seat=mesh(g,new T.SphereGeometry(1,12,8),materials[a.c],0,h,0);seat.scale.set(.24,.045,.225);let back=mesh(g,new T.SphereGeometry(1,12,8),materials[a.c],0,h+.14,-.195);back.scale.set(.24,.18,.055);for(let xx of [-.17,.17])for(let zz of [-.16,.16]){let leg=B(g,xx,h/2,zz,.025,h,.025,'steel');leg.rotation.x=zz*.35;leg.rotation.z=-xx*.35}if(h>.6)B(g,0,.30,.17,.37,.022,.025,'steel')}
+ }
+ colliders.push(...data.solids);seats.push(...data.seats);
+ return {kitchenRoot:root,kitchenBatchStats:batchGround(root,materials,[],[]),areas:[{x0:KITCHEN_X-.15,x1:KITCHEN_X+9.6,z0:KITCHEN_Z-3.7,z1:KITCHEN_Z+3.7,title:'Kitchen'}]};
+}
+
 export function makeAcademy(scene){
  scene.background=new T.Color(0x171513);scene.fog=new T.Fog(0x25221e,29,65);const g=new T.Group();scene.add(g);
  const concrete=new T.MeshStandardMaterial({map:texture('wall'),roughness:.93}),black=mat(0x222222,.46,.25),frame=mat(0x343632,.45,.55),white=mat(0xd9d1c1,.84),wood=mat(0x895637,.6),mustard=mat(0xb17a1a,.94),cushion=mat(0xc08a24,.95),glass=new T.MeshStandardMaterial({color:0xa9b9b3,transparent:true,opacity:.19,roughness:.16,metalness:.12,depthWrite:false}),warm=glow(0xfff1d5),dark=mat(0x302c29,.88),colliders=[],seats=[];
@@ -575,6 +653,7 @@ export function makeAcademy(scene){
  // Approved second-floor plan, using the real stair top as origin.
  const upstairs=buildApprovedUpper(g);
  const ada=buildAda(g,colliders,seats);
+ const kitchen=buildKitchen(g,colliders,seats);approved.areas.push(...kitchen.areas);
  const {upperColliders,upperSeats}=upstairs;
  let hallLight=new T.PointLight(0xffecd2,14,19,1.3);hallLight.position.set(0,4.4,-6.2);g.add(hallLight);
  let corridorLight=new T.PointLight(0xffe2b6,8,13,1.4);corridorLight.position.set(ACADEMY_DOOR_X,3.7,4);g.add(corridorLight);
@@ -589,7 +668,7 @@ export function makeAcademy(scene){
   let sw=new T.Group();sw.position.set(c.x,c.y,c.z);sw.rotation.y=c.face;g.add(sw);box(sw,white,.135,.19,.035,0,0,0);c.rocker=box(sw,black,.075,.11,.038,0,0,.025);c.indicator=box(sw,new T.MeshBasicMaterial({color:0x77e6b2}),.023,.015,.009,0,.062,.049);c.handle=sw;c.approachX=c.x+(c.face>0?.40:-.40);
  }
  const lightBudget=createLightBudget(g,scene);
- return {upperColliders,upperSeats,level:0,door,plazaDoor,plazaOpen:false,plazaAngle:0,colliders,seats,circuits,open:false,angle:0,lightBudget,...approved,...upstairs,...ada};
+ return {upperColliders,upperSeats,level:0,door,plazaDoor,plazaOpen:false,plazaAngle:0,colliders,seats,circuits,open:false,angle:0,lightBudget,...approved,...upstairs,...ada,kitchenRoot:kitchen.kitchenRoot,kitchenBatchStats:kitchen.kitchenBatchStats};
 }
 export function doorNearby(state,x,z){return Math.abs(x-ACADEMY_DOOR_X)<1.6&&Math.abs(z)<1.7}
 export function advanceDoor(state,dt){state.angle=T.MathUtils.damp(state.angle,state.open?Math.PI*.53:0,7,dt);state.door.rotation.y=-state.angle;state.plazaAngle=T.MathUtils.damp(state.plazaAngle,state.plazaOpen?Math.PI*.53:0,7,dt);state.plazaDoor.rotation.y=-state.plazaAngle;for(const d of [...(state.interiorDoors||[]),...(state.upperDoors||[])]){d.angle=T.MathUtils.damp(d.angle,d.open?1.5:0,7,dt);d.leaf.rotation.y=-d.angle}}
