@@ -140,7 +140,36 @@ export const STAIR_X=ACADEMY_DOOR_X+(596-704)/21.2,STAIR_TOP=(615-790)/21.2,STAI
 const STAIR_LEFT=STAIR_X-19/21.2,STAIR_RIGHT=STAIR_X+27/21.2;
 function stairRightAt(z){return STAIR_X+1.0+(STAIR_RIGHT-STAIR_X-1.0)*Math.max(0,Math.min(1,(z-STAIR_TOP)/1.0))}
 export function onAcademyStairs(x,z,r=0){return z>=STAIR_TOP-.40&&z<=STAIR_BOTTOM+.45&&x>=STAIR_LEFT+r&&x<=stairRightAt(z)-r}
-export function academyStairLevel(x,z,level){if(!onAcademyStairs(x,z,.12))return level;if(z<=STAIR_TOP+.12)return 1;if(z>=STAIR_BOTTOM-.08)return 0;return level}
+// Floor changes require an actual traversal of the stairs, not a matching X/Z coordinate.
+export function academyMoveWalkable(state,x,z,fromX,fromZ,r=.27){
+ if(!academyWalkable(state,x,z,r))return false;
+ const lane=onAcademyStairs(x,z,r),fromLane=onAcademyStairs(fromX,fromZ,r);
+ const top=STAIR_TOP+.12,bottom=STAIR_BOTTOM-.08;
+ if(lane&&z>top&&z<bottom){
+  if(!state.stairTravel){
+   if(state.level===0&&fromZ<bottom)return false;
+   if(state.level===1&&fromZ>top)return false;
+  }
+ }
+ if(lane&&state.level===0&&!state.stairTravel&&z<=top)return false;
+ if(lane&&state.level===1&&!state.stairTravel&&z>=bottom)return false;
+ if(state.stairTravel&&fromLane&&fromZ>top&&fromZ<bottom&&!lane)return false;
+ return true;
+}
+export function advanceAcademyFloor(state,fromX,fromZ,x,z){
+ const top=STAIR_TOP+.12,bottom=STAIR_BOTTOM-.08;
+ if(!onAcademyStairs(x,z,.12)){state.stairTravel=false;return state.level}
+ if(!state.stairTravel){
+  if(state.level===0&&fromZ>=bottom&&z<bottom&&z>top)state.stairTravel=true;
+  if(state.level===1&&fromZ<=top&&z>top&&z<bottom)state.stairTravel=true;
+ }
+ if(state.stairTravel){
+  if(z<=top){state.level=1;state.stairTravel=false}
+  else if(z>=bottom){state.level=0;state.stairTravel=false}
+ }
+ return state.level;
+}
+export function academyStairLevel(x,z,level){return level}
 
 // Static scene batching: preserve transforms and materials; never batch moving doors,
 // interactive displays, transparent glass or independently switchable fixtures.
@@ -628,7 +657,7 @@ function buildKitchen(parent,colliders,seats){
   }
   {let g=ground(755,483);paper(g,-.18,1.178,0,4);book(g,.16,1.178,0,'blue')}
   // Backpack shelves near green alcoves and tall plant stands by windows.
-  for(const [px,pz] of [[420,545],[425,543],[425,552],[417,550],[427,521]]){
+  for(const [px,pz] of [[420,545],[425,543],[425,552],[417,550],[427,521],[425,509],[425,496],[420,485],[430,477],[410,477]]){
    const [x,z]=world(px,pz);
    if(floorProp(x,z,.42,.46,areas,g=>{for(let dx of [-.19,.19])b(g,'grey',.035,1.85,.045,dx,.925,-.20);for(let j=0;j<4;j++){let y=.12+j*.43;b(g,'grey',.42,.045,.43,0,y,0);bag(g,0,y+.025,0,j===1?'blue':'black')}}))break;
   }
@@ -637,6 +666,13 @@ function buildKitchen(parent,colliders,seats){
    floorProp(x,z,.47,.47,areas,g=>{for(let xx of [-.20,.20])for(let zz of [-.20,.20])b(g,'black',.026,.88,.026,xx,.44,zz);b(g,'black',.44,.035,.44,0,.86,0);b(g,'black',.44,.035,.44,0,.12,0);planter(g,0,.88,0,.17,.54);planter(g,0,.14,0,.13,.30)});
   }
   for(const a of approvedLayout.items.filter(a=>a.type==='plant')){let g=sub(a.x+ACADEMY_DOOR_X,0,a.z);for(let i=0;i<4;i++)b(g,'leaf',.012,.38,.012,Math.cos(i*1.57)*.07,.44,Math.sin(i*1.57)*.07)}
+  // Spare laptops on existing desks.
+  for(const [px,pz] of [[266,540],[374,540],[483,353],[451,425.4]]){
+   let g=ground(px,pz);b(g,'grey',.30,.018,.23,0,.792,0);
+   let lid=b(g,'black',.30,.19,.018,0,.889,-.098);lid.rotation.x=-.15;
+   b(g,'black',.24,.008,.10,0,.806,.035);
+  }
+  {let g=ground(698,483);paper(g,0,1.178,0,3)}
   // Ground-floor overhead frames, cable trays, AC cassettes and projectors.
   for(const [px,pz,w,d] of [[692,387,1.50,3.65],[781,387,1.50,3.65],[483,389,2.5,1.25],[131,300,3.7,1.65],[300,285,3.9,1.65]]){
    let g=ground(px,pz);
