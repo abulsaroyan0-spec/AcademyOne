@@ -386,7 +386,7 @@ const adaLayout=(()=>{
  box(0,-.08,-7,12,.16,17,'charcoal');
  box(-6,3.0,-7, .16,6,17,'ivory',true);
  box(0,3,-15.5,12,6,.16,'charcoal',true);
- box(-1.0,3,1.5,10,6,.16,'ivory',true);box(5.9,3,1.5,.2,6,.16,'ivory',true);
+ box(-.7625,3,1.5,10.475,6,.16,'ivory',true);box(5.9125,3,1.5,.175,6,.16,'ivory',true);box(5.15,4.18,1.5,1.35,3.64,.16,'ivory');
  // Existing Academy door is used instead; internal threshold remains open.
  box(6,1.48,-7,.16,2.96,17,'ivory',true);
  box(0,6.08,-7,12,.16,17,'ivory',false,{ceiling:true});
@@ -444,14 +444,13 @@ const adaLayout=(()=>{
 
 // Auditorium occupies the west side of the lounge. Its east-facing entry is reached
 // through the existing Ada door. Its north wall shares the real mezzanine frontage.
-const ADA_FRONT_X=-6.7,ADA_RIGHT_Z=STAIR_TOP,ADA_DOOR_X=ACADEMY_DOOR_X+(575-704)/21.2,ADA_DOOR_Z=(589-790)/21.2;
+const ADA_DOOR_X=ACADEMY_DOOR_X+(575-704)/21.2,ADA_DOOR_Z=(589-790)/21.2;
+const ADA_FRONT_X=ACADEMY_DOOR_X+(574-704)/21.2-.04,ADA_RIGHT_Z=ADA_DOOR_Z-.85;
 function adaWorld(x,z){return {x:ADA_FRONT_X+z-1.5,z:ADA_RIGHT_Z+6-x}}
 const ADA_ROOM={x0:ADA_FRONT_X-17,x1:ADA_FRONT_X,z0:ADA_RIGHT_Z,z1:ADA_RIGHT_Z+12,title:'Ada Lovelace'};
-const ADA_CONNECT={x0:ADA_FRONT_X,x1:ADA_DOOR_X+.24,z0:ADA_DOOR_Z-.85,z1:ADA_RIGHT_Z+2.12,title:'Ada entrance'};
 export function inAdaHall(x,z){return x>=ADA_ROOM.x0&&x<=ADA_ROOM.x1&&z>=ADA_ROOM.z0&&z<=ADA_ROOM.z1}
-function inAdaAccess(x,z){return inAdaHall(x,z)||(x>=ADA_CONNECT.x0&&x<=ADA_CONNECT.x1&&z>=ADA_CONNECT.z0&&z<=ADA_CONNECT.z1)}
+function inAdaAccess(x,z){return inAdaHall(x,z)||(x>=ADA_FRONT_X&&x<=ADA_DOOR_X+.24&&Math.abs(z-ADA_DOOR_Z)<=.675)}
 function adaSolids(){return adaLayout.solids.map(c=>{const p=adaWorld(c.x,c.z);return {...p,w:c.d,d:c.w}})}
-function adaConnectorSolids(){const {x0,x1,z0,z1}=ADA_CONNECT;return [{x:(x0+x1)/2,z:z0,w:x1-x0,d:.14},{x:(x0+x1)/2,z:z1,w:x1-x0,d:.14},{x:x0,z:(z0+ADA_RIGHT_Z)/2,w:.14,d:ADA_RIGHT_Z-z0}]}
 function buildAda(parent,colliders,seats){
  const scene=new T.Group();scene.name='Ada Lovelace auditorium';scene.position.set(ADA_FRONT_X-1.5,0,ADA_RIGHT_Z+6);scene.rotation.y=Math.PI/2;parent.add(scene);const data=adaLayout;
  const palette={ivory:0xe0dcd2,white:0xf3f3ed,black:0x252528,charcoal:0x414143,step:0x85817b,chalk:0x323536,metal:0x9c9c99,concrete:0x77716b,wood:0xb77d47,olive:0x666e48,acoustic:0xc8c1b7,green:0x6eb954,blue:0x4286b1,yellow:0xd5b52a,old:0xc8c3af,marble:0xc4c1b7,warm:0xffebc6,pink:0xad2059,glass:0x98b6b8,frost:0xb7d0cd};
@@ -470,12 +469,7 @@ for(const a of data.items){const {x,y,z,w,h,d,c,rot=0}=a;
 }
 
  for(const z of [-1,-7,-13]){const l=new T.PointLight(0xfff2de,12,12,1.8);l.position.set(0,5.1,z);scene.add(l)}
- const {x0,x1,z0,z1}=ADA_CONNECT;
- box(parent,materials.ivory,x1-x0,.14,z1-z0,(x0+x1)/2,2.73,(z0+z1)/2);
- box(parent,materials.charcoal,x1-x0,.12,z1-z0,(x0+x1)/2,-.06,(z0+z1)/2);
- for(const c of adaConnectorSolids())box(parent,materials.ivory,c.w,2.66,c.d,c.x,1.33,c.z);
- const lamp=new T.PointLight(0xffefd9,4,4,1.8);lamp.position.set((x0+x1)/2,2.56,(z0+z1)/2);parent.add(lamp);
- colliders.push(...adaSolids(),...adaConnectorSolids());
+ colliders.push(...adaSolids());
  for(const a of data.items)if(a.type==='chair'&&a.base<2){
   const p=adaWorld(a.x,a.z),yaw=(a.rot||0)+Math.PI/2,approaches=[[-.69,0],[.69,0],[0,-.64],[0,.64]].map(([dx,dz])=>adaWorld(a.x+dx,a.z+dz));
   seats.push({kind:'chair',x:p.x,z:p.z,height:.51,yaw,computer:null,approaches});
