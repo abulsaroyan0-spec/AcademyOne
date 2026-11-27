@@ -55,7 +55,7 @@ const approvedLayout=(function(){
  B(576,749,648,788,.008,.016,'charcoal');
  for(let i=0;i<16;i++){let z=stairFront-(i+.5)*step;B(stairLeft,z-step/2,stairRight,z+step/2,(i+1)*2.96/16-.08,.16,'black')}
  items.push({type:'stairrail',x:X(stairRight+1),z:Z(stairFront),run:M(stairFront-stairEnd)});
- solids.push({x:X((stairLeft+stairRight)/2),z:Z((stairFront+stairEnd)/2),w:M(stairRight-stairLeft),d:M(stairFront-stairEnd)});
+ solids.push({x:X((stairLeft+stairRight)/2),z:Z((stairFront+stairEnd)/2),w:M(stairRight-stairLeft),d:M(stairFront-stairEnd),stairFootprint:true});
  // Vintage technology and Ada behind stairs, visible in original video, not represented separately in plan.
  // G: restore open vintage computer display beneath the stairs, away from Ada's door.
  items.push({type:'vintage',x:X(598),z:Z(652),rot:Math.PI/2});solids.push({x:X(598),z:Z(652),w:.84,d:2.10});
@@ -141,10 +141,13 @@ const STAIR_LEFT=STAIR_X-19/21.2,STAIR_RIGHT=STAIR_X+27/21.2;
 function stairRightAt(z){return STAIR_X+1.0+(STAIR_RIGHT-STAIR_X-1.0)*Math.max(0,Math.min(1,(z-STAIR_TOP)/1.0))}
 export function onAcademyStairs(x,z,r=0){return z>=STAIR_TOP-.40&&z<=STAIR_BOTTOM+.45&&x>=STAIR_LEFT+r&&x<=stairRightAt(z)-r}
 // Floor changes require an actual traversal of the stairs, not a matching X/Z coordinate.
+// Ground-level passage beneath the high end of the stair has separate collision/terrain.
+function stairUnderpass(z,r=.27){return z+r<=STAIR_TOP+1.65}
 export function academyMoveWalkable(state,x,z,fromX,fromZ,r=.27){
  if(!academyWalkable(state,x,z,r))return false;
  const lane=onAcademyStairs(x,z,r),fromLane=onAcademyStairs(fromX,fromZ,r);
  const top=STAIR_TOP+.12,bottom=STAIR_BOTTOM-.08;
+ if(state.level===0&&!state.stairTravel&&stairUnderpass(z,r))return true;
  if(lane&&z>top&&z<bottom){
   if(!state.stairTravel){
    if(state.level===0&&fromZ<bottom)return false;
@@ -813,11 +816,11 @@ export function advanceDoor(state,dt){state.angle=T.MathUtils.damp(state.angle,s
 export function nearbyInteriorDoor(state,x,z){return ((state.level===1?state.upperDoors:state.interiorDoors)||[]).filter(d=>Math.hypot(d.x-x,d.z-z)<1.55).sort((a,b)=>Math.hypot(a.x-x,a.z-z)-Math.hypot(b.x-x,b.z-z))[0]||null}
 // Broad phase collision grid. Geometry remains unchanged; only nearby candidates
 // are checked during movement, camera avoidance and seat approach tests.
-function hitsCollider(list,x,z,r){
+function hitsCollider(list,x,z,r,ignoreStair=false){
  if(!list)return false;
  const cell=2;let index=collisionIndices.get(list);
  if(!index){index=new Map();for(const c of list){let hw=c.r??c.w/2,hd=c.r??c.d/2;for(let ix=Math.floor((c.x-hw)/cell);ix<=Math.floor((c.x+hw)/cell);ix++)for(let iz=Math.floor((c.z-hd)/cell);iz<=Math.floor((c.z+hd)/cell);iz++){let k=ix+','+iz;let a=index.get(k);if(!a)index.set(k,a=[]);a.push(c)}}collisionIndices.set(list,index)}
- for(let ix=Math.floor((x-r)/cell);ix<=Math.floor((x+r)/cell);ix++)for(let iz=Math.floor((z-r)/cell);iz<=Math.floor((z+r)/cell);iz++){const a=index.get(ix+','+iz);if(!a)continue;for(const c of a){if(c.r!==undefined?Math.hypot(x-c.x,z-c.z)<c.r+r:Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r)return true}}
+ for(let ix=Math.floor((x-r)/cell);ix<=Math.floor((x+r)/cell);ix++)for(let iz=Math.floor((z-r)/cell);iz<=Math.floor((z+r)/cell);iz++){const a=index.get(ix+','+iz);if(!a)continue;for(const c of a){if(ignoreStair&&c.stairFootprint)continue;if(c.r!==undefined?Math.hypot(x-c.x,z-c.z)<c.r+r:Math.abs(x-c.x)<c.w/2+r&&Math.abs(z-c.z)<c.d/2+r)return true}}
  return false;
 }
 const collisionIndices=new WeakMap();
@@ -833,8 +836,9 @@ export function academyWalkable(state,x,z,r=.27){
   if((state.interiorDoors||[]).some(d=>d.angle<1.2&&(Math.abs(Math.sin(d.rot))>.5?Math.abs(x-d.x)<.10+r&&Math.abs(z-d.z)<.58+r:Math.abs(z-d.z)<.10+r&&Math.abs(x-d.x)<.58+r)))return false;
   return !hitsCollider(state.colliders,x,z,r);
  }
- if(stair)return true;
- if(x>STAIR_LEFT-r&&x<STAIR_RIGHT+r&&z>=STAIR_TOP&&z<=STAIR_BOTTOM)return false;
+ const under=!state.stairTravel&&stairUnderpass(z,r);
+ if(stair&&!under)return true;
+ if(!under&&x>STAIR_LEFT-r&&x<STAIR_RIGHT+r&&z>=STAIR_TOP&&z<=STAIR_BOTTOM)return false;
  if(z>34.65-r||z< -45.45+r)return false;
  const ex=x-ENTRANCE_OFFSET,ax=Math.abs(ex),inside=(l,h,f,n)=>ex>=l+r&&ex<=h-r&&z>=f+r&&z<=n-r;
  if(z>23.24){if(ax>10.7-r)return false}
@@ -846,7 +850,7 @@ export function academyWalkable(state,x,z,r=.27){
  if(Math.abs(z-18)<.24+r&&ax>1.20-r)return false;
  if(Math.abs(z)<.29+r&&(x<ACADEMY_DOOR_X-.60+r||x>ACADEMY_DOOR_X+.60-r||state.angle<1.2))return false;
  if((state.interiorDoors||[]).some(d=>d.angle<1.2&&(Math.abs(Math.sin(d.rot))>.5?Math.abs(x-d.x)<.10+r&&Math.abs(z-d.z)<.58+r:Math.abs(z-d.z)<.10+r&&Math.abs(x-d.x)<.58+r)))return false;
- return !hitsCollider(state.colliders,x,z,r);
+ return !hitsCollider(state.colliders,x,z,r,under);
 }
 
 // Choose reachable seat approaches only; never walk through a different obstacle to reach one.
@@ -855,5 +859,12 @@ export function nearestAcademySeat(state,x,z,maxDistance=1.55){let best=null;for
 export function nearbyLightSwitch(state,x,z,max=1.30){if(state.level===1)return null;let found=null,d=max;for(const c of state.circuits||[]){const n=Math.hypot(x-c.approachX,z-c.z);if(n<d&&academyWalkable(state,c.approachX,c.z)){let clear=true;for(let k=1;k<=10;k++){const t=k/10;if(!academyWalkable(state,x+(c.approachX-x)*t,z+(c.z-z)*t)){clear=false;break}}if(clear){d=n;found=c}}}return found}
 export function setLightCircuit(c,on){c.on=!!on;for(const a of c.lights)a.light.intensity=a.intensity*(c.on?1:0);for(const a of c.fixtures)a.material.color.copy(a.color).multiplyScalar(c.on?1:.035);c.rocker.rotation.x=c.on?-.15:.15;c.indicator.material.color.setHex(c.on?0x77e6b2:0x682e27)}
 
+export function academyTerrain(state,x,z){
+ if(state.stairTravel)return academyGround(x,z,state.level);
+ if(state.level===1)return 2.96;
+ if(inAdaHall(x,z))return adaLayout.height(x-ADA_FRONT_X+1.5);
+ if(z<18.68)return 0;
+ return academyGround(x,z,0);
+}
 export function academyGround(x,z,level=0){if(level===0&&inAdaHall(x,z))return adaLayout.height(x-ADA_FRONT_X+1.5);if(onAcademyStairs(x,z,-.03)){if(z>=STAIR_BOTTOM)return 0;if(z<=STAIR_TOP)return 2.96;const step=(STAIR_BOTTOM-STAIR_TOP)/16;return Math.min(2.96,Math.max(0,(Math.floor((STAIR_BOTTOM-z)/step)+1)*2.96/16))}if(level===1)return 2.96;if(z>=22.28)return -1.8;if(z<=18.68)return 0;return -1.8+.18*Math.min(10,Math.max(1,Math.floor((22.28-z)/.36)+1))}
 export function plazaDoorNearby(state,x,z){return Math.abs(x-(.5+ENTRANCE_OFFSET))<1.65&&Math.abs(z-23)<1.65}
