@@ -49,7 +49,7 @@ const approvedLayout=(function(){
  // Entrance and double-height lounge: kept at exact drawn outline and furniture centers.
  R(682,790,726,956,'Entrance corridor','dark',3.4);W(682,790,682,956,3.4,'concrete');W(726,790,726,956,3.4,'concrete');W(682,956,726,956,3.4,'concrete');
  for(let z=815;z<950;z+=25){for(let x of [684,724]){B(x-1,z-2,x+1,z+2,.06,.07,'warm');light(X(x),Z(z),.3,'wall')}}
- R(574,558,833,790,'Main lounge','tile',5.6);W(574,558,574,790,5.6);W(833,558,833,790,5.6,'charcoal');W(574,790,690,790,5.6);W(718,790,833,790,5.6);door(X(704),Z(790),0,'Picsart Academy','glass');
+ R(574,558,833,790,'Main lounge','tile',5.6);W(574,558,574,574.7,5.6);W(574,603.3,574,790,5.6);B(572.3,574.7,575.7,603.3,2.68,.56,'ivory');W(833,558,833,790,5.6,'charcoal');W(574,790,690,790,5.6);W(718,790,833,790,5.6);door(X(704),Z(790),0,'Picsart Academy','glass');
  // Wider lower landing, original upper connection retained.
  const stairFront=749,stairEnd=615,stairLeft=577,stairRight=623,step=(stairFront-stairEnd)/16;
  B(576,749,648,788,.008,.016,'charcoal');
@@ -216,7 +216,7 @@ for(const a of data.items){if(a.type==='floor'&&a.z>0||a.type==='door'&&a.z===0|
  }
  if(a.type==='sign'){let o=plaque(a.t,w,h,a.c);o.position.set(x,y,z);o.rotation.y=rot;scene.add(o)}
  if(a.type==='light'){const o=cube(x,y,z,a.kind==='rect'?2.3:.16,.035,a.kind==='rect'?1.1:.16,'warm');roof.push(o);if(a.kind!=='wall'){const p=new T.PointLight(0xffebd2,a.kind==='rect'?11:5,6,1.8);p.position.set(x,y-.13,z);scene.add(p)}}
- if(a.type==='door'){let g=group(x,z,rot);for(let xx of [-.63,.63])cube(xx,1.18,0,.09,2.36,.14,'black',g);cube(0,2.35,0,1.35,.09,.14,'black',g);let leaf=new T.Group();leaf.position.x=.58;g.add(leaf);cube(-.58,1.13,0,1.14,2.26,.055,a.color==='glass'?'frost':'white',leaf);if(a.color==='glass'){for(let xx of [-1.12,-.04])cube(xx,1.13,.02,.08,2.26,.085,'black',leaf);for(let yy of [.06,2.2])cube(-.58,yy,.02,1.14,.12,.085,'black',leaf)}cube(-1.01,1.05,.06,.09,.32,.06,'black',leaf);if(a.t){let p=plaque(a.t,1.1,.19,a.t==='Ada Lovelace'?'wood':'pink');p.position.set(0,2.53,.095);g.add(p)}staticDoorLeaves.push({leaf});if(!['Ada Lovelace','Kitchen','Staff only'].includes(a.t))doors.push({x:x+ACADEMY_DOOR_X,z,rot,leaf,open:false,angle:0})}
+ if(a.type==='door'){let g=group(x,z,rot);for(let xx of [-.63,.63])cube(xx,1.18,0,.09,2.36,.14,'black',g);cube(0,2.35,0,1.35,.09,.14,'black',g);let leaf=new T.Group();leaf.position.x=.58;g.add(leaf);cube(-.58,1.13,0,1.14,2.26,.055,a.color==='glass'?'frost':'white',leaf);if(a.color==='glass'){for(let xx of [-1.12,-.04])cube(xx,1.13,.02,.08,2.26,.085,'black',leaf);for(let yy of [.06,2.2])cube(-.58,yy,.02,1.14,.12,.085,'black',leaf)}cube(-1.01,1.05,.06,.09,.32,.06,'black',leaf);if(a.t){let p=plaque(a.t,1.1,.19,a.t==='Ada Lovelace'?'wood':'pink');p.position.set(0,2.53,.095);g.add(p)}staticDoorLeaves.push({leaf});if(!['Kitchen','Staff only'].includes(a.t))doors.push({x:x+ACADEMY_DOOR_X,z,rot,leaf,open:false,angle:0})}
  if(a.type==='desk'){let g=group(x,z,rot);cube(0,.75,0,w,.065,d,a.col,g);for(let xx of [-w/2+.06,w/2-.06])for(let zz of [-d/2+.06,d/2-.06])cube(xx,.35,zz,.045,.70,.045,'black',g)}
  if(a.type==='chair'){let g=group(x,z,rot);cube(0,.47,0,.49,.10,.46,'charcoal',g);cube(0,.77,-.22,.46,.48,.055,'charcoal',g);for(let xx of [-.25,.25]){cube(xx,.62,-.03,.04,.24,.045,'black',g);cube(xx,.73,.03,.04,.05,.33,'black',g)}cylinder(0,.24,0,.04,.42,'black',g);for(let i=0;i<5;i++){let ang=i*Math.PI*2/5;let b=cube(Math.sin(ang)*.10,.06,Math.cos(ang)*.10,.035,.035,.26,'black',g);b.rotation.y=ang;cylinder(Math.sin(ang)*.23,.035,Math.cos(ang)*.23,.035,.06,'black',g)}}
  if(a.type==='pc'){let g=group(x,z,rot);const display=new T.MeshStandardMaterial({color:0x20272c,roughness:.48});cube(0,1.09,-.16,.51,.30,.055,display,g);computers.push({x,z,rot,display,on:false});cube(0,.90,-.16,.04,.18,.05,'black',g);cube(0,.795,-.16,.25,.025,.15,'black',g);cube(0,.79,.10,.32,.025,.12,'black',g)}
@@ -377,6 +377,112 @@ for(const a of data.items){const {x,y,z,w,h,d,c,rot=0}=a;
  return {upperRoot:scene,upperColliders,upperAreas,upperSeats,upperDoors:doors,upperBatchStats};
 }
 
+
+const adaLayout=(()=>{
+ const items=[],solids=[],areas=[{x0:-6,x1:6,z0:-15.5,z1:1.5,title:'Ada Lovelace'}];
+ const box=(x,y,z,w,h,d,c,block=false,extra={})=>{items.push({type:'box',x,y,z,w,h,d,c,...extra});if(block)solids.push({x,z,w,d})};
+ const height=z=>Math.max(0,Math.min(6,Math.floor((-z-2.1)/1.75)))*.18;
+ // Front wall, entry vestibule, auditorium, uninterrupted side aisles.
+ box(0,-.08,-7,12,.16,17,'charcoal');
+ box(-6,3.0,-7, .16,6,17,'ivory',true);
+ box(0,3,-15.5,12,6,.16,'charcoal',true);
+ box(-1.0,3,1.5,10,6,.16,'ivory',true);box(5.9,3,1.5,.2,6,.16,'ivory',true);
+ // Existing Academy door is used instead; internal threshold remains open.
+ box(6,1.48,-7,.16,2.96,17,'ivory',true);
+ box(0,6.08,-7,12,.16,17,'ivory',false,{ceiling:true});
+ // Dark teaching wall: three framed, two-part sliding chalkboard sections.
+ for(let i=0;i<3;i++){let x=-3.5+i*2.65;
+  box(x,2.0,1.30,2.6,2.95,.13,'black');
+  box(x,2.72,1.20,2.49,1.38,.075,'chalk');
+  box(x,1.26,1.18,2.49,1.46,.085,'chalk');
+  for(let dx of [-1.29,1.29])box(x+dx,2.0,1.13,.065,3.04,.11,'metal');
+  box(x,2.02,1.12,2.56,.055,.10,'metal');
+ }
+ items.push({type:'chalktitle',x:-.85,y:2.95,z:1.15});
+ box(-.85,.52,1.07,8.0,.08,.19,'black');
+ for(let x of [-4.7,-2,1,3])box(x,.24,1.1,.065,.48,.07,'black');
+ // Teacher workstation and lectern at the side of the entrance.
+ items.push({type:'desk',x:-4.9,z:-.1,w:1.25,d:.65,col:'white',rot:0,base:0});solids.push({x:-4.9,z:-.1,w:1.25,d:.65});
+ items.push({type:'chair',x:-4.9,z:-.76,rot:0,base:0});solids.push({x:-4.9,z:-.76,w:.5,d:.5});
+ box(5.65,.50,-2.78,.62,1,.58,'white',true);box(5.65,1.05,-2.78,.74,.07,.65,'white');
+ // Seven continuous white desk rows, rising toward the timber rear wall.
+ for(let row=0;row<7;row++){
+  let z=-2.7-row*1.75,base=height(z);
+  if(row>0){let edge=-2.1-row*1.75;box(0,base/2,edge-.875,11.8,base,1.75,'step');}
+  // Desk surface and modesty panel on the front of every row.
+  box(0,base+.76,z,9.05,.065,.74,'white',true);
+  if(row>0)box(0,base+.46,z+.33,9.05,.48,.055,'white');
+  for(let x of [-4.46,-1.5,1.5,4.46]){box(x,base+.37,z-.30,.045,.70,.045,'black');box(x,base+.37,z+.30,.045,.70,.045,'black')}
+  for(let x of [-3.98,-2.985,-1.99,-.995,0,.995,1.99,2.985,3.98]){items.push({type:'chair',x,z:z-.83,rot:0,base:height(z-.83)});solids.push({x,z:z-.83,w:.52,d:.52})}
+ }
+ // Rear tier extension and dark edge trim across each riser.
+ const backH=height(-15);box(0,backH/2,-14.925,11.8,backH,1.15,'step');
+ for(let i=1;i<=6;i++){let z=-2.1-i*1.75;box(0,i*.18+.005,z,.0+11.8,.035,.045,'black')}
+ // Acoustic wall treatment, columns and vertical wood slats at the rear.
+ for(let x=-5.75;x<=5.75;x+=.125)box(x,3.45,-15.36,.065,4.6,.095,'wood');
+ for(let z of [-2,-6.1,-10.2,-14.3]){
+  box(-5.88,2.8,z,.22,5.6,.42,'charcoal',true);
+  box(5.88,1.45,z,.24,2.9,.44,'charcoal',true);
+  box(5.72,2.10,z,.075,.90,.75,'acoustic');
+ }
+ box(-5.89,2.35,-7,.09,.88,16,'acoustic');
+ for(let z=-14.8;z<-1;z+=.14)box(-5.82,2.35,z,.028,.87,.045,'charcoal');
+ for(let z of [-13,-8,-3])box(-5.80,2.95,z,.11,.14,.14,'white');
+ // Upper glazing is the actual second-floor meeting-room frontage, not duplicated preview rooms.
+ // Black suspended acoustic ceiling rafts, longitudinal strip lights, two projectors.
+ for(let z of [-1.6,-4.4,-7.2,-10,-12.8]){
+  for(let x of [-3.6,0,3.6])box(x,5.48,z,3.05,.14,2.2,'acoustic',false,{ceiling:true});
+  box(0,5.36,z+1.2,10.9,.045,.055,'warm',false,{ceiling:true});
+  box(0,5.72,z,11.7,.17,.15,'ivory',false,{ceiling:true});
+  for(let x of [-5.4,5.4])box(x,2.82,z,.18,.025,.18,'warm');
+ }
+ for(let z of [-4.5,-10]){box(0,5.18,z,.045,.58,.045,'metal',false,{ceiling:true});box(0,4.84,z,.42,.15,.34,'white',false,{ceiling:true});box(0,4.85,z+.18,.13,.075,.035,'black',false,{ceiling:true})}
+ // Water cooler beside entry pillar, black bin.
+ box(5.55,.45,-2.0,.40,.90,.39,'black',true);box(5.55,1.1,-2.0,.29,.42,.29,'blue');box(5.55,.62,-1.79,.24,.17,.035,'metal');box(5.35,.23,-.95,.29,.46,.30,'charcoal',true);
+ return {items,solids,areas,height,checkpoints:[['Մուտք',4.75,.05],['Գրատախտակի մոտ',0,-.5],['Աջ անցուղի',5.25,-6],['Վերջին շարք',5.25,-14.4],['Ձախ անցուղի',-5.2,-8.5]]};
+})();
+
+// Auditorium occupies the west side of the lounge. Its east-facing entry is reached
+// through the existing Ada door. Its north wall shares the real mezzanine frontage.
+const ADA_FRONT_X=-6.7,ADA_RIGHT_Z=STAIR_TOP,ADA_DOOR_X=ACADEMY_DOOR_X+(575-704)/21.2,ADA_DOOR_Z=(589-790)/21.2;
+function adaWorld(x,z){return {x:ADA_FRONT_X+z-1.5,z:ADA_RIGHT_Z+6-x}}
+const ADA_ROOM={x0:ADA_FRONT_X-17,x1:ADA_FRONT_X,z0:ADA_RIGHT_Z,z1:ADA_RIGHT_Z+12,title:'Ada Lovelace'};
+const ADA_CONNECT={x0:ADA_FRONT_X,x1:ADA_DOOR_X+.24,z0:ADA_DOOR_Z-.85,z1:ADA_RIGHT_Z+2.12,title:'Ada entrance'};
+export function inAdaHall(x,z){return x>=ADA_ROOM.x0&&x<=ADA_ROOM.x1&&z>=ADA_ROOM.z0&&z<=ADA_ROOM.z1}
+function inAdaAccess(x,z){return inAdaHall(x,z)||(x>=ADA_CONNECT.x0&&x<=ADA_CONNECT.x1&&z>=ADA_CONNECT.z0&&z<=ADA_CONNECT.z1)}
+function adaSolids(){return adaLayout.solids.map(c=>{const p=adaWorld(c.x,c.z);return {...p,w:c.d,d:c.w}})}
+function adaConnectorSolids(){const {x0,x1,z0,z1}=ADA_CONNECT;return [{x:(x0+x1)/2,z:z0,w:x1-x0,d:.14},{x:(x0+x1)/2,z:z1,w:x1-x0,d:.14},{x:x0,z:(z0+ADA_RIGHT_Z)/2,w:.14,d:ADA_RIGHT_Z-z0}]}
+function buildAda(parent,colliders,seats){
+ const scene=new T.Group();scene.name='Ada Lovelace auditorium';scene.position.set(ADA_FRONT_X-1.5,0,ADA_RIGHT_Z+6);scene.rotation.y=Math.PI/2;parent.add(scene);const data=adaLayout;
+ const palette={ivory:0xe0dcd2,white:0xf3f3ed,black:0x252528,charcoal:0x414143,step:0x85817b,chalk:0x323536,metal:0x9c9c99,concrete:0x77716b,wood:0xb77d47,olive:0x666e48,acoustic:0xc8c1b7,green:0x6eb954,blue:0x4286b1,yellow:0xd5b52a,old:0xc8c3af,marble:0xc4c1b7,warm:0xffebc6,pink:0xad2059,glass:0x98b6b8,frost:0xb7d0cd};
+const materials={};for(const [k,c] of Object.entries(palette))materials[k]=k==='warm'?new T.MeshBasicMaterial({color:c}):new T.MeshStandardMaterial({color:c,roughness:k==='wood'?.68:.84,transparent:k==='glass'||k==='frost',opacity:k==='glass'?.24:k==='frost'?.66:1,depthWrite:k!=='glass'&&k!=='frost'});
+function cube(x,y,z,w,h,d,c,parent=scene){const o=new T.Mesh(new T.BoxGeometry(w,h,d),typeof c==='string'?materials[c]:c);o.position.set(x,y,z);parent.add(o);return o}
+function group(x,z,rot=0){const g=new T.Group();g.position.set(x,0,z);g.rotation.y=rot;scene.add(g);return g}
+const roof=[],doors=[];let rng=123;const rand=()=>((rng=(Math.imul(rng,1664525)+1013904223)>>>0)/4294967296);
+function tile(kind){const c=document.createElement('canvas');c.width=c.height=256;const ctx=c.getContext('2d');ctx.fillStyle=kind==='dark'?'#353230':'#c9c4bb';ctx.fillRect(0,0,256,256);for(let i=0;i<3500;i++){ctx.fillStyle=rand()>.5?'#ffffff09':'#0000000a';ctx.fillRect(rand()*256,rand()*256,rand()*16+1,1)}ctx.strokeStyle=kind==='dark'?'#8b8172':'#aaa69f';ctx.lineWidth=1.5;ctx.strokeRect(1,1,254,254);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.wrapS=t.wrapT=T.RepeatWrapping;t.anisotropy=8;return t}
+function plaque(t,w,h,c){const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=256;let ctx=canvas.getContext('2d');ctx.fillStyle='#'+palette[c].toString(16).padStart(6,'0');ctx.fillRect(0,0,1024,256);ctx.fillStyle=c==='ivory'?'#292929':'white';ctx.font='bold '+(t.includes('|')?62:100)+'px Arial';ctx.textAlign='center';ctx.textBaseline='middle';const lines=t.split('|');lines.forEach((l,i)=>ctx.fillText(l,512,128+(i-(lines.length-1)/2)*86,980));const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;return new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({map,side:T.DoubleSide}))}
+function cylinder(x,y,z,r,h,c,g=scene){let o=new T.Mesh(new T.CylinderGeometry(r,r,h,12),materials[c]);o.position.set(x,y,z);g.add(o);return o}
+for(const a of data.items){const {x,y,z,w,h,d,c,rot=0}=a;
+ if(a.type==='box'){const o=cube(x,y,z,w,h,d,c);if(a.ceiling)roof.push(o)}
+ if(a.type==='chalktitle'){let c=document.createElement('canvas');c.width=512;c.height=300;let ctx=c.getContext('2d');ctx.clearRect(0,0,512,300);ctx.fillStyle='#d6b5b1';ctx.font='bold 70px Arial';ctx.textAlign='center';ctx.fillText('PICSART',256,110);ctx.fillStyle='#dddcd2';ctx.fillText('ACADEMY',256,202);let tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;let m=new T.Mesh(new T.PlaneGeometry(1.7,1),new T.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));m.position.set(x,y,z-.02);m.rotation.y=Math.PI;scene.add(m)}
+ if(a.type==='desk'){let g=group(x,z,rot);cube(0,.75,0,w,.065,d,a.col,g);for(let xx of [-w/2+.06,w/2-.06])for(let zz of [-d/2+.06,d/2-.06])cube(xx,.35,zz,.045,.70,.045,'black',g)}
+ if(a.type==='chair'){let g=group(x,z,rot);g.position.y=a.base||0;cube(0,.47,0,.49,.075,.46,'acoustic',g);cube(0,.77,-.22,.46,.43,.045,'acoustic',g);for(let xx of [-.25,.25]){cube(xx,.62,-.03,.04,.24,.045,'black',g);cube(xx,.73,.03,.04,.05,.33,'black',g)}for(let xx of [-.20,.20])for(let zz of [-.18,.18]){let leg=cube(xx,.22,zz,.033,.43,.033,'metal',g);leg.rotation.x=zz*.55;leg.rotation.z=-xx*.55;}}
+}
+
+ for(const z of [-1,-7,-13]){const l=new T.PointLight(0xfff2de,12,12,1.8);l.position.set(0,5.1,z);scene.add(l)}
+ const {x0,x1,z0,z1}=ADA_CONNECT;
+ box(parent,materials.ivory,x1-x0,.14,z1-z0,(x0+x1)/2,2.73,(z0+z1)/2);
+ box(parent,materials.charcoal,x1-x0,.12,z1-z0,(x0+x1)/2,-.06,(z0+z1)/2);
+ for(const c of adaConnectorSolids())box(parent,materials.ivory,c.w,2.66,c.d,c.x,1.33,c.z);
+ const lamp=new T.PointLight(0xffefd9,4,4,1.8);lamp.position.set((x0+x1)/2,2.56,(z0+z1)/2);parent.add(lamp);
+ colliders.push(...adaSolids(),...adaConnectorSolids());
+ for(const a of data.items)if(a.type==='chair'&&a.base<2){
+  const p=adaWorld(a.x,a.z),yaw=(a.rot||0)+Math.PI/2,approaches=[[-.69,0],[.69,0],[0,-.64],[0,.64]].map(([dx,dz])=>adaWorld(a.x+dx,a.z+dz));
+  seats.push({kind:'chair',x:p.x,z:p.z,height:.51,yaw,computer:null,approaches});
+ }
+ return {adaRoot:scene,adaBatchStats:batchGround(scene,materials,[],[])};
+}
+
 export function makeAcademy(scene){
  scene.background=new T.Color(0x171513);scene.fog=new T.Fog(0x25221e,29,65);const g=new T.Group();scene.add(g);
  const concrete=new T.MeshStandardMaterial({map:texture('wall'),roughness:.93}),black=mat(0x222222,.46,.25),frame=mat(0x343632,.45,.55),white=mat(0xd9d1c1,.84),wood=mat(0x895637,.6),mustard=mat(0xb17a1a,.94),cushion=mat(0xc08a24,.95),glass=new T.MeshStandardMaterial({color:0xa9b9b3,transparent:true,opacity:.19,roughness:.16,metalness:.12,depthWrite:false}),warm=glow(0xfff1d5),dark=mat(0x302c29,.88),colliders=[],seats=[];
@@ -468,6 +574,7 @@ export function makeAcademy(scene){
  const chairFabric=mat(0x414143,.9),frosted=new T.MeshStandardMaterial({color:0xb7d0cd,transparent:true,opacity:.66,roughness:.84,depthWrite:false}),screen=mat(0x20272c,.48),greenLeaves=mat(0x658e58,.9);
  // Approved second-floor plan, using the real stair top as origin.
  const upstairs=buildApprovedUpper(g);
+ const ada=buildAda(g,colliders,seats);
  const {upperColliders,upperSeats}=upstairs;
  let hallLight=new T.PointLight(0xffecd2,14,19,1.3);hallLight.position.set(0,4.4,-6.2);g.add(hallLight);
  let corridorLight=new T.PointLight(0xffe2b6,8,13,1.4);corridorLight.position.set(ACADEMY_DOOR_X,3.7,4);g.add(corridorLight);
@@ -482,7 +589,7 @@ export function makeAcademy(scene){
   let sw=new T.Group();sw.position.set(c.x,c.y,c.z);sw.rotation.y=c.face;g.add(sw);box(sw,white,.135,.19,.035,0,0,0);c.rocker=box(sw,black,.075,.11,.038,0,0,.025);c.indicator=box(sw,new T.MeshBasicMaterial({color:0x77e6b2}),.023,.015,.009,0,.062,.049);c.handle=sw;c.approachX=c.x+(c.face>0?.40:-.40);
  }
  const lightBudget=createLightBudget(g,scene);
- return {upperColliders,upperSeats,level:0,door,plazaDoor,plazaOpen:false,plazaAngle:0,colliders,seats,circuits,open:false,angle:0,lightBudget,...approved,...upstairs};
+ return {upperColliders,upperSeats,level:0,door,plazaDoor,plazaOpen:false,plazaAngle:0,colliders,seats,circuits,open:false,angle:0,lightBudget,...approved,...upstairs,...ada};
 }
 export function doorNearby(state,x,z){return Math.abs(x-ACADEMY_DOOR_X)<1.6&&Math.abs(z)<1.7}
 export function advanceDoor(state,dt){state.angle=T.MathUtils.damp(state.angle,state.open?Math.PI*.53:0,7,dt);state.door.rotation.y=-state.angle;state.plazaAngle=T.MathUtils.damp(state.plazaAngle,state.plazaOpen?Math.PI*.53:0,7,dt);state.plazaDoor.rotation.y=-state.plazaAngle;for(const d of [...(state.interiorDoors||[]),...(state.upperDoors||[])]){d.angle=T.MathUtils.damp(d.angle,d.open?1.5:0,7,dt);d.leaf.rotation.y=-d.angle}}
@@ -504,6 +611,10 @@ export function academyWalkable(state,x,z,r=.27){
   if(![[0,0],[-r,0],[r,0],[0,-r],[0,r]].every(([dx,dz])=>state.upperAreas.some(a=>x+dx>=a.x0&&x+dx<=a.x1&&z+dz>=a.z0&&z+dz<=a.z1)))return false;
   if((state.upperDoors||[]).some(d=>d.angle<1.2&&(Math.abs(Math.sin(d.rot))>.5?Math.abs(x-d.x)<.10+r&&Math.abs(z-d.z)<.58+r:Math.abs(z-d.z)<.10+r&&Math.abs(x-d.x)<.58+r)))return false;
   return !hitsCollider(state.upperColliders,x,z,r);
+ }
+ if(inAdaAccess(x,z)&&x<ADA_DOOR_X-.03){
+  if((state.interiorDoors||[]).some(d=>d.angle<1.2&&(Math.abs(Math.sin(d.rot))>.5?Math.abs(x-d.x)<.10+r&&Math.abs(z-d.z)<.58+r:Math.abs(z-d.z)<.10+r&&Math.abs(x-d.x)<.58+r)))return false;
+  return !hitsCollider(state.colliders,x,z,r);
  }
  if(stair)return true;
  if(x>STAIR_LEFT-r&&x<STAIR_RIGHT+r&&z>=STAIR_TOP&&z<=STAIR_BOTTOM)return false;
@@ -527,5 +638,5 @@ export function nearestAcademySeat(state,x,z,maxDistance=1.55){let best=null;for
 export function nearbyLightSwitch(state,x,z,max=1.30){if(state.level===1)return null;let found=null,d=max;for(const c of state.circuits||[]){const n=Math.hypot(x-c.approachX,z-c.z);if(n<d&&academyWalkable(state,c.approachX,c.z)){let clear=true;for(let k=1;k<=10;k++){const t=k/10;if(!academyWalkable(state,x+(c.approachX-x)*t,z+(c.z-z)*t)){clear=false;break}}if(clear){d=n;found=c}}}return found}
 export function setLightCircuit(c,on){c.on=!!on;for(const a of c.lights)a.light.intensity=a.intensity*(c.on?1:0);for(const a of c.fixtures)a.material.color.copy(a.color).multiplyScalar(c.on?1:.035);c.rocker.rotation.x=c.on?-.15:.15;c.indicator.material.color.setHex(c.on?0x77e6b2:0x682e27)}
 
-export function academyGround(x,z,level=0){if(onAcademyStairs(x,z,-.03)){if(z>=STAIR_BOTTOM)return 0;if(z<=STAIR_TOP)return 2.96;const step=(STAIR_BOTTOM-STAIR_TOP)/16;return Math.min(2.96,Math.max(0,(Math.floor((STAIR_BOTTOM-z)/step)+1)*2.96/16))}if(level===1)return 2.96;if(z>=22.28)return -1.8;if(z<=18.68)return 0;return -1.8+.18*Math.min(10,Math.max(1,Math.floor((22.28-z)/.36)+1))}
+export function academyGround(x,z,level=0){if(level===0&&inAdaHall(x,z))return adaLayout.height(x-ADA_FRONT_X+1.5);if(onAcademyStairs(x,z,-.03)){if(z>=STAIR_BOTTOM)return 0;if(z<=STAIR_TOP)return 2.96;const step=(STAIR_BOTTOM-STAIR_TOP)/16;return Math.min(2.96,Math.max(0,(Math.floor((STAIR_BOTTOM-z)/step)+1)*2.96/16))}if(level===1)return 2.96;if(z>=22.28)return -1.8;if(z<=18.68)return 0;return -1.8+.18*Math.min(10,Math.max(1,Math.floor((22.28-z)/.36)+1))}
 export function plazaDoorNearby(state,x,z){return Math.abs(x-(.5+ENTRANCE_OFFSET))<1.65&&Math.abs(z-23)<1.65}
