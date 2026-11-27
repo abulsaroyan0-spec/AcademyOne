@@ -485,21 +485,35 @@ for(const a of data.items){const {x,y,z,w,h,d,c,rot=0}=a;
 
 
 const KITCHEN_X=ACADEMY_DOOR_X+(937-704)/21.2,KITCHEN_Z=(487-790)/21.2;
-export function inKitchen(x,z){return x>=KITCHEN_X-.15&&x<=KITCHEN_X+9.6&&Math.abs(z-KITCHEN_Z)<=3.7}
+const KITCHEN_WIDTH=7.4,KITCHEN_NORTH=-7.55,KITCHEN_SOUTH=1.78;
+export function inKitchen(x,z){return x>=KITCHEN_X-.15&&x<=KITCHEN_X+KITCHEN_WIDTH&&z>=KITCHEN_Z+KITCHEN_NORTH&&z<=KITCHEN_Z+KITCHEN_SOUTH}
 function kitchenLayout(){
  const items=[],solids=[],seats=[];
  const B=(x,y,z,w,h,d,c,block=false)=>{items.push({type:'box',x,y,z,w,h,d,c});if(block)solids.push({x:KITCHEN_X+x,z:KITCHEN_Z+z,w,d})};
  const C=(x,y,z,r,h,c,r2=r)=>items.push({type:'cyl',x,y,z,r,h,c,r2});
  const L=(x,y,z,color=0xfff2dd,intensity=7)=>items.push({type:'light',x,y,z,color,intensity});
  const S=(x,z,yaw,height,approaches,kind='chair')=>seats.push({kind,x:KITCHEN_X+x,z:KITCHEN_Z+z,height,yaw,computer:null,approaches:approaches.map(([a,b])=>({x:KITCHEN_X+a,z:KITCHEN_Z+b}))});
- B(4.8,-.08,0,9.6,.16,7.4,'ivory');B(4.8,2.86,0,9.6,.16,7.4,'ivory');
- for(let z of [-3.7,3.7]){B(4.8,1.43,z,9.6,2.86,.15,'ivory',true);B(4.8,.05,z*.975,9.48,.10,.025,'charcoal')}
- for(let z of [-2.17,2.17])B(0,1.43,z,.16,2.86,3.06,'ivory',true);B(0,2.62,0,.16,.48,1.28,'ivory');
- B(9.57,.18,0,.17,.36,7.4,'ivory',true);B(9.57,2.70,0,.16,.32,7.4,'ivory');
- for(let z of [-2.44,0,2.44]){B(9.57,1.50,z,.045,2.28,2.39,'window');B(9.55,1.07,z,.08,.075,2.39,'black')}
- for(let z of [-3.65,-1.22,1.22,3.65])B(9.53,1.50,z,.10,2.30,.09,'black');
- B(10.05,1.55,0,.08,2.70,7.4,'sky');for(let z of [-2.7,-.85,1.1,2.8]){B(10.0,1.37,z,.07,1.8,1.45,'building');B(9.94,1.48,z,.02,.82,.68,'blue')}
- for(let x=.6;x<9.6;x+=.6)B(x,.002,0,.012,.004,7.25,'grout');for(let z=-3;z<3.65;z+=.6)B(4.8,.003,z,9.48,.004,.012,'grout');
+ // Layout traced from the corrected plan: door stays fixed, room extends north.
+ const capture=()=>[items.length,solids.length,seats.length];
+ // Transform a whole furniture group, including its collision and seat approaches.
+ const move=(mark,dx,dz,scale=1)=>{
+  const map=(x,z)=>[z+dx,dz-x*scale];
+  for(const a of items.slice(mark[0])){[a.x,a.z]=map(a.x,a.z);if(a.type==='box'){[a.w,a.d]=[a.d,a.w*scale]}if(a.type==='stool')a.yaw+=Math.PI/2;}
+  for(const c of solids.slice(mark[1])){const p=map(c.x-KITCHEN_X,c.z-KITCHEN_Z);c.x=KITCHEN_X+p[0];c.z=KITCHEN_Z+p[1];[c.w,c.d]=[c.d,c.w*scale]}
+  for(const a of seats.slice(mark[2])){const p=map(a.x-KITCHEN_X,a.z-KITCHEN_Z);a.x=KITCHEN_X+p[0];a.z=KITCHEN_Z+p[1];a.yaw+=Math.PI/2;for(const p of a.approaches){const v=map(p.x-KITCHEN_X,p.z-KITCHEN_Z);p.x=KITCHEN_X+v[0];p.z=KITCHEN_Z+v[1]}}
+ };
+ const mid=(KITCHEN_NORTH+KITCHEN_SOUTH)/2,depth=KITCHEN_SOUTH-KITCHEN_NORTH;
+ B(3.7,-.08,mid,7.4,.16,depth,'ivory');B(3.7,2.86,mid,7.4,.16,depth,'ivory');
+ for(let z of [KITCHEN_NORTH,KITCHEN_SOUTH]){B(3.7,1.43,z,7.4,2.86,.15,'ivory',true);B(3.7,.05,z+(z<0?.09:-.09),7.25,.10,.025,'charcoal')}
+ for(const [lo,hi] of [[KITCHEN_NORTH,-.64],[.64,KITCHEN_SOUTH]]){B(0,1.43,(lo+hi)/2,.16,2.86,hi-lo,'ivory',true)}
+ B(0,2.62,0,.16,.48,1.28,'ivory');
+ // Full-height exterior glazing on the right side of the corrected plan.
+ B(7.37,.18,mid,.16,.36,depth,'ivory',true);B(7.37,2.70,mid,.16,.32,depth,'ivory');
+ for(let i=0;i<4;i++){let z=KITCHEN_NORTH+(i+.5)*depth/4;B(7.37,1.50,z,.045,2.28,depth/4-.05,'window');B(7.35,1.07,z,.08,.075,depth/4-.05,'black')}
+ for(let i=0;i<=4;i++)B(7.34,1.50,KITCHEN_NORTH+i*depth/4,.10,2.30,.09,'black');
+ B(7.85,1.55,mid,.08,2.70,depth,'sky');for(let i=0;i<4;i++){let z=KITCHEN_NORTH+(i+.5)*depth/4;B(7.8,1.37,z,.07,1.8,1.45,'building');B(7.74,1.48,z,.02,.82,.68,'blue')}
+ for(let x=.6;x<7.4;x+=.6)B(x,.002,mid,.012,.004,depth-.1,'grout');for(let z=KITCHEN_NORTH+.6;z<KITCHEN_SOUTH;z+=.6)B(3.7,.003,z,7.25,.004,.012,'grout');
+ const counterStart=capture();
  // Counter, graphite drawers, double sink and accessories.
  for(let x of [1.15,2,2.85,3.7,4.55,5.4,6.25,7.1]){B(x,.45,3.22,.84,.90,.72,'cabinet',true);let n=x<3||x>5.9?3:1;for(let j=0;j<n;j++){let h=.74/n,y=.13+(j+.5)*h;B(x,y,2.85,.80,h-.018,.035,'cabinet');B(x,y+h*.34,2.816,.50,.027,.035,'black')}}
  B(2.5,.94,3.22,3.56,.075,.79,'counter');B(6.66,.94,3.22,1.72,.075,.79,'counter');
@@ -519,27 +533,38 @@ function kitchenLayout(){
  B(8.43,1.44,2.71,.40,1,.025,'darkGlass');B(7.94,1.42,2.71,.29,.46,.025,'black');B(7.94,1.30,2.69,.20,.055,.025,'steel');for(let x of [8.12,8.25])B(x,1.39,2.67,.027,.59,.04,'black');B(7.86,1.69,2.68,.18,.24,.009,'white');
  C(1.05,1.10,3.23,.11,.24,'steel',.085);C(1.05,1.235,3.23,.071,.035,'black');B(1.18,1.11,3.23,.035,.19,.06,'black');
  for(let x of [1.5,3.4,6.8]){B(x,1.22,3.60,.22,.09,.035,'white');for(let dx of [-.055,.055])B(x+dx,1.22,3.578,.045,.045,.008,'charcoal')}
+ move(counterStart,3.69,2.17,.77);
  // White high table, metal stools and three green booth bays.
+ const islandStart=capture();
  B(4.8,1.04,.45,4.8,.065,1,'white',true);for(let x of [2.48,7.12])for(let z of [0,.9])B(x,.52,z,.055,1.04,.055,'black');for(let z of [0,.9])B(4.8,.12,z,4.65,.045,.045,'black');
  function stool(x,z,yaw,high=true){let h=high?.76:.47;items.push({type:'stool',x,z,yaw,h,c:high?'white':'charcoal'});solids.push({x:KITCHEN_X+x,z:KITCHEN_Z+z,w:.46,d:.46});let dx=Math.sin(yaw),dz=Math.cos(yaw);S(x,z,yaw,h+.035,[[x-dx*.78,z-dz*.78],[x+dz*.68,z-dx*.68],[x-dz*.68,z+dx*.68]])}
- for(let x of [2.9,3.85,4.8,5.75,6.7])stool(x,-.40,0);stool(7.60,.45,-Math.PI/2);
+ for(let x of [3.55,4.8,6.05]){stool(x,-.48,0);stool(x,1.38,Math.PI)}
  B(2.58,1.15,.45,.18,.17,.16,'white');
+ move(islandStart,4,3.19,.78);
+ const boothStart=capture();
  for(let x of [1.72,3.82,5.92]){
   B(x,.012,-2.47,1.98,.024,2.18,'charcoal');B(x,.75,-2.48,.90,.065,1.58,'cream',true);for(let z of [-2.99,-1.98])B(x,.36,z,.10,.72,.10,'black');
   for(let side of [-1,1]){let bx=x+side*.70;B(bx,.22,-2.49,.51,.44,1.78,'white',true);B(bx,.47,-2.49,.53,.11,1.78,'green');B(bx+side*.24,.78,-2.49,.13,.62,1.78,'green');for(let y of [1.30,1.95,2.55])B(bx+side*.27,y,-2.49,.10,.59,1.78,'acoustic');for(let z of [-2.18,-2.91])S(bx-side*.05,z,-side*Math.PI/2,.525,[[bx,-1.36],[bx-side*.3,-1.32]],'sofa')}
   B(x,1.50,-3.59,1.98,2.65,.12,'darkPanel');B(x,.86,-2.98,.15,.15,.12,'white');C(x,2.72,-2.47,.07,.055,'black');B(x,2.48,-2.47,.015,.46,.015,'black');items.push({type:'pendant',x,y:2.23,z:-2.47});L(x,2.12,-2.47,0xffd49c,4.2)
  }
  for(let x of [.70,2.77,4.87,6.94])B(x,1.42,-2.48,.075,2.84,2.16,'green',true);
+ move(boothStart,3.7,-.65,.80);
+ const windowDeskStart=capture();
  B(8.99,.78,-.6,.75,.07,4.65,'wood',true);for(let z of [-2.70,1.53])B(8.99,.38,z,.055,.76,.055,'black');for(let z of [-2.32,-1.20,-.08,1.05])stool(8.20,z,Math.PI/2,false);
+ move(windowDeskStart,5.2,1.95);
  // White open shelves, storage and waste bin.
+ const shelfStart=capture();
  B(8.43,1.18,-3.57,1.65,2.25,.045,'white');for(let x of [7.62,9.24])B(x,1.18,-3.29,.045,2.25,.60,'white',true);
  for(let y of [.72,1.34,1.99])B(8.43,y,-3.29,1.58,.045,.54,'white');for(let j=0;j<8;j++)B(7.83+j*.16,1.48,-3.29,.11,.23,.18,['cream','blue','yellow','white'][j%4]);
  B(7.9,.32,-3.25,.46,.64,.45,'cabinet',true);B(7.9,.65,-3.25,.49,.08,.48,'black');
- for(let x of [1.28,5.03])B(x,1.40,-1.02,.07,2.8,.07,'black',true);
- B(4.8,2.62,3.36,9.1,.27,.27,'charcoal');B(4.1,2.63,-3.35,7.8,.28,.29,'charcoal');
- for(let x of [1.3,3.8,6.2,8.6]){B(x,2.72,1.82,.16,.035,.16,'warm');L(x,2.61,1.82)}
- for(let z of [-.10,1]){B(4.8,2.61,z,4.9,.08,.075,'black');B(4.8,2.56,z,4.8,.025,.045,'warm')}
- for(let x of [2.35,7.25]){B(x,2.61,.45,.075,.08,1.10,'black');B(x,2.56,.45,.045,.025,1.02,'warm')}
+ move(shelfStart,4.15,1.80);
+ // Slim columns and lighting follow the corrected aisle layout.
+ for(let x of [1.00,3.9])B(x,1.4,-.78,.07,2.8,.07,'black',true);
+ B(7.03,2.62,mid,.27,.27,depth-.25,'charcoal');B(.22,2.63,mid,.28,.29,depth-.25,'charcoal');
+ for(let z of [-6,-3.8,-1.5,.85]){B(5.9,2.72,z,.16,.035,.16,'warm');L(5.9,2.61,z)}
+ for(let x of [3.90,5]){B(x,2.61,-.55,.075,.08,3.86,'black');B(x,2.56,-.55,.045,.025,3.78,'warm')}
+ for(let z of [-2.48,1.38]){B(4.45,2.61,z,1.10,.08,.075,'black');B(4.45,2.56,z,1.02,.025,.045,'warm')}
+ B(4.6,2.71,-7,.045,.06,.8,'black');L(4.6,2.63,-6.65);
  return {items,solids,seats};
 }
 function buildKitchen(parent,colliders,seats){
@@ -558,7 +583,7 @@ function buildKitchen(parent,colliders,seats){
   if(a.type==='stool'){let g=new T.Group();g.position.set(a.x,0,a.z);g.rotation.y=a.yaw;root.add(g);let h=a.h;let seat=mesh(g,new T.SphereGeometry(1,12,8),materials[a.c],0,h,0);seat.scale.set(.24,.045,.225);let back=mesh(g,new T.SphereGeometry(1,12,8),materials[a.c],0,h+.14,-.195);back.scale.set(.24,.18,.055);for(let xx of [-.17,.17])for(let zz of [-.16,.16]){let leg=B(g,xx,h/2,zz,.025,h,.025,'steel');leg.rotation.x=zz*.35;leg.rotation.z=-xx*.35}if(h>.6)B(g,0,.30,.17,.37,.022,.025,'steel')}
  }
  colliders.push(...data.solids);seats.push(...data.seats);
- return {kitchenRoot:root,kitchenBatchStats:batchGround(root,materials,[],[]),areas:[{x0:KITCHEN_X-.15,x1:KITCHEN_X+9.6,z0:KITCHEN_Z-3.7,z1:KITCHEN_Z+3.7,title:'Kitchen'}]};
+ return {kitchenRoot:root,kitchenBatchStats:batchGround(root,materials,[],[]),areas:[{x0:KITCHEN_X-.15,x1:KITCHEN_X+KITCHEN_WIDTH,z0:KITCHEN_Z+KITCHEN_NORTH,z1:KITCHEN_Z+KITCHEN_SOUTH,title:'Kitchen'}]};
 }
 
 export function makeAcademy(scene){
