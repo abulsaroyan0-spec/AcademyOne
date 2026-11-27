@@ -742,10 +742,17 @@ function buildKitchen(parent,colliders,seats){
    b(g,c,w,.045,depth,0,h,0);
   };
   upperProp([[430,115],[430,165],[430,310],[430,335]],.54,1.65,g=>{g.rotation.y=Math.PI/2;shelves(g,1.65,1.25,.54);planter(g,-.48,1.28,0,.13,.37);paper(g,.42,1.28,0,4)});
-  upperProp([[906,195],[906,245],[906,305],[902,360]],.55,1.25,g=>{g.rotation.y=-Math.PI/2;shelves(g,1.25,1.9,.55,true);b(g,'white',1.23,.61,.04,0,.31,.30);for(let x of [-.28,.28])b(g,'black',.024,.13,.035,x,.35,.33)});
+  upperProp([[430,205],[430,260],[430,305],[906,195],[906,245],[906,305],[902,360]],.55,1.25,g=>{g.rotation.y=-Math.PI/2;shelves(g,1.25,1.9,.55,true);b(g,'white',1.23,.61,.04,0,.31,.30);for(let x of [-.28,.28])b(g,'black',.024,.13,.035,x,.35,.33)});
   upperProp([[540,117],[650,117],[770,117]],.55,.55,g=>{b(g,'white',.55,.68,.55,0,.34,0);for(let i=0;i<3;i++){b(g,'grey',.50,.012,.015,0,.22+i*.20,.284);cy(g,'black',.014,.025,0,.13+i*.20,.29)}printer(g,0,.68,0)});
-  upperProp([[900,398],[857,397],[425,390],[420,365]],.45,.90,g=>{g.rotation.y=Math.PI/2;for(let side of [-1,1])b(g,'wood',.07,1.82,.08,side*.38,.91,-.18);for(let j=0;j<3;j++){let y=.40+j*.56;b(g,'wood',.90,.075,.09,0,y,-.18);for(let x of [-.29,0,.29])b(g,'wood',.09,.065,.23,x,y,.0);if(j<2)bag(g,j===0?-.23:.21,y-.31,.09)}});
+  upperProp([[425,390],[420,365],[430,325],[540,115],[650,115],[770,115]],.45,.90,g=>{g.rotation.y=Math.PI/2;for(let side of [-1,1])b(g,'wood',.07,1.82,.08,side*.38,.91,-.18);for(let j=0;j<3;j++){let y=.40+j*.56;b(g,'wood',.90,.075,.09,0,y,-.18);for(let x of [-.29,0,.29])b(g,'wood',.09,.065,.23,x,y,.0);if(j<2)bag(g,j===0?-.23:.21,y-.31,.09)}});
   for(const points of [[[545,117],[655,117],[770,117]],[[900,158],[901,282],[900,340]],[[430,128],[430,185],[430,335]]])upperProp(points,.44,.44,g=>{planter(g,0,0,0,.20,.76)});
+
+  // Restore visible vintage display components on the existing marble enclosure.
+  {let g=ground(598,652,0,Math.PI/2);
+   b(g,'cream',.48,.40,.42,-.24,1.18,.15);b(g,'grey',.41,.32,.035,-.24,1.20,.375);b(g,'black',.34,.24,.015,-.24,1.20,.397);
+   b(g,'cream',.45,.045,.19,-.24,1.01,.43);for(let i=0;i<5;i++)b(g,'grey',.39,.008,.015,-.24,1.037,.37+i*.027);
+   b(g,'grey',.23,.42,.34,.35,1.19,.14);b(g,'black',.18,.034,.018,.35,1.31,.32);cy(g,'green',.012,.012,.35,1.09,.32);
+  }
   // Colourful beanbag covers and cushions: detail on existing poufs only.
   for(const [i,a] of upperLayout.items.filter(a=>a.type==='pouf').entries()){let g=sub(a.x+STAIR_X,2.96,a.z+STAIR_TOP);for(let k=0;k<9;k++){let angle=k*2.399,x=Math.cos(angle)*.24,z=Math.sin(angle)*.24;let o=b(g,colours[(i+k)%colours.length],.085,.012,.085,x,.525,z);o.rotation.y=angle}}
   // Long exposed black ductwork and hanging strips in the double-height lounge.
@@ -924,7 +931,7 @@ export function nearbyLightSwitch(state,x,z,max=1.30){if(state.level===1)return 
 export function setLightCircuit(c,on){c.on=!!on;for(const a of c.lights)a.light.intensity=a.intensity*(c.on?1:0);for(const a of c.fixtures)a.material.color.copy(a.color).multiplyScalar(c.on?1:.035);c.rocker.rotation.x=c.on?-.15:.15;c.indicator.material.color.setHex(c.on?0x77e6b2:0x682e27)}
 
 export function academyTerrain(state,x,z){
- if(state.stairTravel)return academyGround(x,z,state.level);
+ if(state.stairTravel){const step=(STAIR_BOTTOM-STAIR_TOP)/16;return z>=STAIR_BOTTOM?0:z<=STAIR_TOP?2.96:Math.min(2.96,(Math.floor((STAIR_BOTTOM-z)/step)+1)*2.96/16)}
  if(state.level===1)return 2.96;
  if(inAdaHall(x,z))return adaLayout.height(x-ADA_FRONT_X+1.5);
  if(z<18.68)return 0;
