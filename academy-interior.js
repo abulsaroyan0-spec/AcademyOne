@@ -614,8 +614,8 @@ function buildKitchen(parent,colliders,seats){
 
 
  // Additive reference-video detail pass. No changes to approved geometry or seats.
- function addVideoDetails(parent,colliders,seats,areas){
-  const materials={black:mat(0x22272a,.82),grey:mat(0x777d80,.85),white:mat(0xf0eee5,.84),paper:mat(0xe7e2d6,.96),pink:mat(0xb52960,.86),blue:mat(0x375a79,.85),green:mat(0x669352,.91),leaf:mat(0x3f6941,.92),olive:mat(0x7d945e,.90),wood:mat(0x9a704b,.87),steel:mat(0x92999a,.36,.55),cream:mat(0xd0c7b3,.76),yellow:mat(0xd4b330,.8),warm:glow(0xffeed5)};
+ function addVideoDetails(parent,colliders,seats,areas,upperColliders,upperSeats,upperAreas){
+  const materials={black:mat(0x22272a,.82),grey:mat(0x777d80,.85),white:mat(0xf0eee5,.84),paper:mat(0xe7e2d6,.96),pink:mat(0xb52960,.86),blue:mat(0x375a79,.85),green:mat(0x669352,.91),leaf:mat(0x3f6941,.92),olive:mat(0x7d945e,.90),wood:mat(0x9a704b,.87),steel:mat(0x92999a,.36,.55),cream:mat(0xd0c7b3,.76),charcoal:mat(0x343639,.9),yellow:mat(0xd4b330,.8),warm:glow(0xffeed5)};
   let count=0;const added=[];const root=new T.Group();root.name='Reference video details';parent.add(root);
   const sub=(x,y,z,rot=0)=>{let g=new T.Group();g.position.set(x,y,z);g.rotation.y=rot;root.add(g);return g};
   const b=(g,c,w,h,d,x=0,y=0,z=0)=>{count++;return box(g,materials[c],w,h,d,x,y,z)};
@@ -626,11 +626,11 @@ function buildKitchen(parent,colliders,seats){
   const cup=(g,x,y,z,c='white')=>{cy(g,c,.041,.09,x,y+.045,z);cy(g,'grey',.033,.005,x,y+.092,z);b(g,c,.025,.044,.019,x+.047,y+.045,z)};
   const bag=(g,x,y,z,c='black')=>{b(g,c,.30,.36,.17,x,y+.18,z);b(g,c,.27,.12,.21,x,y+.105,z+.025);b(g,'grey',.22,.012,.025,x,y+.17,z+.12);for(let dx of [-.09,.09])b(g,'black',.035,.23,.026,x+dx,y+.18,z-.095);b(g,'black',.11,.035,.04,x,y+.37,z)};
   const planter=(g,x,y,z,r=.14,h=.40)=>{cy(g,'black',r,.20,x,y+.10,z);cy(g,'wood',r*.87,.015,x,y+.202,z);for(let i=0;i<9;i++){let a=i*2.399,rr=r*.78*(.45+(i%3)*.25);b(g,'leaf',.012,h*.68,.012,x+Math.cos(a)*rr*.35,y+.20+h*.34,z+Math.sin(a)*rr*.35);let o=mesh(g,new T.SphereGeometry(1,6,4),materials[i%3?'green':'olive'],x+Math.cos(a)*rr,y+.20+h*(.55+(i%4)*.12),z+Math.sin(a)*rr);o.scale.set(.055,.13,.032);o.rotation.z=Math.cos(a)*.95;o.rotation.x=Math.sin(a)*.85;count++}};
-  const floorProp=(x,z,w,d,as,build)=>{
+  const floorProp=(x,z,w,d,as,build,cs=colliders,ss=seats,base=0)=>{
    if(!as.some(a=>x-w/2>=a.x0+.12&&x+w/2<=a.x1-.12&&z-d/2>=a.z0+.12&&z+d/2<=a.z1-.12))return false;
-   if(colliders.some(c=>Math.abs(c.x-x)<(c.r??c.w/2)+w/2+.40&&Math.abs(c.z-z)<(c.r??c.d/2)+d/2+.40))return false;
-   if(seats.some(s=>Math.hypot(s.x-x,s.z-z)<.90||s.approaches.some(a=>Math.hypot(a.x-x,a.z-z)<.72)))return false;
-   const c={x,z,w,d};colliders.push(c);added.push(c);build(sub(x,0,z));return true;
+   if(cs.some(c=>Math.abs(c.x-x)<(c.r??c.w/2)+w/2+.40&&Math.abs(c.z-z)<(c.r??c.d/2)+d/2+.40))return false;
+   if(ss.some(s=>Math.hypot(s.x-x,s.z-z)<.90||s.approaches.some(a=>Math.hypot(a.x-x,a.z-z)<.72)))return false;
+   const c={x,z,w,d};cs.push(c);added.push({...c,level:base>0?1:0});build(sub(x,base,z));return true;
   };
   const ground=(x,z,y=0,rot=0)=>sub(ACADEMY_DOOR_X+(x-704)/21.2,y,(z-790)/21.2,rot);
   const world=(x,z)=>[ACADEMY_DOOR_X+(x-704)/21.2,(z-790)/21.2];
@@ -698,6 +698,70 @@ function buildKitchen(parent,colliders,seats){
   }
   // Kitchen footage: cutting board, tissues, additional small table accessories.
   {let g=sub(KITCHEN_X,0,KITCHEN_Z);b(g,'wood',.19,.018,.26,6.83,.988,-2.35);b(g,'cream',.17,.028,.11,6.84,1.006,-2.35);for(let z of [-2.026,-3.706,-5.386]){b(g,'white',.10,.08,.10,1.65,.822,z);b(g,'paper',.055,.025,.055,1.65,.874,z)}}
+
+  // IMG_3972: workstation desk mats, closed laptops, headphones, pens and mugs.
+  // Placement is constrained to the already existing desktop footprint.
+  const deskBounds=(d,x,z,w,dep)=>Math.abs(x-d.x)+w/2<=d.w/2-.025&&Math.abs(z-d.z)+dep/2<=d.d/2-.025;
+  const occupied=(arr,x,z,r)=>arr.some(p=>Math.hypot(p.x-x,p.z-z)<r);
+  const headset=(g,x,y,z)=>{for(let side of [-1,1]){let o=b(g,'black',.045,.045,.07,x+side*.065,y+.028,z);o.rotation.y=side*.12}
+   for(let i=0;i<9;i++){let a=i*Math.PI/8;b(g,'black',.023,.018,.025,x+Math.cos(a)*.064,y+.037,z+Math.sin(a)*.071)}};
+  const closedLaptop=(g,x,y,z)=>{b(g,'grey',.30,.024,.22,x,y+.012,z);b(g,'black',.29,.004,.21,x,y+.026,z);b(g,'white',.025,.004,.025,x,y+.03,z)};
+  const printer=(g,x,y,z)=>{b(g,'white',.42,.24,.35,x,y+.12,z);b(g,'grey',.39,.045,.32,x,y+.264,z);b(g,'black',.34,.035,.02,x,y+.16,z+.18);b(g,'paper',.21,.01,.24,x,y+.29,z-.035);b(g,'black',.085,.018,.06,x+.13,y+.292,z+.10);b(g,'green',.014,.004,.014,x+.15,y+.303,z+.10)};
+  for(const [layout,ox,oy,oz] of [[approvedLayout,ACADEMY_DOOR_X,0,0],[upperLayout,STAIR_X,2.96,STAIR_TOP]]){
+   const devices=layout.items.filter(a=>a.type==='pc'||a.type==='laptop'),desks=layout.items.filter(a=>a.type==='desk');
+   for(const [i,d] of desks.entries()){
+    if(d.z>0&&oy===0||d.w<.60||d.d<.60)continue;
+    const g=sub(d.x+ox,oy,d.z+oz),hw=d.w/2,hd=d.d/2;
+    // Pick unused areas instead of putting another laptop on top of a monitor.
+    let slots=[];for(let x=-hw+.23;x<=hw-.23;x+=.46)for(let z=-hd+.20;z<=hd-.20;z+=.40){
+     if(!occupied(devices,d.x+x,d.z+z,.42)&&deskBounds(d,d.x+x,d.z+z,.39,.31))slots.push([x,z]);
+    }
+    if(slots.length){let [x,z]=slots[Math.floor(slots.length/2)];if(i%4===0)closedLaptop(g,x,.783,z);else if(i%4===1)headset(g,x,.784,z);else if(i%4===2){cup(g,x,.783,z);b(g,'pink',.013,.011,.14,x+.12,.789,z)}else{paper(g,x,.783,z,3);b(g,'blue',.014,.014,.13,x+.13,.79,z)}}
+    if(oy&&d.d>5&&d.w>1){
+     // End drawers stay under the existing desktop, inside its collision.
+     for(let end of [-1,1]){let z=end*(hd-.30);b(g,'white',.48,.66,.54,0,.35,z);for(let k=0;k<3;k++){b(g,'white',.45,.19,.018,0,.13+k*.20,z+.28);cy(g,'black',.013,.025,0,.13+k*.20,z+.30)}
+      if(!occupied(devices,d.x,d.z+z,.50)){if(end===1&&i%2===0)printer(g,0,.783,z);else planter(g,0,.783,z,.13,.28)}
+     }
+    }
+   }
+   for(const [i,p] of devices.entries()){
+    let d=desks.find(d=>deskBounds(d,p.x,p.z,.26,.26));if(!d)continue;const angle=(p.rot||0)+(oy?Math.PI:0),g=sub(p.x+ox,oy,p.z+oz,angle);
+    // Mouse pad and visible USB cable confined to the safe side of the monitor.
+    let dx=Math.cos(angle)*.25+Math.sin(angle)*.12,dz=-Math.sin(angle)*.25+Math.cos(angle)*.12;
+    if(deskBounds(d,p.x+dx,p.z+dz,.22,.22)){b(g,'charcoal',.19,.005,.21,.25,.786,.12);mouse(g,.25,.791,.12)}
+   }
+  }
+  // Upper office reference: low book cabinets, printer stand, open white storage,
+  // coat hooks and plants. Use a free perimeter candidate; never shift furniture.
+  const up=(px,pz)=>[STAIR_X+(px-892)/24,STAIR_TOP+(pz-501)/24];
+  const upperProp=(points,w,d,build)=>{for(const [px,pz] of points){const [x,z]=up(px,pz);if(floorProp(x,z,w,d,upperAreas,build,upperColliders,upperSeats,2.96))return true}return false};
+  const colours=['blue','pink','cream','green','grey','yellow','black'];
+  const shelves=(g,w,h,depth,white=false)=>{
+   const c=white?'white':'wood';b(g,c,w,h,.045,0,h/2,-depth/2);for(let x of [-w/2+.025,w/2-.025])b(g,c,.05,h,depth,x,h/2,0);
+   for(let j=0;j<4;j++){let y=.10+j*(h-.16)/4;b(g,c,w,.045,depth,0,y,0);for(let i=0;i<Math.floor((w-.10)/.10);i++){let hh=.15+(i%4)*.035;b(g,colours[(i+j*2)%colours.length],.064,hh,.19,-w/2+.10+i*.10,y+.023+hh/2,.015)}}
+   b(g,c,w,.045,depth,0,h,0);
+  };
+  upperProp([[430,115],[430,165],[430,310],[430,335]],.54,1.65,g=>{g.rotation.y=Math.PI/2;shelves(g,1.65,1.25,.54);planter(g,-.48,1.28,0,.13,.37);paper(g,.42,1.28,0,4)});
+  upperProp([[906,195],[906,245],[906,305],[902,360]],.55,1.25,g=>{g.rotation.y=-Math.PI/2;shelves(g,1.25,1.9,.55,true);b(g,'white',1.23,.61,.04,0,.31,.30);for(let x of [-.28,.28])b(g,'black',.024,.13,.035,x,.35,.33)});
+  upperProp([[540,117],[650,117],[770,117]],.55,.55,g=>{b(g,'white',.55,.68,.55,0,.34,0);for(let i=0;i<3;i++){b(g,'grey',.50,.012,.015,0,.22+i*.20,.284);cy(g,'black',.014,.025,0,.13+i*.20,.29)}printer(g,0,.68,0)});
+  upperProp([[900,398],[857,397],[425,390],[420,365]],.45,.90,g=>{g.rotation.y=Math.PI/2;for(let side of [-1,1])b(g,'wood',.07,1.82,.08,side*.38,.91,-.18);for(let j=0;j<3;j++){let y=.40+j*.56;b(g,'wood',.90,.075,.09,0,y,-.18);for(let x of [-.29,0,.29])b(g,'wood',.09,.065,.23,x,y,.0);if(j<2)bag(g,j===0?-.23:.21,y-.31,.09)}});
+  for(const points of [[[545,117],[655,117],[770,117]],[[900,158],[901,282],[900,340]],[[430,128],[430,185],[430,335]]])upperProp(points,.44,.44,g=>{planter(g,0,0,0,.20,.76)});
+  // Colourful beanbag covers and cushions: detail on existing poufs only.
+  for(const [i,a] of upperLayout.items.filter(a=>a.type==='pouf').entries()){let g=sub(a.x+STAIR_X,2.96,a.z+STAIR_TOP);for(let k=0;k<9;k++){let angle=k*2.399,x=Math.cos(angle)*.24,z=Math.sin(angle)*.24;let o=b(g,colours[(i+k)%colours.length],.085,.012,.085,x,.525,z);o.rotation.y=angle}}
+  // Long exposed black ductwork and hanging strips in the double-height lounge.
+  const duct=(p,q,r=.19)=>{const start=new T.Vector3(...p),end=new T.Vector3(...q),v=end.clone().sub(start),m=mesh(root,new T.CylinderGeometry(r,r,v.length(),12),materials.black,...start.clone().add(end).multiplyScalar(.5).toArray());m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),v.normalize());count++;
+   for(let i=1;i<Math.ceil(v.length()/.48);i++){let t=i/Math.ceil(v.length()/.48),c=start.clone().lerp(end,t),o=mesh(root,new T.CylinderGeometry(r+.012,r+.012,.035,12),materials.grey,c.x,c.y,c.z);o.quaternion.copy(m.quaternion);count++}};
+  // No extra active lights: emissive fixtures and static geometry.
+  const lx=ACADEMY_DOOR_X;
+  duct([lx-4.9,5.10,-1.2],[lx-4.9,5.10,-8.5],.23);
+  duct([lx-4.9,5.10,-8.5],[lx-3.9,4.84,-9.4],.23);
+  duct([lx-3.9,4.84,-9.4],[lx+5.45,4.84,-9.4],.23);
+  duct([lx+5.45,4.84,-9.4],[lx+5.45,4.84,-1.2],.19);
+  for(let z of [-2.3,-4.75,-7.2]){let g=sub(lx,0,z);b(g,'black',8.0,.13,.08,0,4.86,0);for(let x of [-3.8,3.8])b(g,'black',.018,.56,.018,x,5.17,0);b(g,'warm',7.7,.025,.04,0,4.778,0)}
+  // Upper workspace ducts follow existing ceiling, with enough head clearance.
+  for(const px of [545,770]){let [x,z]=up(px,250);duct([x,5.54,z-5.5],[x,5.54,z+5.2],.13)}
+  for(const px of [488,602,718,834]){let [x,z]=up(px,246);let g=sub(x,2.96,z);for(let dz of [-2.2,2.2]){b(g,'black',1.8,.09,.06,0,2.57,dz);b(g,'warm',1.7,.017,.025,0,2.515,dz)}for(let dx of [-.9,.9]){b(g,'black',.06,.09,4.4,dx,2.57,0);b(g,'warm',.025,.017,4.35,dx,2.515,0);b(g,'black',.015,.25,.015,dx,2.72,0)}}
+
   return {root,stats:batchGround(root,materials,[],[]),count,added};
  }
 
@@ -807,7 +871,7 @@ export function makeAcademy(scene){
  const v=new T.Vector3();g.updateMatrixWorld(true);for(const c of circuits){c.on=true;c.lights=[];c.fixtures=[];g.traverse(o=>{for(let p=o;p;p=p.parent)if(p===upstairs.upperRoot)return;if(o.isLight&&c.test({position:o.getWorldPosition(v)}))c.lights.push({light:o,intensity:o.intensity});if(o.isMesh&&[warm,wallLamp,approved.fixtures].includes(o.material)&&c.test({position:o.getWorldPosition(v)})){o.material=o.material.clone();c.fixtures.push({material:o.material,color:o.material.color.clone()})}});
   let sw=new T.Group();sw.position.set(c.x,c.y,c.z);sw.rotation.y=c.face;g.add(sw);box(sw,white,.135,.19,.035,0,0,0);c.rocker=box(sw,black,.075,.11,.038,0,0,.025);c.indicator=box(sw,new T.MeshBasicMaterial({color:0x77e6b2}),.023,.015,.009,0,.062,.049);c.handle=sw;c.approachX=c.x+(c.face>0?.40:-.40);
  }
- const videoDetails=addVideoDetails(g,colliders,seats,approved.areas);
+ const videoDetails=addVideoDetails(g,colliders,seats,approved.areas,upperColliders,upperSeats,upstairs.upperAreas);
  const lightBudget=createLightBudget(g,scene);
  return {upperColliders,upperSeats,level:0,door,plazaDoor,plazaOpen:false,plazaAngle:0,colliders,seats,circuits,open:false,angle:0,lightBudget,videoDetailStats:{count:videoDetails.count,batch:videoDetails.stats},...approved,...upstairs,...ada,kitchenRoot:kitchen.kitchenRoot,kitchenBatchStats:kitchen.kitchenBatchStats};
 }
