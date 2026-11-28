@@ -119,10 +119,11 @@ const approvedLayout=(function(){
  D(514,211,686,227);for(let x of [548,595,631,667]){C(x,245,Math.PI);P(x,220,Math.PI)}
  D(876,223,915,235);C(896,255,Math.PI);P(896,228,Math.PI);
  // P: director's workstation, independent desk with monitor and plants.
- D(760,247,820,266);C(790,229,0);P(790,256,Math.PI);plant(X(749),Z(218));plant(X(831),Z(220));
+ D(760,247,820,266);C(790,229,0);P(790,256,Math.PI);for(let x of [749,831]){items.push({type:'directorPlanter',x:X(x),z:Z(256)});solids.push({x:X(x),z:Z(256),w:.48,d:.48})}
  B(729,203,743,221,1.45,2.90,'blue',true);
  items.push({type:'accentPattern',x:X(736),z:Z(221)+.008,w:M(14)});
  B(761,260,819,262,.48,.45,'white');
+ B(729,203,743,232,2.89,.025,'blue');
  // Ground workspace whiteboard on the wall adjoining the wood classroom.
  items.push({type:'board',x:X(384),z:Z(350),w:M(132),rot:Math.PI/2});
  // Office 1 / Office 2: carpet and counter follow the actual corrected shapes, even though
@@ -234,7 +235,12 @@ function createLightBudget(root,scene){
  }
  update(ACADEMY_DOOR_X,0,0);return {update,sourceCount:sources.point.length+sources.spot.length,activeCount:points.length+spots.length};
 }
+function campusPrivacyFilm(material){
+ const c=document.createElement('canvas');c.width=c.height=128;const ctx=c.getContext('2d'),im=ctx.createImageData(128,128);let seed=912;for(let i=0;i<im.data.length;i+=4){seed=(Math.imul(seed,1664525)+1013904223)>>>0;let v=224+(seed>>>27);im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}ctx.putImageData(im,0,0);const map=new T.CanvasTexture(c);map.colorSpace=T.SRGBColorSpace;map.wrapS=map.wrapT=T.RepeatWrapping;map.repeat.set(3,3);material.map=map;material.needsUpdate=true;
+}
 function addCampusFixtures(a,g,cube,plaque){
+ if(a.type==='directorPlanter'){for(let x of [-.21,.21])for(let z of [-.21,.21])cube(x,.55,z,.025,1.1,.025,'black',g);cube(0,1.1,0,.46,.045,.46,'black',g);cube(0,.035,0,.46,.035,.46,'black',g);cube(0,1.25,0,.33,.28,.33,'charcoal',g);for(let i=0;i<9;i++){let a=i*2.399,x=Math.sin(a)*.18,z=Math.cos(a)*.18;let stem=cube(x*.42,1.57,z*.42,.018,.49,.018,'green',g);stem.rotation.x=Math.cos(a)*.23;stem.rotation.z=-Math.sin(a)*.23;let leaf=cube(x,1.63+(i%3)*.12,z,.09,.24,.045,'green',g);leaf.rotation.z=-Math.sin(a)*.74;leaf.rotation.x=Math.cos(a)*.74;}}
+
  if(a.type==='board'){cube(0,1.55,0,a.w,1.18,.08,'black',g);cube(0,1.55,.055,a.w-.10,1.07,.035,'white',g);cube(0,.94,.09,a.w,.045,.12,'charcoal',g);cube(a.w*.3,.98,.12,.12,.028,.035,'blue',g)}
  if(a.type==='serviceDoor'){cube(0,1.13,.035,1.14,2.26,.07,'white',g);for(let x of [-.63,.63])cube(x,1.18,.04,.09,2.36,.14,'black',g);cube(0,2.35,.04,1.35,.09,.14,'black',g);cube(-.44,1.05,.11,.07,.27,.06,'black',g);let p=plaque(a.t,1.1,.19,'purple');p.position.set(0,2.53,.12);g.add(p)}
  if(a.type==='whiteShelf'){let w=a.w,d=a.d,c=a.wood?'wood':'white';cube(0,1.0,-d/2,w,2,.045,c,g);for(let x of [-w/2,w/2])cube(x,1,0,.04,2,d,c,g);for(let j=0;j<5;j++){let y=.10+j*.45;cube(0,y,0,w,.045,d,c,g);for(let k=0;k<Math.floor(w/.13);k++){let x=-w/2+.10+k*.13,h=.17+(k%3)*.06;if(j%2===0)cube(x,y+.025+h/2,0,.08,h,.23,['blue','wood','white','charcoal'][k%4],g);else for(let n=0;n<3;n++)cube(x,y+.03+n*.018,0,.12,.015,.21,'white',g)}}}
@@ -245,6 +251,7 @@ function buildApprovedGround(parent,colliders,seats){
  const scene=new T.Group();scene.position.x=ACADEMY_DOOR_X;parent.add(scene);const data=approvedLayout;
  const palette={ivory:0xe0dcd2,white:0xf3f3ed,black:0x252528,charcoal:0x414143,acoustic:0xb2ada5,concrete:0x77716b,wood:0xb77d47,olive:0x666e48,green:0x6eb954,blue:0x4286b1,yellow:0xd5b52a,old:0xc8c3af,marble:0xc4c1b7,warm:0xffebc6,pink:0xad2059,glass:0x98b6b8,frost:0xb7d0cd,privacy:0xc1c2bd,purple:0x783c99};
 const materials={};for(const [k,c] of Object.entries(palette))materials[k]=k==='warm'?new T.MeshBasicMaterial({color:c}):new T.MeshStandardMaterial({color:c,roughness:k==='wood'?.68:.84,transparent:k==='glass'||k==='frost'||k==='privacy',opacity:k==='glass'?.24:k==='frost'?.66:k==='privacy'?.96:1,depthWrite:k!=='glass'&&k!=='frost'&&k!=='privacy'});
+if(materials.privacy)campusPrivacyFilm(materials.privacy);
 function cube(x,y,z,w,h,d,c,parent=scene){const o=new T.Mesh(new T.BoxGeometry(w,h,d),typeof c==='string'?materials[c]:c);o.position.set(x,y,z);parent.add(o);return o}
 function group(x,z,rot=0){const g=new T.Group();g.position.set(x,0,z);g.rotation.y=rot;scene.add(g);return g}
 const roof=[],doors=[],computers=[],staticDoorLeaves=[];const bookMaterials=[0x8b7a6a,0x7d8e9e,0xa89b7b,0x526d65,0x9b6058].map(c=>new T.MeshStandardMaterial({color:c}));const windowMaterial=new T.MeshStandardMaterial({color:0x84a5bf,roughness:.28,emissive:0x36516c,emissiveIntensity:.25}),blindMaterial=new T.MeshStandardMaterial({color:0x777a7d,roughness:1});let rng=123;const rand=()=>((rng=(Math.imul(rng,1664525)+1013904223)>>>0)/4294967296);
@@ -261,10 +268,10 @@ for(const a of data.items){if(a.type==='floor'&&a.z>0||a.type==='door'&&a.z===0|
    if(hi>boundary)cube(x,y,(Math.max(lo,boundary)+hi)/2,w,h,hi-Math.max(lo,boundary),c);
   }else{const o=cube(x,y,z,w,h,d,c);if(a.ceiling)roof.push(o)}
  }
- if(['board','serviceDoor','whiteShelf','accentPattern'].includes(a.type))addCampusFixtures(a,group(x,z,rot),cube,plaque);
+ if(['board','serviceDoor','whiteShelf','accentPattern','directorPlanter'].includes(a.type))addCampusFixtures(a,group(x,z,rot),cube,plaque);
  if(a.type==='sign'){let o=plaque(a.t,w,h,a.c);o.position.set(x,y,z);o.rotation.y=rot;scene.add(o)}
  if(a.type==='light'){const o=cube(x,y,z,a.kind==='rect'?2.3:.16,.035,a.kind==='rect'?1.1:.16,'warm');roof.push(o);if(a.kind!=='wall'){const p=new T.PointLight(0xffebd2,a.kind==='rect'?11:5,6,1.8);p.position.set(x,y-.13,z);scene.add(p)}}
- if(a.type==='door'){let g=group(x,z,rot);for(let xx of [-.63,.63])cube(xx,1.18,0,.09,2.36,.14,'black',g);cube(0,2.35,0,1.35,.09,.14,'black',g);let leaf=new T.Group();leaf.position.x=.58;g.add(leaf);cube(-.58,1.13,0,1.14,2.26,.055,a.color==='glass'?'frost':'white',leaf);if(a.color==='glass'){for(let xx of [-1.12,-.04])cube(xx,1.13,.02,.08,2.26,.085,'black',leaf);for(let yy of [.06,2.2])cube(-.58,yy,.02,1.14,.12,.085,'black',leaf)}cube(-1.01,1.05,.06,.09,.32,.06,'black',leaf);if(a.t){let p=plaque(a.t,1.1,.19,a.t==='Ada Lovelace'?'wood':'pink');p.position.set(0,2.53,.095);g.add(p)}staticDoorLeaves.push({leaf});if(a.t!=='Staff only')doors.push({x:x+ACADEMY_DOOR_X,z,rot,leaf,open:false,angle:0})}
+ if(a.type==='door'){let g=group(x,z,rot);for(let xx of [-.63,.63])cube(xx,1.18,0,.09,2.36,.14,'black',g);cube(0,2.35,0,1.35,.09,.14,'black',g);let leaf=new T.Group();leaf.position.x=.58;g.add(leaf);cube(-.58,1.13,0,1.14,2.26,.055,a.color==='glass'?'glass':'white',leaf);if(a.color==='glass'){cube(-.58,1.35,0,1.06,1.60,.059,'privacy',leaf);for(let xx of [-1.12,-.04])cube(xx,1.13,.02,.08,2.26,.085,'black',leaf);for(let yy of [.06,2.2])cube(-.58,yy,.02,1.14,.12,.085,'black',leaf)}cube(-1.01,1.05,.06,.09,.32,.06,'black',leaf);if(a.t){let p=plaque(a.t,1.1,.19,a.t==='Ada Lovelace'?'wood':'pink');p.position.set(0,2.53,.095);g.add(p)}staticDoorLeaves.push({leaf});if(a.t!=='Staff only')doors.push({x:x+ACADEMY_DOOR_X,z,rot,leaf,open:false,angle:0})}
  if(a.type==='desk'){let g=group(x,z,rot);cube(0,.75,0,w,.065,d,a.col,g);for(let xx of [-w/2+.06,w/2-.06])for(let zz of [-d/2+.06,d/2-.06])cube(xx,.35,zz,.045,.70,.045,'black',g)}
  if(a.type==='chair'){let g=group(x,z,rot);cube(0,.47,0,.49,.10,.46,'charcoal',g);cube(0,.77,-.22,.46,.48,.055,'charcoal',g);for(let xx of [-.25,.25]){cube(xx,.62,-.03,.04,.24,.045,'black',g);cube(xx,.73,.03,.04,.05,.33,'black',g)}cylinder(0,.24,0,.04,.42,'black',g);for(let i=0;i<5;i++){let ang=i*Math.PI*2/5;let b=cube(Math.sin(ang)*.10,.06,Math.cos(ang)*.10,.035,.035,.26,'black',g);b.rotation.y=ang;cylinder(Math.sin(ang)*.23,.035,Math.cos(ang)*.23,.035,.06,'black',g)}}
  if(a.type==='pc'){let g=group(x,z,rot);const display=new T.MeshStandardMaterial({color:0x20272c,roughness:.48});cube(0,1.09,-.16,.51,.30,.055,display,g);computers.push({x,z,rot,display,on:false});cube(0,.90,-.16,.04,.18,.05,'black',g);cube(0,.795,-.16,.25,.025,.15,'black',g);cube(0,.79,.10,.32,.025,.12,'black',g)}
@@ -391,6 +398,7 @@ function buildApprovedUpper(parent){
  const scene=new T.Group();scene.position.set(STAIR_X,2.96,STAIR_TOP);parent.add(scene);const data=upperLayout;
  const palette={ivory:0xe0dcd2,white:0xf3f3ed,black:0x252528,charcoal:0x414143,concrete:0x77716b,wood:0xb77d47,olive:0x666e48,acoustic:0xc8c1b7,green:0x6eb954,blue:0x4286b1,yellow:0xd5b52a,old:0xc8c3af,marble:0xc4c1b7,warm:0xffebc6,pink:0xad2059,glass:0x98b6b8,frost:0xb7d0cd,privacy:0xc1c2bd,purple:0x783c99};
 const materials={};for(const [k,c] of Object.entries(palette))materials[k]=k==='warm'?new T.MeshBasicMaterial({color:c}):new T.MeshStandardMaterial({color:c,roughness:k==='wood'?.68:.84,transparent:k==='glass'||k==='frost'||k==='privacy',opacity:k==='glass'?.24:k==='frost'?.66:k==='privacy'?.96:1,depthWrite:k!=='glass'&&k!=='frost'&&k!=='privacy'});
+if(materials.privacy)campusPrivacyFilm(materials.privacy);
 function cube(x,y,z,w,h,d,c,parent=scene){const o=new T.Mesh(new T.BoxGeometry(w,h,d),typeof c==='string'?materials[c]:c);o.position.set(x,y,z);parent.add(o);return o}
 function group(x,z,rot=0){const g=new T.Group();g.position.set(x,0,z);g.rotation.y=rot;scene.add(g);return g}
 const roof=[],doors=[],computers=[];const windowMat=mat(0x84a5bf,.28),blindMat=mat(0x777a7d,1);windowMat.emissive.setHex(0x36516c);windowMat.emissiveIntensity=.25;let rng=123;const rand=()=>((rng=(Math.imul(rng,1664525)+1013904223)>>>0)/4294967296);
@@ -403,7 +411,7 @@ for(const a of data.items){const {x,y,z,w,h,d,c,rot=0}=a;
  if(a.type==='whiteShelf')addCampusFixtures(a,group(x,z,rot),cube,plaque);
  if(a.type==='sign'){let o=plaque(a.t,w,h,a.c);o.position.set(x,y,z);o.rotation.y=rot;scene.add(o)}
  if(a.type==='light'){const o=cube(x,y,z,a.kind==='rect'?2.3:.16,.035,a.kind==='rect'?1.1:.16,'warm');roof.push(o);const l=new T.PointLight(0xfff0d9,4.5,8,1.8);l.position.set(x,y-.13,z);scene.add(l);}
- if(a.type==='door'){let g=group(x,z,rot);for(let xx of [-.63,.63])cube(xx,1.18,0,.09,2.36,.14,'black',g);cube(0,2.35,0,1.35,.09,.14,'black',g);let leaf=new T.Group();leaf.position.x=.58;g.add(leaf);cube(-.58,1.13,0,1.14,2.26,.055,a.color==='glass'?'frost':'white',leaf);if(a.color==='glass'){for(let xx of [-1.12,-.04])cube(xx,1.13,.02,.08,2.26,.085,'black',leaf);for(let yy of [.06,2.2])cube(-.58,yy,.02,1.14,.12,.085,'black',leaf)}cube(-1.01,1.05,.06,.09,.32,.06,'black',leaf);if(a.t){let p=plaque(a.t,1.1,.19,a.t==='Ada Lovelace'?'wood':'pink');p.position.set(0,2.53,.095);g.add(p)}doors.push({x:x+STAIR_X,z:z+STAIR_TOP,rot,leaf,open:true,angle:1.5});leaf.rotation.y=-1.5}
+ if(a.type==='door'){let g=group(x,z,rot);for(let xx of [-.63,.63])cube(xx,1.18,0,.09,2.36,.14,'black',g);cube(0,2.35,0,1.35,.09,.14,'black',g);let leaf=new T.Group();leaf.position.x=.58;g.add(leaf);cube(-.58,1.13,0,1.14,2.26,.055,a.color==='glass'?'glass':'white',leaf);if(a.color==='glass'){cube(-.58,1.35,0,1.06,1.60,.059,'privacy',leaf);for(let xx of [-1.12,-.04])cube(xx,1.13,.02,.08,2.26,.085,'black',leaf);for(let yy of [.06,2.2])cube(-.58,yy,.02,1.14,.12,.085,'black',leaf)}cube(-1.01,1.05,.06,.09,.32,.06,'black',leaf);if(a.t){let p=plaque(a.t,1.1,.19,a.t==='Ada Lovelace'?'wood':'pink');p.position.set(0,2.53,.095);g.add(p)}doors.push({x:x+STAIR_X,z:z+STAIR_TOP,rot,leaf,open:true,angle:1.5});leaf.rotation.y=-1.5}
  if(a.type==='board'){let g=group(x,z,rot);cube(0,1.55,0,w,1.18,.08,'black',g);cube(0,1.55,.055,w-.10,1.07,.035,'white',g);cube(0,.94,.09,w,.045,.12,'charcoal',g);cube(w*.3,.98,.12,.12,.028,.035,'blue',g);cube(w*.35,.98,.12,.12,.028,.035,'pink',g)}
  if(a.type==='pouf'){let g=group(x,z,rot);cylinder(0,.24,0,.39,.48,'yellow',g);cylinder(0,.49,0,.385,.06,'yellow',g)}
  if(a.type==='laptop'){let g=group(x,z,rot+Math.PI);cube(0,.79,0,.32,.025,.25,'charcoal',g);const display=mat(0x20272c,.48);let lid=cube(0,.915,-.11,.32,.245,.022,display,g);computers.push({x,z,rot,display,on:false});lid.rotation.x=-.18;cube(0,.81,.03,.26,.008,.12,'black',g)}
@@ -504,6 +512,7 @@ function buildAda(parent,colliders,seats){
  const scene=new T.Group();scene.name='Ada Lovelace auditorium';scene.position.set(ADA_FRONT_X-1.5,0,ADA_RIGHT_Z+6);scene.rotation.y=Math.PI/2;parent.add(scene);const data=adaLayout;
  const palette={ivory:0xe0dcd2,white:0xf3f3ed,black:0x252528,charcoal:0x414143,step:0x85817b,chalk:0x323536,metal:0x9c9c99,concrete:0x77716b,wood:0xb77d47,olive:0x666e48,acoustic:0xc8c1b7,green:0x6eb954,blue:0x4286b1,yellow:0xd5b52a,old:0xc8c3af,marble:0xc4c1b7,warm:0xffebc6,pink:0xad2059,glass:0x98b6b8,frost:0xb7d0cd,privacy:0xc1c2bd,purple:0x783c99};
 const materials={};for(const [k,c] of Object.entries(palette))materials[k]=k==='warm'?new T.MeshBasicMaterial({color:c}):new T.MeshStandardMaterial({color:c,roughness:k==='wood'?.68:.84,transparent:k==='glass'||k==='frost'||k==='privacy',opacity:k==='glass'?.24:k==='frost'?.66:k==='privacy'?.96:1,depthWrite:k!=='glass'&&k!=='frost'&&k!=='privacy'});
+if(materials.privacy)campusPrivacyFilm(materials.privacy);
 function cube(x,y,z,w,h,d,c,parent=scene){const o=new T.Mesh(new T.BoxGeometry(w,h,d),typeof c==='string'?materials[c]:c);o.position.set(x,y,z);parent.add(o);return o}
 function group(x,z,rot=0){const g=new T.Group();g.position.set(x,0,z);g.rotation.y=rot;scene.add(g);return g}
 const roof=[],doors=[];let rng=123;const rand=()=>((rng=(Math.imul(rng,1664525)+1013904223)>>>0)/4294967296);
