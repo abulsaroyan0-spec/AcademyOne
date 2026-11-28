@@ -25,6 +25,20 @@ function fixClothing(model){
   else if(/body|skin|torso/.test(name)&&!m.transparent){m.polygonOffset=true;m.polygonOffsetFactor=1;m.polygonOffsetUnits=1;m.needsUpdate=true}
  }});
 }
+// Collision against the actual swinging leaf, not just the closed doorway.
+export function interviewDoorClear(state,x,z,r=.30){
+ for(const door of (state.level===1?state.upperDoors:state.interiorDoors)||[]){
+  const c=Math.cos(door.rot),s=Math.sin(door.rot),dx=x-door.x,dz=z-door.z,lx=c*dx-s*dz,lz=s*dx+c*dz;
+  if(Math.hypot(lx,lz)>2.1)continue;
+  const vx=-1.14*Math.cos(door.angle),vz=-1.14*Math.sin(door.angle),u=Math.max(0,Math.min(1,((lx-.58)*vx+lz*vz)/(1.14*1.14)));
+  if(Math.hypot(lx-.58-u*vx,lz-u*vz)<r+.07)return false;
+  if(Math.abs(lz)<r+.07&&Math.abs(Math.abs(lx)-.63)<r+.055)return false;
+ }
+ return true;
+}
+export function interviewPersonClear(p,x,z,others,min=.82){
+ return (others||[]).every(o=>{if(!o||Math.abs((o.y||0)-(p.y||0))>1.25)return true;const before=Math.hypot(p.x-o.x,p.z-o.z),after=Math.hypot(x-o.x,z-o.z);return after>=min||before<min&&after>before+1e-5});
+}
 const roomBounds={x0:448,x1:700,z0:415,z1:501};
 // Use existing meeting-room chairs, with reachable approach points. Route calculation
 // is on the live collision arrays; open doors are planned but only opened when needed.
@@ -32,7 +46,7 @@ export function planInterviewTravel(academy,player,teacher,walkable,stairs,stair
  const step=.15,k=(x,z)=>x+','+z,cell=p=>[Math.round(p.x/step),Math.round(p.z/step)];
  const state=l=>({...academy,level:l,stairTravel:false,interiorDoors:(academy.interiorDoors||[]).map(d=>({...d,angle:1.5})),upperDoors:(academy.upperDoors||[]).map(d=>({...d,angle:1.5}))});
  const states=[state(0),state(1)];
- const safe=(l,x,z)=>walkable(states[l],x,z,.27)&&(!stairs(x,z,-.02)||l===1&&z<=stairTop-.30);
+ const safe=(l,x,z)=>walkable(states[l],x,z,.27)&&interviewDoorClear(states[l],x,z,.30)&&(!stairs(x,z,-.02)||l===1&&z<=stairTop-.30);
  const line=(l,a,b)=>{const n=Math.max(1,Math.ceil(Math.hypot(a.x-b.x,a.z-b.z)/.03));let px=a.x,pz=a.z;for(let i=0;i<=n;i++){let f=i/n,x=a.x+(b.x-a.x)*f,z=a.z+(b.z-a.z)*f;if(!safe(l,x,z)||!moveWalkable(states[l],x,z,px,pz,.27))return false;px=x;pz=z}return true};
  function near(l,p){let [cx,cz]=cell(p);for(let n=0;n<=5;n++)for(let dx=-n;dx<=n;dx++)for(let dz=-n;dz<=n;dz++){if(Math.max(Math.abs(dx),Math.abs(dz))!==n)continue;let x=cx+dx,z=cz+dz;if(line(l,p,{x:x*step,z:z*step}))return [x,z]}return null}
  function search(l,start){const a=near(l,start);if(!a)return null;const q=[a],parents=new Map([[k(...a),null]]);for(let i=0;i<q.length&&i<110000;i++){let [x,z]=q[i];for(let [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){let nx=x+dx,nz=z+dz,key=k(nx,nz);if(parents.has(key)||!line(l,{x:x*step,z:z*step},{x:nx*step,z:nz*step}))continue;parents.set(key,[x,z]);q.push([nx,nz])}}return {parents,start,l}}
@@ -45,13 +59,28 @@ export function planInterviewTravel(academy,player,teacher,walkable,stairs,stair
  const p=full(player,academy.level,pair[0].approach),t=full(teacher.root.position,teacher.level||0,pair[1].approach);
  return p&&t?{playerRoute:p,teacherRoute:t,playerSeat:pair[0],teacherSeat:pair[1]}:null;
 }
-export function stepInterviewRoute(agent,route,dt,state,walkable,advance,terrain,rate=1.25){
+export function stepInterviewRoute(agent,route,dt,state,walkable,advance,terrain,rate=1.25,others=[]){
  const p=agent.position;while(route.length&&Math.hypot(p.x-route[0].x,p.z-route[0].z)<1e-6)route.shift();if(!route.length)return {speed:0,done:true};
  const goal=route[0],dx=goal.x-p.x,dz=goal.z-p.z,d=Math.hypot(dx,dz),a=Math.min(d,rate*dt),nx=p.x+dx/d*a,nz=p.z+dz/d*a;
- for(const door of (state.level===1?state.upperDoors:state.interiorDoors)||[])if(Math.hypot(door.x-p.x,door.z-p.z)<1.5)door.open=true;
- if(!walkable(state,nx,nz,p.x,p.z,.27))return {speed:0,done:false,blocked:true};
- advance(state,p.x,p.z,nx,nz);p.x=a===d?goal.x:nx;p.z=a===d?goal.z:nz;p.y=terrain(state,p.x,p.z);const angle=Math.atan2(dx,dz),delta=Math.atan2(Math.sin(angle-agent.rotation.y),Math.cos(angle-agent.rotation.y));agent.rotation.y+=delta*(1-Math.exp(-dt*12));
- return {speed:a/Math.max(dt,.001),done:false};
+ for(const door of (state.level===1?state.upperDoors:state.interiorDoors)||[]){
+  const distance=Math.hypot(door.x-p.x,door.z-p.z);
+  if(distance<2.0)door.open=true;
+  if(distance<1.35&&door.angle<1.47)return {speed:0,done:false,waiting:true};
+ }
+ const clear=(x,z)=>walkable(state,x,z,p.x,p.z,.27)&&interviewDoorClear(state,x,z,.30);
+ if(!clear(nx,nz))return {speed:0,done:false,blocked:true};
+ let x=nx,z=nz;
+ if(!interviewPersonClear(p,x,z,others)){
+  // Yield instead of overlapping. If the other character is approaching head-on,
+  // take a small safe lateral step away; keep the original destination.
+  const near=others.filter(o=>o&&Math.abs((o.y||0)-(p.y||0))<=1.25).sort((u,v)=>Math.hypot(p.x-u.x,p.z-u.z)-Math.hypot(p.x-v.x,p.z-v.z))[0];
+  const dist=near?Math.hypot(p.x-near.x,p.z-near.z):Infinity;
+  if(dist>.95||!near)return {speed:0,done:false,waiting:true};
+  let options=[];for(const side of [-1,1]){const sx=p.x-side*dz/d*a,sz=p.z+side*dx/d*a;if(clear(sx,sz)&&interviewPersonClear(p,sx,sz,others)&&Math.hypot(sx-near.x,sz-near.z)>dist+.002)options.push({x:sx,z:sz,gap:Math.hypot(sx-near.x,sz-near.z)})}
+  if(!options.length)return {speed:0,done:false,waiting:true};options.sort((u,v)=>v.gap-u.gap);x=options[0].x;z=options[0].z;
+ }
+ advance(state,p.x,p.z,x,z);const angle=Math.atan2(x-p.x,z-p.z),speed=Math.hypot(x-p.x,z-p.z)/Math.max(dt,.001);p.x=x===nx&&a===d?goal.x:x;p.z=z===nz&&a===d?goal.z:z;p.y=terrain(state,p.x,p.z);const delta=Math.atan2(Math.sin(angle-agent.rotation.y),Math.cos(angle-agent.rotation.y));agent.rotation.y+=delta*(1-Math.exp(-dt*12));
+ return {speed,done:false};
 }
 
 export function makeInstructorWorld({scene,academy,loader,fit,walkable,stairs,alive,dispose,moveWalkable,advanceFloor,terrain}){
@@ -65,9 +94,9 @@ export function makeInstructorWorld({scene,academy,loader,fit,walkable,stairs,al
  // Load one at a time to reduce memory/CPU spikes. No entry in the player catalogue.
  (async()=>{for(const info of instructors){if(disposed||!alive())return;try{const g=await loader.loadAsync('/avatar-models/'+info.model+'.glb');if(disposed||!alive()){dispose(g.scene);return}fixClothing(g.scene);let root=fit(g.scene),a=nearest(...info.start);if(!a){dispose(root);continue}root.position.set(a[0]*step,0,a[1]*step);root.add(label(info));scene.add(root);let mixer=new THREE.AnimationMixer(g.scene),idle=inPlaceClip(g.animations.find(c=>/idle|stand/i.test(c.name)),g.scene),walk=inPlaceClip(g.animations.find(c=>/walk/i.test(c.name)&&!/back|turn/i.test(c.name)),g.scene),sit=g.animations.find(c=>/sit.*idle|idle.*sit|seated|^sit$/i.test(c.name));let n={info,root,mixer,idle:idle&&mixer.clipAction(idle),walk:walk&&mixer.clipAction(walk),sit:sit&&mixer.clipAction(sit),route:[],next:0,pause:2,moving:false,level:0,travel:null,seated:false};n.idle?.play();items.push(n)}catch(e){console.warn('Instructor asset unavailable',info.id,e.message)}}})();
  function nearby(player){if(!player)return null;return items.filter(n=>n.level===academy.level&&!n.seated&&Math.hypot(n.root.position.x-player.x,n.root.position.z-player.z)<1.65).sort((a,b)=>a.root.position.distanceToSquared(player)-b.root.position.distanceToSquared(player))[0]||null}
- function update(dt,player,selected){for(const n of items){const p=n.root.position;let moving=false;if(n.travel){const t=n.travel;if(t.delay>0){t.delay-=dt;n.mixer.update(dt);continue}const res=stepInterviewRoute(n.root,t.route,dt,t.state,moveWalkable,advanceFloor,terrain,1.24);n.level=t.state.level;if(res.blocked)t.blocked+=dt;else t.blocked=0;if(t.blocked>5){t.failed=true;n.travel=null;}else if(res.done){n.travel=null;n.seated=true;n.seat=t.seat;n.seatApproach=t.approach;n.root.rotation.y=t.seat.yaw;n.root.position.set(t.seat.x,2.96,t.seat.z);n.mixer.stopAllAction();if(n.sit)n.sit.reset().play();else{poseSeated(n);}n.moving=false;t.done=true;}else moving=res.speed>.01;if(n.travel||n.seated){if(n.travel&&moving!==n.moving){n.moving=moving;n.mixer.stopAllAction();(moving?n.walk:n.idle)?.reset().play()}n.mixer.update(dt);continue}}if(n.seated){n.mixer.update(dt);continue}if(n.level===1){n.mixer.update(dt);continue}n.pause=Math.max(0,n.pause-dt);const close=academy.level===0&&player&&Math.hypot(p.x-player.x,p.z-player.z)<1.05;if(selected===n.info.id||close){if(player){let t=Math.atan2(player.x-p.x,player.z-p.z),d=Math.atan2(Math.sin(t-n.root.rotation.y),Math.cos(t-n.root.rotation.y));n.root.rotation.y+=d*Math.min(1,dt*5)}}else if(n.walk&&!n.pause){if(!n.route.length){n.route=path(n);n.pause=n.route.length<2?3:.12}else{const [x,z]=n.route[0],dx=x-p.x,dz=z-p.z,d=Math.hypot(dx,dz);if(d<.035){n.route.shift();if(!n.route.length)n.pause=2.3}else{const a=Math.min(.9*dt,d),nx=p.x+dx/d*a,nz=p.z+dz/d*a;if(safe(nx,nz)&&!(academy.level===0&&player&&Math.hypot(nx-player.x,nz-player.z)<.8)&&!items.some(b=>b!==n&&Math.hypot(nx-b.root.position.x,nz-b.root.position.z)<.7)){p.x=nx;p.z=nz;moving=true;const t=Math.atan2(dx,dz),delta=Math.atan2(Math.sin(t-n.root.rotation.y),Math.cos(t-n.root.rotation.y));n.root.rotation.y+=delta*Math.min(1,dt*9)}else{n.pause=1;n.route=[]}}}}
+ function update(dt,player,selected){for(const n of items){const p=n.root.position;let moving=false;if(n.travel){const t=n.travel;if(t.delay>0){t.delay-=dt;n.mixer.update(dt);continue}const res=stepInterviewRoute(n.root,t.route,dt,t.state,moveWalkable,advanceFloor,terrain,1.24,[player,...items.filter(b=>b!==n).map(b=>b.root.position)]);n.level=t.state.level;if(res.blocked||res.waiting)t.blocked+=dt;else t.blocked=0;if(t.blocked>18){t.failed=true;n.travel=null;}else if(res.done){n.travel=null;n.seated=true;n.seat=t.seat;n.seatApproach=t.approach;n.root.rotation.y=t.seat.yaw;n.root.position.set(t.seat.x,2.96,t.seat.z);n.mixer.stopAllAction();if(n.sit)n.sit.reset().play();else{poseSeated(n);}n.moving=false;t.done=true;}else moving=res.speed>.01;if(n.travel||n.seated){if(n.travel&&moving!==n.moving){n.moving=moving;n.mixer.stopAllAction();(moving?n.walk:n.idle)?.reset().play()}n.mixer.update(dt);continue}}if(n.seated){n.mixer.update(dt);continue}if(n.level===1){n.mixer.update(dt);continue}n.pause=Math.max(0,n.pause-dt);const close=academy.level===0&&player&&Math.hypot(p.x-player.x,p.z-player.z)<1.05;if(selected===n.info.id||close){if(player){let t=Math.atan2(player.x-p.x,player.z-p.z),d=Math.atan2(Math.sin(t-n.root.rotation.y),Math.cos(t-n.root.rotation.y));n.root.rotation.y+=d*Math.min(1,dt*5)}}else if(n.walk&&!n.pause){if(!n.route.length){n.route=path(n);n.pause=n.route.length<2?3:.12}else{const [x,z]=n.route[0],dx=x-p.x,dz=z-p.z,d=Math.hypot(dx,dz);if(d<.035){n.route.shift();if(!n.route.length)n.pause=2.3}else{const a=Math.min(.9*dt,d),nx=p.x+dx/d*a,nz=p.z+dz/d*a;if(safe(nx,nz)&&interviewPersonClear(p,nx,nz,[player,...items.filter(b=>b!==n).map(b=>b.root.position)])){p.x=nx;p.z=nz;moving=true;const t=Math.atan2(dx,dz),delta=Math.atan2(Math.sin(t-n.root.rotation.y),Math.cos(t-n.root.rotation.y));n.root.rotation.y+=delta*Math.min(1,dt*9)}else{n.pause=1;n.route=[]}}}}
  if(moving!==n.moving){n.moving=moving;const next=moving?n.walk:n.idle,prev=moving?n.idle:n.walk;prev?.fadeOut(.2);next?.reset().fadeIn(.2).play()}n.mixer.update(dt)}}
- return {nearby,update,get(id){return items.find(n=>n.info.id===id)},beginTravel(id,route,seat,approach){const n=items.find(n=>n.info.id===id);if(!n)return null;n.seated=false;const t={route,seat,approach,delay:.85,state:{...academy,level:n.level,stairTravel:false},blocked:0,done:false,failed:false};n.travel=t;return t},release(id){const n=items.find(n=>n.info.id===id);if(!n)return;if(n.seated){n.seated=false;restorePose(n);const ap=n.seatApproach||n.seat;n.root.position.set(ap.x,2.96,ap.z);n.mixer.stopAllAction();n.idle?.reset().play();}},cancelTravel(id){const n=items.find(n=>n.info.id===id);if(n){n.travel=null;n.route=[];n.pause=2}},dispose(){disposed=true;for(const n of items)n.mixer.stopAllAction();items.length=0}}
+ return {nearby,update,positions(){return items.map(n=>n.root.position)},get(id){return items.find(n=>n.info.id===id)},beginTravel(id,route,seat,approach){const n=items.find(n=>n.info.id===id);if(!n)return null;n.seated=false;const t={route,seat,approach,delay:.85,state:{...academy,level:n.level,stairTravel:false},blocked:0,done:false,failed:false};n.travel=t;return t},release(id){const n=items.find(n=>n.info.id===id);if(!n)return;if(n.seated){n.seated=false;restorePose(n);const ap=n.seatApproach||n.seat;n.root.position.set(ap.x,2.96,ap.z);n.mixer.stopAllAction();n.idle?.reset().play();}},cancelTravel(id){const n=items.find(n=>n.info.id===id);if(n){n.travel=null;n.route=[];n.pause=2}},dispose(){disposed=true;for(const n of items)n.mixer.stopAllAction();items.length=0}}
 }
 // Render a small safe Markdown subset using DOM nodes only (no model-generated HTML).
 export function renderTeacherMarkdown(container,text){
