@@ -99,7 +99,7 @@ function toggleAcademyDoor(){if(seatAction||airborne||lightGesture||doorGesture|
  for(let pt of candidates){if(Math.sign(pt.z-z0)!==side||!academyWalkable(academy,pt.x,pt.z))continue;const d=Math.hypot(pt.x-pos.x,pt.z-pos.z);if(d<best){goal=pt;best=d}}
  if(!goal)return;doorGesture={time:0,approach:0,goal,side,fired:false,door,key,localHandle};moveX=moveZ=moveSpeed=0;
 }
-$('#doorAction').onclick=toggleAcademyDoor;
+$('#doorAction').onclick=interact;
 $('#waveAction').onclick=()=>motion?.wave();
 function interact(){
  if(instructorPanel.open||!$('#computerPanel').hidden)return;
