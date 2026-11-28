@@ -16,16 +16,17 @@ async function completion(messages,structured=false){const r=await request('chat
 export async function verifyGroq(){if(!process.env.GROQ_API_KEY){providerState='missing_key';return}try{const result=await completion([{role:'user',content:'Respond with only OK.'}]);providerState=result.trim()?'connected':'provider_error';console.log('AcademyOne Groq AI startup check:',providerState)}catch(e){console.warn('AcademyOne Groq AI startup check:',providerState)}}
 const publicQ=q=>({type:q.type,prompt:q.prompt,code:q.code||'',category:q.category});
 // Accept harmless model format variations, but never expose private rubrics.
-function normalizeQuestion(a){
+function normalizeQuestion(a,topic='Programming'){
  if(!a||typeof a!=='object')return null;
- let type=String(a.type||a.kind||'').toLowerCase().trim().replace(/[\s_-]+/g,' ');
- if(/^(theory|theoretical|conceptual|concept|conceptual question|explanation|theory question)$/.test(type))type='theory';
- else if(/^(code|coding|implementation|debugging|debug|write code|fix code|coding question|code question)$/.test(type))type='code';
- else if(/^(output|predict output|code output|output prediction|trace|tracing|what will it print)$/.test(type))type='output';
+ let type=String(a.type||a.kind||a.question_type||'').toLowerCase().trim().replace(/[\s_-]+/g,' ');
+ if(/^(theory|theoretical|conceptual|concept|conceptual question|explanation|theory question|տեսական|теория|теоретический)$/.test(type))type='theory';
+ else if(/^(code|coding|implementation|debugging|debug|write code|fix code|coding question|code question|կոդային|код|практический)$/.test(type))type='code';
+ else if(/^(output|predict output|code output|output prediction|trace|tracing|what will it print|output question|արդյունք|вывод)$/.test(type))type='output';
  else return null;
- const prompt=clean(a.prompt||a.question||a.text,1800),category=clean(a.category||a.subtopic||a.topic,100),rubric=clean(a.rubric||a.expected_answer||a.expectedAnswer||a.answer||a.scoring_criteria,2200);
+ const prompt=clean(a.prompt||a.question||a.text,1800),category=clean(a.category||a.subtopic||a.topic,100)||clean(topic,100);let criteria=a.rubric||a.expected_answer||a.expectedAnswer||a.answer||a.scoring_criteria;const rubric=clean(typeof criteria==='object'&&criteria!==null?JSON.stringify(criteria):criteria,2200);
  let code=clean(a.code||a.snippet||a.starter_code||a.starterCode,2400);
  if(code.startsWith('```'))code=code.replace(/^```[^\n]*\n/,'').replace(/\n?```$/,'').trim();
+ if(!code&&type==='output'){const block=prompt.match(/\x60{3}[^\n]*\n([\s\S]*?)\x60{3}/);if(block)code=clean(block[1],2400)}
  if(prompt.length<4||rubric.length<4||!category||['__proto__','constructor','prototype'].includes(category)||(type==='output'&&!code))return null;
  return {type,prompt,category,rubric,code:type==='theory'?'':code};
 }
@@ -36,11 +37,11 @@ async function generateInterview(topic,level,lang){
  for(let attempt=0;attempt<3&&questions.length<10;attempt++){
   const count=10-questions.length;
   let result;
-  try{result=await completion([{role:'system',content:base+' Generate exactly '+count+' distinct technical interview questions. Return only a JSON object {"questions":[{"type":"theory","prompt":"question","code":"","category":"subtopic","rubric":"private expected answer and grading criteria"}]}. Allowed type values are theory, code, output. Choose types according to topic, not a fixed mix; all theory is fine. For output questions supply complete code in the code field; for code questions starter code is optional. Every item needs all five string fields. Keep prompts and rubrics concise (1–4 sentences), do not include answers in prompts. Avoid ambiguous code; specify language/version when relevant. Write in '+language(lang)+'.'},{role:'user',content:JSON.stringify({topic,level,count,exclude:questions.map(q=>q.prompt)})}],true)}
+  try{result=await completion([{role:'system',content:base+' Generate exactly '+count+' distinct technical interview questions. Return only a JSON object {"questions":[{"type":"theory","prompt":"question","code":"","category":"subtopic","rubric":"private expected answer and grading criteria"}]}. JSON property names and type values MUST be in English, even for Armenian or Russian questions. Allowed type values are theory, code, output. Choose types according to topic, not a fixed mix; all theory is fine. For output questions supply complete code in the code field; for code questions starter code is optional. Every item needs all five string fields. Keep prompts and rubrics concise (1–4 sentences), do not include answers in prompts. Avoid ambiguous code; specify language/version when relevant. Write in '+language(lang)+'.'},{role:'user',content:JSON.stringify({topic,level,count,exclude:questions.map(q=>q.prompt)})}],true)}
   catch(e){if(e.status!==502||!(/invalid structured data|no answer/.test(e.message)))throw e;continue}
   const list=Array.isArray(result)?result:result?.questions;
   if(!Array.isArray(list))continue;
-  for(const raw of list){const q=normalizeQuestion(raw);if(!q)continue;const key=q.prompt.toLowerCase().replace(/[\s\p{P}]+/gu,'');if(seen.has(key))continue;seen.add(key);questions.push(q);if(questions.length===10)break}
+  for(const raw of list){const q=normalizeQuestion(raw,topic);if(!q)continue;const key=q.prompt.toLowerCase().replace(/[\s\p{P}]+/gu,'');if(seen.has(key))continue;seen.add(key);questions.push(q);if(questions.length===10)break}
   console.log('AcademyOne interview generation',attempt+1,'accepted',questions.length,'of 10');
  }
  if(questions.length!==10)throw fail(502,'The AI could not finish preparing 10 valid questions. Please retry; your topic and level are preserved.');
