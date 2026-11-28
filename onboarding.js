@@ -38,7 +38,7 @@ const instructorPanel=createInstructorPanel({api,onOpen(){keys.clear();moveX=mov
 function beginInstructorInterview(info){
  if(!academy||!hero||!motion||seatAction||interviewTravel)return false;
  const n=instructorWorld?.get(info.id);if(!n)return false;
- const plan=planInterviewTravel(academy,hero.position,n,academyWalkable,onAcademyStairs,STAIR_X,STAIR_TOP,STAIR_BOTTOM);if(!plan)return false;
+ const plan=planInterviewTravel(academy,hero.position,n,academyWalkable,onAcademyStairs,STAIR_X,STAIR_TOP,STAIR_BOTTOM,academyMoveWalkable);if(!plan)return false;
  const teacher=instructorWorld.beginTravel(info.id,plan.teacherRoute,plan.teacherSeat.seat,plan.teacherSeat.approach);if(!teacher)return false;
  interviewTravel={info,route:plan.playerRoute,seat:plan.playerSeat,teacher,blocked:0,arrived:false};keys.clear();moveX=moveZ=moveSpeed=0;sprintHeld=sprintToggle=false;return true
 }
